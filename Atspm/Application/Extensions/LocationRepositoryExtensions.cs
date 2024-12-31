@@ -42,6 +42,7 @@ namespace Utah.Udot.Atspm.Extensions
             if (sourceLocation != null)
             {
                 var newVersion = (Location)sourceLocation.Clone();
+                var dupeNewVersion = (Location)sourceLocation.Clone();
                 // Detach the original entity
 
                 newVersion.VersionAction = LocationVersionActions.NewVersion;
@@ -61,12 +62,19 @@ namespace Utah.Udot.Atspm.Extensions
                         detector.Id = 0;
                     }
                 }
-                foreach (var device in newVersion.Devices)
-                {
-                    device.Id = 0;
-                }
+
+                newVersion.Devices = null;
 
                 await repo.AddAsync(newVersion);
+
+                foreach (var device in dupeNewVersion.Devices)
+                {
+                    device.LocationId = newVersion.Id;
+                }
+
+                newVersion.Devices = dupeNewVersion.Devices;
+
+                await repo.UpdateAsync(newVersion);
 
                 return newVersion;
             }
