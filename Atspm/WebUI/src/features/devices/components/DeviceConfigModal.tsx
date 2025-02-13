@@ -30,13 +30,16 @@ interface ModalProps {
 // Define Zod schema for form validation
 const deviceConfigSchema = z.object({
   id: z.number().nullable().optional(),
-  firmware: z.string().min(1, 'Firmware is required'),
+  description: z.string().optional(), // Updated field from C# model
   notes: z.string().optional(),
   protocol: z.string(),
   port: z.number().nullable(),
-  directory: z.string(),
+  path: z.string(), // Renamed from directory to path
+  query: z.array(z.string()),
   connectionTimeout: z.number().nullable(),
   operationTimeout: z.number().nullable(),
+  loggingOffset: z.number().nullable(),
+  decoders: z.array(z.string()),
   userName: z.string(),
   password: z.string(),
   productId: z
@@ -66,17 +69,20 @@ const DeviceConfigModal = ({
   } = useForm<DeviceConfigFormData>({
     resolver: zodResolver(deviceConfigSchema),
     defaultValues: {
-      firmware: deviceConfiguration?.firmware || '',
+      description: deviceConfiguration?.description || '',
       notes: deviceConfiguration?.notes || '',
       protocol: deviceConfiguration?.protocol || '',
-      port: deviceConfiguration?.port || null,
-      directory: deviceConfiguration?.directory || '',
-      connectionTimeout: deviceConfiguration?.connectionTimeout,
-      operationTimeout: deviceConfiguration?.operationTimeout,
+      port: deviceConfiguration?.port ?? null,
+      path: deviceConfiguration?.path || '',
+      query: deviceConfiguration?.query || [],
+      connectionTimeout: deviceConfiguration?.connectionTimeout ?? null,
+      operationTimeout: deviceConfiguration?.operationTimeout ?? null,
+      loggingOffset: deviceConfiguration?.loggingOffset ?? null,
+      decoders: deviceConfiguration?.decoders || [],
       userName: deviceConfiguration?.userName || '',
       password: deviceConfiguration?.password || '',
-      productId: deviceConfiguration?.productId,
-      id: deviceConfiguration?.id,
+      productId: deviceConfiguration?.productId ?? null,
+      id: deviceConfiguration?.id ?? null,
     },
   })
 

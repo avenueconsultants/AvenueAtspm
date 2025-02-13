@@ -14,23 +14,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 // #endregion
+
 export interface DeviceConfiguration {
-  id: number
-  firmware: string
-  notes?: string
-  protocol: string
-  port: number
-  directory: string
-  searchTerms: string
-  connectionTimeout: number
-  operationTimeout: number
-  dataModel: string
-  userName: string
-  password: string
-  productId: number
-  product?: Product
-  productName?: string
+  id: number;
+  description?: string; 
+  notes?: string;
+  protocol: string; 
+  port: number;
+  connectionProperties: Record<string, any>;
+  path: string;
+  query: string[];
+  connectionTimeout: number;
+  operationTimeout: number;
+  loggingOffset: number; 
+  decoders: string[]; 
+  userName: string;
+  password: string;
+  productId?: number;
+  product?: Product;
+  devices?: Device[]; 
 }
+
 
 export interface Product {
   id: number | null

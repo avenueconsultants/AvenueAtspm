@@ -44,53 +44,22 @@ const DevicesAdmin = () => {
   } = useGetDeviceConfigurations()
   const deviceConfigurations = deviceConfigurationData?.value
 
-  const { data: productData, isLoading: productIsloading } = useGetProducts()
+  const { data: productData } = useGetProducts()
 
   if (pageAccess.isLoading) {
     return
   }
 
-  const HandleCreateDevice = async (
+  const handleCreateDeviceConfiguration = async (
     deviceConfigurationData: DeviceConfiguration
   ) => {
-    const {
-      firmware,
-      notes,
-      protocol,
-      port,
-      directory,
-      connectionTimeout,
-      operationTimeout,
-      userName,
-      password,
-      productId,
-    } = deviceConfigurationData
-
-    const sanitizedDeviceConfigurationData: Partial<DeviceConfiguration> = {}
-
-    if (firmware) sanitizedDeviceConfigurationData.firmware = firmware
-    if (notes) sanitizedDeviceConfigurationData.notes = notes
-    if (protocol) sanitizedDeviceConfigurationData.protocol = protocol
-    if (port) sanitizedDeviceConfigurationData.port = parseInt(port)
-    if (directory) sanitizedDeviceConfigurationData.directory = directory
-    if (connectionTimeout)
-      sanitizedDeviceConfigurationData.connectionTimeout =
-        parseInt(connectionTimeout)
-    if (operationTimeout)
-      sanitizedDeviceConfigurationData.operationTimeout =
-        parseInt(operationTimeout)
-    if (userName) sanitizedDeviceConfigurationData.userName = userName
-    if (password) sanitizedDeviceConfigurationData.password = password
-    if (productId)
-      sanitizedDeviceConfigurationData.productId = parseInt(productId)
-
     try {
-      await createMutation(sanitizedDeviceConfigurationData)
-      refetchDeviceConfiguration()
+      await createMutation(deviceConfigurationData);
+      refetchDeviceConfiguration();
     } catch (error) {
-      console.error('Mutation Error:', error)
+      console.error('Mutation Error:', error);
     }
-  }
+  };
 
   const HandleDeleteDevice = async (id: number) => {
     try {
@@ -101,53 +70,19 @@ const DevicesAdmin = () => {
     }
   }
 
-  const HandleEditDevice = async (
+  const handleEditDeviceConfiguration = async (
     deviceConfigurationData: DeviceConfiguration
   ) => {
-    const {
-      id,
-      firmware,
-      notes,
-      protocol,
-      port,
-      directory,
-      searchTerms,
-      connectionTimeout,
-      operationTimeout,
-      dataModel,
-      userName,
-      password,
-      productId,
-    } = deviceConfigurationData
-
-    const sanitizedDeviceConfigurationData: Partial<DeviceConfiguration> = {}
-
-    if (firmware) sanitizedDeviceConfigurationData.firmware = firmware
-    if (notes) sanitizedDeviceConfigurationData.notes = notes
-    if (protocol) sanitizedDeviceConfigurationData.protocol = protocol
-    if (port) sanitizedDeviceConfigurationData.port = parseInt(port)
-    if (directory) sanitizedDeviceConfigurationData.directory = directory
-    if (connectionTimeout)
-      sanitizedDeviceConfigurationData.connectionTimeout =
-        parseInt(connectionTimeout)
-    if (operationTimeout)
-      sanitizedDeviceConfigurationData.operationTimeout =
-        parseInt(operationTimeout)
-    if (userName) sanitizedDeviceConfigurationData.userName = userName
-    if (password) sanitizedDeviceConfigurationData.password = password
-    if (productId)
-      sanitizedDeviceConfigurationData.productId = parseInt(productId)
-
     try {
       await editMutation({
-        data: sanitizedDeviceConfigurationData,
-        id,
-      })
-      refetchDeviceConfiguration()
+        data: deviceConfigurationData,
+        id: deviceConfigurationData.id,
+      });
+      refetchDeviceConfiguration();
     } catch (error) {
-      console.error('Mutation Error:', error)
+      console.error('Mutation Error:', error);
     }
-  }
+  };
 
   const getProductDetails = (productId: number) => {
     const product = productData?.value.find((p) => p.id === productId)
@@ -192,29 +127,38 @@ const DevicesAdmin = () => {
   })
 
   const headers = [
-    'Firmware',
+    'Description',
     'Notes',
     'Protocol',
     'Port',
-    'Directory',
+    'Path',
+    'Query',
+    'Connection Properties',
     'Connection Timeout',
     'Operation Timeout',
+    'Logging Offset',
+    'Decoders',
     'Username',
     'Password',
     'Product Name',
-  ]
+  ];
+  
   const headerKeys = [
-    'firmware',
+    'description',
     'notes',
     'protocol',
     'port',
-    'directory',
+    'path',
+    'query',
+    'connectionProperties',
     'connectionTimeout',
     'operationTimeout',
+    'loggingOffset',
+    'decoders',
     'userName',
     'password',
     'productName',
-  ]
+  ];
 
   return (
     <ResponsivePageLayout title="Device Configurations" noBottomMargin>
@@ -228,14 +172,14 @@ const DevicesAdmin = () => {
         editModal={
           <DeviceConfigModal
             isOpen={true}
-            onSave={HandleEditDevice}
+            onSave={handleEditDeviceConfiguration}
             onClose={onModalClose}
           />
         }
         createModal={
           <DeviceConfigModal
             isOpen={true}
-            onSave={HandleCreateDevice}
+            onSave={handleCreateDeviceConfiguration}
             onClose={onModalClose}
           />
         }
@@ -244,7 +188,7 @@ const DevicesAdmin = () => {
             id={0}
             name={'test'}
             deleteLabel={(selectedRow: (typeof filteredData)[number]) =>
-              `${selectedRow.product?.manufacturer} ${selectedRow.product?.model} ${selectedRow.firmware}`
+              `${selectedRow.product?.manufacturer} ${selectedRow.product?.model}`
             }
             objectType="Device Configuration"
             open={false}
