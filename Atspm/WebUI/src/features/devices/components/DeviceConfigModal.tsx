@@ -2,23 +2,25 @@ import { DeviceConfiguration } from '@/features/devices/types/index'
 import { useGetProducts } from '@/features/products/api'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { z } from 'zod'
-
+import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
 import {
+  Box,
   Button,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   FormControl,
-  Grid,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
   TextField,
 } from '@mui/material'
 import { useEffect } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
+import { z } from 'zod'
 
 interface ModalProps {
   data?: DeviceConfiguration
@@ -65,6 +67,7 @@ const DeviceConfigModal = ({
     handleSubmit,
     setValue,
     watch,
+    control,
     formState: { errors },
   } = useForm<DeviceConfigFormData>({
     resolver: zodResolver(deviceConfigSchema),
@@ -116,6 +119,10 @@ const DeviceConfigModal = ({
       console.error('Error occurred while editing/creating device:', error)
     }
   }
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'query',
+  })
 
   return (
     <Dialog open={isOpen} onClose={onClose}>
@@ -125,139 +132,187 @@ const DeviceConfigModal = ({
 
       <DialogContent>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <TextField
-            {...register('firmware')}
-            autoFocus
-            margin="dense"
-            id="firmware"
-            label="Firmware"
-            type="text"
-            fullWidth
-            error={!!errors.firmware}
-            helperText={errors.firmware ? errors.firmware.message : ''}
-          />
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              {...register('description')}
+              autoFocus
+              margin="dense"
+              id="description"
+              label="Description"
+              type="text"
+              fullWidth
+              error={!!errors.description}
+              helperText={errors.description ? errors.description.message : ''}
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="product-label">Product</InputLabel>
+              <Select
+                labelId="product-label"
+                id="product-select"
+                label="Product"
+                error={!!errors.productId}
+                value={watch('productId') || ''}
+                onChange={(e) =>
+                  setValue('productId', Number(e.target.value), {
+                    shouldValidate: true,
+                  })
+                }
+              >
+                {productData?.value.map((product) => (
+                  <MenuItem key={product.id} value={product.id}>
+                    {product.model}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.productId && (
+                <p style={{ color: 'red', fontSize: '12px' }}>
+                  {errors.productId.message}
+                </p>
+              )}
+            </FormControl>
+          </Box>
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              {...register('path')}
+              margin="dense"
+              id="path"
+              label="Path"
+              type="text"
+              fullWidth
+            />
+          </Box>
+          {/* Query Fields Section */}
+          <Box sx={{ mt: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <InputLabel>Queries</InputLabel>
+              <IconButton
+                size="small"
+                onClick={() => append('')}
+                sx={{ ml: 1 }}
+              >
+                <AddIcon />
+              </IconButton>
+            </Box>
+            {fields.map((field, index) => (
+              <Box
+                key={field.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 1,
+                }}
+              >
+                <TextField
+                  {...register(`query.${index}`)}
+                  margin="dense"
+                  label={`Query ${index + 1}`}
+                  fullWidth
+                  error={!!errors.query?.[index]}
+                  helperText={
+                    errors.query?.[index] ? errors.query[index].message : ''
+                  }
+                />
+                <IconButton
+                  size="small"
+                  onClick={() => remove(index)}
+                  sx={{ mt: 1 }}
+                  disabled={fields.length === 1}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              {...register('port', { valueAsNumber: true })}
+              margin="dense"
+              id="port"
+              label="Port"
+              type="number"
+              fullWidth
+              error={!!errors.port}
+              helperText={errors.port ? errors.port.message : ''}
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="protocol-label">Protocol</InputLabel>
+              <Select
+                labelId="protocol-label"
+                id="protocol-select"
+                label="Protocol"
+                error={!!errors.protocol}
+                value={watch('protocol') || ''}
+                onChange={(e) => setValue('protocol', e.target.value)}
+              >
+                {transportProtocols?.map((protocol) => (
+                  <MenuItem key={protocol.value} value={protocol.name}>
+                    {protocol.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.protocol && (
+                <p style={{ color: 'red', fontSize: '12px' }}>
+                  {errors.protocol.message}
+                </p>
+              )}
+            </FormControl>
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              {...register('connectionTimeout', { valueAsNumber: true })}
+              margin="dense"
+              id="connectionTimeout"
+              label="Connection Timeout"
+              type="number"
+              fullWidth
+              error={!!errors.connectionTimeout}
+              helperText={
+                errors.connectionTimeout ? errors.connectionTimeout.message : ''
+              }
+            />
+            <TextField
+              {...register('operationTimeout', { valueAsNumber: true })}
+              margin="dense"
+              id="operationTimeout"
+              label="Operation Timeout"
+              type="number"
+              fullWidth
+              error={!!errors.operationTimeout}
+              helperText={
+                errors.operationTimeout ? errors.operationTimeout.message : ''
+              }
+            />
+          </Box>
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <TextField
+              {...register('userName')}
+              margin="dense"
+              id="userName"
+              label="Username"
+              type="text"
+              fullWidth
+            />
+            <TextField
+              {...register('password')}
+              margin="dense"
+              id="password"
+              label="Password"
+              type="text"
+              fullWidth
+            />
+          </Box>
           <TextField
             {...register('notes')}
             margin="dense"
             id="notes"
             label="Notes"
             type="text"
+            rows={3}
+            multiline
             fullWidth
           />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="protocol-label">Protocol</InputLabel>
-            <Select
-              labelId="protocol-label"
-              id="protocol-select"
-              label="Protocol"
-              error={!!errors.protocol}
-              value={watch('protocol') || ''}
-              onChange={(e) => setValue('protocol', e.target.value)}
-            >
-              {transportProtocols?.map((protocol) => (
-                <MenuItem key={protocol.value} value={protocol.name}>
-                  {protocol.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.protocol && (
-              <p style={{ color: 'red', fontSize: '12px' }}>
-                {errors.protocol.message}
-              </p>
-            )}
-          </FormControl>
-          <TextField
-            {...register('port', { valueAsNumber: true })}
-            margin="dense"
-            id="port"
-            label="Port"
-            type="number"
-            fullWidth
-            error={!!errors.port}
-            helperText={errors.port ? errors.port.message : ''}
-          />
-          <TextField
-            {...register('directory')}
-            margin="dense"
-            id="directory"
-            label="Directory"
-            type="text"
-            fullWidth
-          />
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <TextField
-                {...register('connectionTimeout', { valueAsNumber: true })}
-                margin="dense"
-                id="connectionTimeout"
-                label="Connection Timeout"
-                type="number"
-                fullWidth
-                error={!!errors.connectionTimeout}
-                helperText={
-                  errors.connectionTimeout
-                    ? errors.connectionTimeout.message
-                    : ''
-                }
-              />
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                {...register('operationTimeout', { valueAsNumber: true })}
-                margin="dense"
-                id="operationTimeout"
-                label="Operation Timeout"
-                type="number"
-                fullWidth
-                error={!!errors.operationTimeout}
-                helperText={
-                  errors.operationTimeout ? errors.operationTimeout.message : ''
-                }
-              />
-            </Grid>
-          </Grid>
-          <TextField
-            {...register('userName')}
-            margin="dense"
-            id="userName"
-            label="Username"
-            type="text"
-            fullWidth
-          />
-          <TextField
-            {...register('password')}
-            margin="dense"
-            id="password"
-            label="Password"
-            type="text"
-            fullWidth
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel id="product-label">Product</InputLabel>
-            <Select
-              labelId="product-label"
-              id="product-select"
-              label="Product"
-              error={!!errors.productId}
-              value={watch('productId') || ''}
-              onChange={(e) =>
-                setValue('productId', Number(e.target.value), {
-                  shouldValidate: true,
-                })
-              }
-            >
-              {productData?.value.map((product) => (
-                <MenuItem key={product.id} value={product.id}>
-                  {product.model}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.productId && (
-              <p style={{ color: 'red', fontSize: '12px' }}>
-                {errors.productId.message}
-              </p>
-            )}
-          </FormControl>
           <DialogActions>
             <Button onClick={onClose}>Cancel</Button>
             <Button variant="contained" type="submit">
