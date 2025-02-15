@@ -2,7 +2,6 @@ import { DeviceConfiguration } from '@/features/devices/types/index'
 import { useGetProducts } from '@/features/products/api'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { zodResolver } from '@hookform/resolvers/zod'
-import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Box,
@@ -38,6 +37,20 @@ const deviceConfigSchema = z.object({
   port: z.number().nullable(),
   path: z.string(), // Renamed from directory to path
   query: z.array(z.string()),
+  connectionProperties: z
+    .array(
+      z.object({
+        key: z.string().min(1, 'Key is required'),
+        value: z.string(), // adjust as needed (e.g., make optional)
+      })
+    )
+    // Optionally transform the array into an object:
+    .transform((arr) =>
+      arr.reduce<Record<string, any>>((acc, { key, value }) => {
+        if (key) acc[key] = value
+        return acc
+      }, {})
+    ),
   connectionTimeout: z.number().nullable(),
   operationTimeout: z.number().nullable(),
   loggingOffset: z.number().nullable(),
@@ -77,9 +90,19 @@ const DeviceConfigModal = ({
       protocol: deviceConfiguration?.protocol || '',
       port: deviceConfiguration?.port ?? null,
       path: deviceConfiguration?.path || '',
-      query: deviceConfiguration?.query || [],
+      query:
+        deviceConfiguration?.query && deviceConfiguration.query.length > 0
+          ? deviceConfiguration.query
+          : [''],
       connectionTimeout: deviceConfiguration?.connectionTimeout ?? null,
       operationTimeout: deviceConfiguration?.operationTimeout ?? null,
+      connectionProperties:
+        deviceConfiguration?.connectionProperties &&
+        Object.keys(deviceConfiguration.connectionProperties).length > 0
+          ? Object.entries(deviceConfiguration.connectionProperties).map(
+              ([key, value]) => ({ key, value })
+            )
+          : [{ key: '', value: '' }],
       loggingOffset: deviceConfiguration?.loggingOffset ?? null,
       decoders: deviceConfiguration?.decoders || [],
       userName: deviceConfiguration?.userName || '',
@@ -124,8 +147,17 @@ const DeviceConfigModal = ({
     name: 'query',
   })
 
+  const {
+    fields: connectionFields,
+    append: appendConnection,
+    remove: removeConnection,
+  } = useFieldArray({
+    control,
+    name: 'connectionProperties',
+  })
+
   return (
-    <Dialog open={isOpen} onClose={onClose}>
+    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="lg">
       <DialogTitle sx={{ fontSize: '1.3rem' }} id="role-permissions-label">
         Device Configuration Details
       </DialogTitle>
@@ -184,16 +216,7 @@ const DeviceConfigModal = ({
           </Box>
           {/* Query Fields Section */}
           <Box sx={{ mt: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-              <InputLabel>Queries</InputLabel>
-              <IconButton
-                size="small"
-                onClick={() => append('')}
-                sx={{ ml: 1 }}
-              >
-                <AddIcon />
-              </IconButton>
-            </Box>
+            <InputLabel>Queries</InputLabel>
             {fields.map((field, index) => (
               <Box
                 key={field.id}
@@ -218,12 +241,69 @@ const DeviceConfigModal = ({
                   size="small"
                   onClick={() => remove(index)}
                   sx={{ mt: 1 }}
-                  disabled={fields.length === 1}
+                  disabled={fields.length === 1} // Prevent removing the last field
                 >
                   <DeleteIcon />
                 </IconButton>
               </Box>
             ))}
+            <Button variant="outlined" size="small" onClick={() => append('')}>
+              + Query
+            </Button>
+          </Box>
+          <Box sx={{ mt: 2 }}>
+            <InputLabel>Connection Properties</InputLabel>
+            {connectionFields.map((field, index) => (
+              <Box
+                key={field.id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 1,
+                }}
+              >
+                <TextField
+                  {...register(`connectionProperties.${index}.key`)}
+                  margin="dense"
+                  label={`Key ${index + 1}`}
+                  fullWidth
+                  error={!!errors.connectionProperties?.[index]?.key}
+                  helperText={
+                    errors.connectionProperties?.[index]?.key
+                      ? errors.connectionProperties[index].key?.message
+                      : ''
+                  }
+                />
+                <TextField
+                  {...register(`connectionProperties.${index}.value`)}
+                  margin="dense"
+                  label={`Value ${index + 1}`}
+                  fullWidth
+                  error={!!errors.connectionProperties?.[index]?.value}
+                  helperText={
+                    errors.connectionProperties?.[index]?.value
+                      ? errors.connectionProperties[index].value?.message
+                      : ''
+                  }
+                />
+                <IconButton
+                  size="small"
+                  onClick={() => removeConnection(index)}
+                  sx={{ mt: 1 }}
+                  disabled={connectionFields.length === 1}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => appendConnection({ key: '', value: '' })}
+            >
+              + Connection Property
+            </Button>
           </Box>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
