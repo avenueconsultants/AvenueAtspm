@@ -19,11 +19,12 @@ import {
 } from '@/features/identity/pagesCheck'
 import { useLatestVersionOfAllLocations } from '@/features/locations/api'
 import { useGetProducts } from '@/features/products/api'
+import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, CircularProgress } from '@mui/material'
 
 const DevicesAdmin = () => {
   const pageAccess = useViewPage(PageNames.DeviceConfigurations)
-
+  const {addNotification} = useNotificationStore()
   const hasLocationsEditClaim = useUserHasClaim('LocationConfiguration:Edit')
   const hasLocationsDeleteClaim = useUserHasClaim(
     'LocationConfiguration:Delete'
@@ -82,9 +83,12 @@ const DevicesAdmin = () => {
         data: dataWithoutProductName,
         key: deviceConfigurationData.id,
       })
+      addNotification({title:"Device Configuration Updated", type:'success'})
       refetchDeviceConfiguration()
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({title:"Device Configuration Update Unsuccessful", type:'error'})
+
     }
   }
 

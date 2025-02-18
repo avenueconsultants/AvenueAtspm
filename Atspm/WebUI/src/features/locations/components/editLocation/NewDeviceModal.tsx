@@ -4,6 +4,7 @@ import { useCreateDevice } from '@/features/devices/api/devices'
 import { DeviceConfiguration } from '@/features/devices/types'
 import { useGetProducts } from '@/features/products/api'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
+import { useNotificationStore } from '@/stores/notifications'
 import { zodResolver } from '@hookform/resolvers/zod'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
@@ -62,7 +63,10 @@ const deviceSchema = z.object({
   loggingEnabled: z.boolean().default(true),
   ipaddress: z.string().optional(),
   deviceStatus: z.string().nonempty({ message: 'Status is required' }),
-  notes: z.string().optional(),
+  notes: z
+    .string()
+    .max(512, { message: 'Notes must be 512 characters or less' })
+    .optional(),
   deviceType: z.string().nonempty({ message: 'Device type is required' }),
   deviceConfigurationId: z.coerce.number({
     required_error: 'Configuration is required',
@@ -95,6 +99,7 @@ const DeviceModal = ({
   const { mutate: createDevice } = useCreateDevice()
   const { data: deviceTypes } = useConfigEnums(ConfigEnum.DeviceTypes)
   const { data: deviceStatus } = useConfigEnums(ConfigEnum.DeviceStatus)
+  const { addNotification } = useNotificationStore()
 
   const deviceConfigurations = deviceConfigurationsData?.value
   const products = productsData?.value
@@ -182,8 +187,13 @@ const DeviceModal = ({
         { data: updateDeviceDTO, key: data.id },
         {
           onSuccess: () => {
+            addNotification({ title: 'Device Updated', type: 'success' })
+
             refetchDevices()
             onClose()
+          },
+          onError: (error) => {
+            addNotification({ title: 'Device Update Failed', type: 'error' })
           },
         }
       )
@@ -192,6 +202,9 @@ const DeviceModal = ({
         onSuccess: () => {
           refetchDevices()
           onClose()
+        },
+        onError: (error) => {
+          addNotification({ title: 'Device Creation Failed', type: 'error' })
         },
       })
     }
@@ -341,12 +354,14 @@ const DeviceModal = ({
               />
             </FormControl>
 
-            {/* Notes */}
             <TextField
               fullWidth
               multiline
               label="Notes"
               sx={{ mb: 2 }}
+              maxRows={6}
+              error={!!errors.notes}
+              helperText={errors.notes ? String(errors.notes.message) : ''}
               {...register('notes')}
             />
 

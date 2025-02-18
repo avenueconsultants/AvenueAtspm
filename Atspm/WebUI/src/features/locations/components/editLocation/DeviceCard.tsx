@@ -82,6 +82,7 @@ const DeviceCard = ({ device, onEdit, onDelete }: DeviceCardProps) => {
         mb: 2,
         minWidth: '400px',
         maxWidth: '400px',
+        minHeight: '400px',
       }}
     >
       <Box mx={2}>
