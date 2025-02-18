@@ -1,3 +1,4 @@
+import { usePutDeviceConfigurationFromKey } from '@/api/config/aTSPMConfigurationApi'
 import { Device } from '@/api/config/aTSPMConfigurationApi.schemas'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
@@ -5,10 +6,10 @@ import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import {
   useCreateDeviceConfiguration,
   useDeleteDeviceConfiguration,
-  useEditDeviceConfiguration,
   useGetDeviceConfigurations,
 } from '@/features/devices/api/deviceConfigurations'
 import { useGetDevices } from '@/features/devices/api/devices'
+import { DeviceConfigCustomCellRender } from '@/features/devices/components/DeviceConfigCustomRenderCell'
 import DeviceConfigModal from '@/features/devices/components/DeviceConfigModal'
 import { DeviceConfiguration } from '@/features/devices/types/index'
 import {
@@ -30,7 +31,7 @@ const DevicesAdmin = () => {
 
   const { mutateAsync: createMutation } = useCreateDeviceConfiguration()
   const { mutateAsync: deleteMutation } = useDeleteDeviceConfiguration()
-  const { mutateAsync: editMutation } = useEditDeviceConfiguration()
+  const { mutateAsync: editMutation } = usePutDeviceConfigurationFromKey()
 
   const { data: allDevicesData } = useGetDevices()
   const devices = allDevicesData?.value
@@ -54,12 +55,13 @@ const DevicesAdmin = () => {
     deviceConfigurationData: DeviceConfiguration
   ) => {
     try {
-      await createMutation(deviceConfigurationData);
-      refetchDeviceConfiguration();
+      const { id, ...dataWithoutId } = deviceConfigurationData
+      await createMutation(dataWithoutId)
+      refetchDeviceConfiguration()
     } catch (error) {
-      console.error('Mutation Error:', error);
+      console.error('Mutation Error:', error)
     }
-  };
+  }
 
   const HandleDeleteDevice = async (id: number) => {
     try {
@@ -74,15 +76,17 @@ const DevicesAdmin = () => {
     deviceConfigurationData: DeviceConfiguration
   ) => {
     try {
+      const { productName, ...dataWithoutProductName } = deviceConfigurationData
+
       await editMutation({
-        data: deviceConfigurationData,
-        id: deviceConfigurationData.id,
-      });
-      refetchDeviceConfiguration();
+        data: dataWithoutProductName,
+        key: deviceConfigurationData.id,
+      })
+      refetchDeviceConfiguration()
     } catch (error) {
-      console.error('Mutation Error:', error);
+      console.error('Mutation Error:', error)
     }
-  };
+  }
 
   const getProductDetails = (productId: number) => {
     const product = productData?.value.find((p) => p.id === productId)
@@ -141,8 +145,8 @@ const DevicesAdmin = () => {
     'Username',
     'Password',
     'Product Name',
-  ];
-  
+  ]
+
   const headerKeys = [
     'description',
     'notes',
@@ -158,7 +162,7 @@ const DevicesAdmin = () => {
     'userName',
     'password',
     'productName',
-  ];
+  ]
 
   return (
     <ResponsivePageLayout title="Device Configurations" noBottomMargin>
@@ -169,6 +173,7 @@ const DevicesAdmin = () => {
         data={filteredData}
         hasEditPrivileges={hasLocationsEditClaim}
         hasDeletePrivileges={hasLocationsDeleteClaim}
+        customCellRender={DeviceConfigCustomCellRender}
         editModal={
           <DeviceConfigModal
             isOpen={true}

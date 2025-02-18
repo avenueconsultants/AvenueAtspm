@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.Options;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -93,6 +94,7 @@ builder.Host
         builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
         builder.Services.AddSwaggerGen(o =>
         {
+            o.SchemaFilter<SwaggerRequiredSchemaFilter>();
             o.IncludeXmlComments(typeof(Program));
             o.CustomOperationIds((controller, verb, action) => $"{verb}{controller}{action}");
             o.EnableAnnotations();
@@ -163,3 +165,20 @@ app.UseVersionedODataBatching();
 app.MapControllers();
 
 app.Run();
+public class SwaggerRequiredSchemaFilter : ISchemaFilter
+{
+    public void Apply(OpenApiSchema schema, SchemaFilterContext context)
+    {
+        if (schema.Properties == null)
+            return;
+
+        foreach (var schemProp in schema.Properties)
+        {
+            if (schemProp.Value.Nullable)
+                continue;
+
+            if (!schema.Required.Contains(schemProp.Key))
+                schema.Required.Add(schemProp.Key);
+        }
+    }
+}

@@ -1,3 +1,5 @@
+import { useGetDeviceConfigurationEventLogDecoders } from '@/api/config/aTSPMConfigurationApi'
+import { knownKeys } from '@/features/devices/components/DeviceConfigCustomRenderCell'
 import { DeviceConfiguration } from '@/features/devices/types/index'
 import { useGetProducts } from '@/features/products/api'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
@@ -6,6 +8,7 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -28,39 +31,29 @@ interface ModalProps {
   onSave: (device: DeviceConfiguration) => void
 }
 
-// Define Zod schema for form validation
 const deviceConfigSchema = z.object({
   id: z.number().nullable().optional(),
-  description: z.string().optional(), // Updated field from C# model
+  description: z.string(),
   notes: z.string().optional(),
-  protocol: z.string(),
-  port: z.number().nullable(),
-  path: z.string(), // Renamed from directory to path
+  protocol: z.string().min(1),
+  port: z.number().min(1),
+  path: z.string().min(1),
   query: z.array(z.string()),
   connectionProperties: z
     .array(
       z.object({
-        key: z.string().min(1, 'Key is required'),
-        value: z.string(), // adjust as needed (e.g., make optional)
+        key: z.string(),
+        value: z.string(),
       })
     )
-    // Optionally transform the array into an object:
-    .transform((arr) =>
-      arr.reduce<Record<string, any>>((acc, { key, value }) => {
-        if (key) acc[key] = value
-        return acc
-      }, {})
-    ),
-  connectionTimeout: z.number().nullable(),
-  operationTimeout: z.number().nullable(),
+    .nullable(),
+  connectionTimeout: z.number(),
+  operationTimeout: z.number(),
   loggingOffset: z.number().nullable(),
-  decoders: z.array(z.string()),
+  decoders: z.array(z.string()).nullable(),
   userName: z.string(),
   password: z.string(),
-  productId: z
-    .number()
-    .nullable()
-    .refine((val) => val !== null, 'Product is required'),
+  productId: z.number({ required_error: 'Product is required' }).nullable(),
 })
 
 type DeviceConfigFormData = z.infer<typeof deviceConfigSchema>
@@ -72,9 +65,17 @@ const DeviceConfigModal = ({
   onSave,
 }: ModalProps) => {
   const { data: productData } = useGetProducts()
+  const { data: allDecodersData } = useGetDeviceConfigurationEventLogDecoders()
   const { data: transportProtocols } = useConfigEnums(
     ConfigEnum.TransportProtocols
   )
+  console.log(allDecodersData)
+  const defaultConnectionProperties = deviceConfiguration
+    ? Object.entries(deviceConfiguration)
+        .filter(([key]) => !knownKeys.has(key))
+        .map(([key, value]) => ({ key, value: String(value) }))
+    : null
+
   const {
     register,
     handleSubmit,
@@ -85,30 +86,25 @@ const DeviceConfigModal = ({
   } = useForm<DeviceConfigFormData>({
     resolver: zodResolver(deviceConfigSchema),
     defaultValues: {
-      description: deviceConfiguration?.description || '',
+      description: deviceConfiguration?.description,
       notes: deviceConfiguration?.notes || '',
       protocol: deviceConfiguration?.protocol || '',
-      port: deviceConfiguration?.port ?? null,
+      port: deviceConfiguration?.port,
       path: deviceConfiguration?.path || '',
       query:
         deviceConfiguration?.query && deviceConfiguration.query.length > 0
           ? deviceConfiguration.query
           : [''],
-      connectionTimeout: deviceConfiguration?.connectionTimeout ?? null,
-      operationTimeout: deviceConfiguration?.operationTimeout ?? null,
-      connectionProperties:
-        deviceConfiguration?.connectionProperties &&
-        Object.keys(deviceConfiguration.connectionProperties).length > 0
-          ? Object.entries(deviceConfiguration.connectionProperties).map(
-              ([key, value]) => ({ key, value })
-            )
-          : [{ key: '', value: '' }],
-      loggingOffset: deviceConfiguration?.loggingOffset ?? null,
+      connectionTimeout: deviceConfiguration?.connectionTimeout,
+      operationTimeout: deviceConfiguration?.operationTimeout,
+      loggingOffset: deviceConfiguration?.loggingOffset ?? 0,
       decoders: deviceConfiguration?.decoders || [],
       userName: deviceConfiguration?.userName || '',
       password: deviceConfiguration?.password || '',
-      productId: deviceConfiguration?.productId ?? null,
+      productId: deviceConfiguration?.productId,
       id: deviceConfiguration?.id ?? null,
+      // Use the computed extra properties
+      connectionProperties: defaultConnectionProperties ?? null,
     },
   })
 
@@ -116,11 +112,11 @@ const DeviceConfigModal = ({
     if (!deviceConfiguration) return
 
     setValue('protocol', deviceConfiguration.protocol)
-    setValue('productId', deviceConfiguration.productId)
+    setValue('productId', deviceConfiguration.productId ?? null)
 
     Object.entries(deviceConfiguration).forEach(([key, value]) => {
       if (key !== 'protocol' && key !== 'productId') {
-        setValue(key as keyof DeviceConfigFormData, value)
+        setValue(key as keyof DeviceConfigFormData, value as any)
       }
     })
   }, [deviceConfiguration, setValue])
@@ -131,18 +127,36 @@ const DeviceConfigModal = ({
         (product) => product.id === data.productId
       )
 
-      const sanitizedDevice: Partial<DeviceConfiguration> = {
-        ...data,
-        productName: selectedProduct?.model ? selectedProduct?.model : '',
+      const { connectionProperties, ...rest } = data
+
+      const flattenedConnectionProperties = Array.isArray(connectionProperties)
+        ? connectionProperties.reduce(
+            (acc, { key, value }) => {
+              if (key) acc[key] = value
+              return acc
+            },
+            {} as Record<string, any>
+          )
+        : connectionProperties
+
+      const mergedDevice = {
+        ...rest,
+        ...flattenedConnectionProperties,
+        productName: selectedProduct?.model || '',
       }
 
-      onSave(sanitizedDevice as DeviceConfiguration)
+      onSave(mergedDevice as DeviceConfiguration)
       onClose()
     } catch (error) {
       console.error('Error occurred while editing/creating device:', error)
     }
   }
-  const { fields, append, remove } = useFieldArray({
+
+  const {
+    fields: queryFields,
+    append: appendQuery,
+    remove: removeQuery,
+  } = useFieldArray({
     control,
     name: 'query',
   })
@@ -157,12 +171,12 @@ const DeviceConfigModal = ({
   })
 
   return (
-    <Dialog open={isOpen} onClose={onClose} fullWidth maxWidth="lg">
+    <Dialog open={isOpen} onClose={onClose}>
       <DialogTitle sx={{ fontSize: '1.3rem' }} id="role-permissions-label">
         Device Configuration Details
       </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ maxWidth: '457px' }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
@@ -198,7 +212,7 @@ const DeviceConfigModal = ({
               </Select>
               {errors.productId && (
                 <p style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.productId.message}
+                  Product Required
                 </p>
               )}
             </FormControl>
@@ -212,12 +226,14 @@ const DeviceConfigModal = ({
               label="Path"
               type="text"
               fullWidth
+              error={!!errors.path}
+              helperText={errors.path ? 'Path Required' : ''}
             />
           </Box>
           {/* Query Fields Section */}
           <Box sx={{ mt: 2 }}>
             <InputLabel>Queries</InputLabel>
-            {fields.map((field, index) => (
+            {queryFields.map((field, index) => (
               <Box
                 key={field.id}
                 sx={{
@@ -239,19 +255,22 @@ const DeviceConfigModal = ({
                 />
                 <IconButton
                   size="small"
-                  onClick={() => remove(index)}
+                  onClick={() => removeQuery(index)}
                   sx={{ mt: 1 }}
-                  disabled={fields.length === 1} // Prevent removing the last field
                 >
                   <DeleteIcon />
                 </IconButton>
               </Box>
             ))}
-            <Button variant="outlined" size="small" onClick={() => append('')}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => appendQuery('')}
+            >
               + Query
             </Button>
           </Box>
-          <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2, mb: 2 }}>
             <InputLabel>Connection Properties</InputLabel>
             {connectionFields.map((field, index) => (
               <Box
@@ -291,7 +310,6 @@ const DeviceConfigModal = ({
                   size="small"
                   onClick={() => removeConnection(index)}
                   sx={{ mt: 1 }}
-                  disabled={connectionFields.length === 1}
                 >
                   <DeleteIcon />
                 </IconButton>
@@ -314,7 +332,7 @@ const DeviceConfigModal = ({
               type="number"
               fullWidth
               error={!!errors.port}
-              helperText={errors.port ? errors.port.message : ''}
+              helperText={errors.port ? 'Port Required' : ''}
             />
             <FormControl fullWidth margin="dense">
               <InputLabel id="protocol-label">Protocol</InputLabel>
@@ -334,7 +352,7 @@ const DeviceConfigModal = ({
               </Select>
               {errors.protocol && (
                 <p style={{ color: 'red', fontSize: '12px' }}>
-                  {errors.protocol.message}
+                  Protocol Required
                 </p>
               )}
             </FormControl>
@@ -349,7 +367,7 @@ const DeviceConfigModal = ({
               fullWidth
               error={!!errors.connectionTimeout}
               helperText={
-                errors.connectionTimeout ? errors.connectionTimeout.message : ''
+                errors.connectionTimeout ? 'Connection Timeout Required' : ''
               }
             />
             <TextField
@@ -361,7 +379,7 @@ const DeviceConfigModal = ({
               fullWidth
               error={!!errors.operationTimeout}
               helperText={
-                errors.operationTimeout ? errors.operationTimeout.message : ''
+                errors.operationTimeout ? 'Operation Timeout Required' : ''
               }
             />
           </Box>
@@ -383,6 +401,32 @@ const DeviceConfigModal = ({
               fullWidth
             />
           </Box>
+          <FormControl fullWidth margin="dense" sx={{ mt: 2 }}>
+            <InputLabel id="decoder-label">Decoders</InputLabel>
+            <Select
+              labelId="decoder-label"
+              label="Decoders"
+              id="decoder-select"
+              multiple
+              value={watch('decoders') || []}
+              onChange={(e) =>
+                setValue('decoders', e.target.value, { shouldValidate: true })
+              }
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {(selected as string[]).map((value) => (
+                    <Chip key={value} label={value} />
+                  ))}
+                </Box>
+              )}
+            >
+              {allDecodersData?.value?.map((decoder: string) => (
+                <MenuItem key={decoder} value={decoder}>
+                  {decoder}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
             {...register('notes')}
             margin="dense"

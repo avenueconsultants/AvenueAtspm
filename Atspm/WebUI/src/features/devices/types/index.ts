@@ -16,25 +16,24 @@
 // #endregion
 
 export interface DeviceConfiguration {
-  id: number;
-  description?: string; 
-  notes?: string;
-  protocol: string; 
-  port: number;
-  connectionProperties: Record<string, any>;
-  path: string;
-  query: string[];
-  connectionTimeout: number;
-  operationTimeout: number;
-  loggingOffset: number; 
-  decoders: string[]; 
-  userName: string;
-  password: string;
-  productId?: number;
-  product?: Product;
-  devices?: Device[]; 
+  id: number
+  description?: string
+  notes?: string
+  protocol: string
+  port: number
+  path: string
+  query: string[]
+  connectionTimeout: number
+  operationTimeout: number
+  loggingOffset: number
+  decoders: string[]
+  userName: string
+  password: string
+  productId?: number
+  product?: Product
+  devices?: Device[]
+  [key: string]: unknown
 }
-
 
 export interface Product {
   id: number | null
