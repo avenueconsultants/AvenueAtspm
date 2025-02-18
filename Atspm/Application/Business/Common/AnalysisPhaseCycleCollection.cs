@@ -50,7 +50,12 @@ namespace Utah.Udot.Atspm.Business.Common
 
                 if (cycle != null && cycleEvent.EventParam == phasenumber &&
                     (cycleEvent.EventCode == 4 || cycleEvent.EventCode == 5 || cycleEvent.EventCode == 6))
-                    cycle.SetTerminationEvent(cycleEvent.EventCode);
+                {
+                    if (!cycle.TerminationEvent.HasValue)
+                    {
+                        cycle.SetTerminationEvent(cycleEvent.EventCode);
+                    }
+                }
 
                 if (cycle != null && cycleEvent.EventParam == phasenumber && cycleEvent.EventCode == 8)
                     cycle.YellowEvent = cycleEvent.Timestamp;
