@@ -53,4 +53,21 @@ export const DeviceConfigCustomCellRender: CustomCellConfig[] = [
       )
     },
   },
+  {
+    headerKey: 'decoders',
+    component: (value: any, row: any) => {
+      if (Array.isArray(value) && value.length > 0) {
+        return (
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            {value.map((decoder: string, idx: number) => {
+              // Add a space before each capital letter except the first one.
+              const formattedDecoder = decoder.replace(/(?!^)([A-Z])/g, ' $1')
+              return <Chip key={idx} label={formattedDecoder} size="small" />
+            })}
+          </Box>
+        )
+      }
+      return ''
+    },
+  },
 ]

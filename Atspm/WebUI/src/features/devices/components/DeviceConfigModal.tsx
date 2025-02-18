@@ -91,10 +91,7 @@ const DeviceConfigModal = ({
       protocol: deviceConfiguration?.protocol || '',
       port: deviceConfiguration?.port,
       path: deviceConfiguration?.path || '',
-      query:
-        deviceConfiguration?.query && deviceConfiguration.query.length > 0
-          ? deviceConfiguration.query
-          : [''],
+      query: deviceConfiguration?.query,
       connectionTimeout: deviceConfiguration?.connectionTimeout,
       operationTimeout: deviceConfiguration?.operationTimeout,
       loggingOffset: deviceConfiguration?.loggingOffset ?? 0,
@@ -414,15 +411,17 @@ const DeviceConfigModal = ({
               }
               renderValue={(selected) => (
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {(selected as string[]).map((value) => (
-                    <Chip key={value} label={value} />
-                  ))}
+                  {(selected as string[]).map((value) => {
+                    // Format the value by inserting a space before every capital letter except the first letter.
+                    const formattedValue = value.replace(/(?!^)([A-Z])/g, ' $1')
+                    return <Chip key={value} label={formattedValue} />
+                  })}
                 </Box>
               )}
             >
               {allDecodersData?.value?.map((decoder: string) => (
                 <MenuItem key={decoder} value={decoder}>
-                  {decoder}
+                  {decoder.replace(/(?!^)([A-Z])/g, ' $1')}
                 </MenuItem>
               ))}
             </Select>
