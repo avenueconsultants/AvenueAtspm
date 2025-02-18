@@ -74,7 +74,7 @@ namespace Utah.Udot.Atspm.Business.Common
                                              where r.Timestamp >=
                                                    c.StartTime && r.Timestamp <= c.EndTime
                                              select r).ToList();
-
+                    //This may be to handle stuck peds
                     if ((c.EndTime - c.StartTime).Seconds > PedEventsForCycle.Count)
                     {
                         SetPedTimesForCycle(PedEventsForCycle, c);

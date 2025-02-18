@@ -145,6 +145,7 @@ namespace Utah.Udot.Atspm.Business.SplitMonitor
             var phasePlans = new List<PlanSplitMonitorData>();
             foreach (var plan in phaseCollection.Plans)
             {
+                //Should this be any cycles that start within the plan, or any cycles that end within the plan?
                 var cycles = phase.Cycles.Cycles.Where(x => x.StartTime >= plan.Start && x.EndTime < plan.End).ToList();
                 if (cycles.Any())
                 {
