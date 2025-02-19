@@ -4,21 +4,23 @@ using Utah.Udot.Atspm.Infrastructure.Services.EventLogDecoders;
 
 namespace Utah.Udot.ATSPM.Infrastructure.Services.EventLogDecoders
 {
-    public class VisionCameraJsonToEnhancedVehicleEventDecoder : EventLogDecoderBase<EnhancedVehicleEvent>
+    public class VisionCameraJsonToEnhancedVehicleEventDecoder : EventLogDecoderBase<EnhancedEventLog>
     {
-        public override IEnumerable<EnhancedVehicleEvent> Decode(Device device, Stream stream, CancellationToken cancelToken = default)
+        public override IEnumerable<EnhancedEventLog> Decode(Device device, Stream stream, CancellationToken cancelToken = default)
         {
             var memoryStream = (MemoryStream)stream;
             var rootStats = memoryStream.ToArray().FromEncodedJson<Root>().detections;
 
-            return rootStats.Select(x => new EnhancedVehicleEvent
+            return rootStats.Select(x => new EnhancedEventLog
             {
                 LocationIdentifier = device.Location.LocationIdentifier,
+                Timestamp = x.time,
+                DetectorId = "device.Id",
+                Mph = (int)Math.Round(x.speed),
+                Kph = ConvertMphToKph(x.speed),
                 ZoneId = x.zoneId,
                 ZoneName = x.zoneName,
-                Timestamp = x.time,
                 ObjectType = x.objectType,
-                Speed = x.speed,
                 Length = x.length,
                 Direction = x.direction
 
@@ -27,10 +29,10 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.EventLogDecoders
 
         private class Root
         {
-            public List<Detections> detections { get; set; }
+            public List<VisionCameraDetections> detections { get; set; }
         }
 
-        private class Detections
+        private class VisionCameraDetections
         {
             public int zoneId { get; set; }
             public string zoneName { get; set; }
@@ -39,6 +41,11 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.EventLogDecoders
             public double speed { get; set; }
             public double length { get; set; }
             public string direction { get; set; }
+        }
+
+        public int ConvertMphToKph(double mph)
+        {
+            return (int)Math.Round(mph * 1.60934);
         }
     }
 }
