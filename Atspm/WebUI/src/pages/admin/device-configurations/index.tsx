@@ -135,8 +135,9 @@ const DevicesAdmin = () => {
   })
 
   const headers = [
+    'Product Name',
     'Description',
-    'Notes',
+    
     'Protocol',
     'Port',
     'Path',
@@ -148,12 +149,12 @@ const DevicesAdmin = () => {
     'Decoders',
     'Username',
     'Password',
-    'Product Name',
   ]
 
   const headerKeys = [
+    'productName',
     'description',
-    'notes',
+  
     'protocol',
     'port',
     'path',
@@ -165,7 +166,6 @@ const DevicesAdmin = () => {
     'decoders',
     'userName',
     'password',
-    'productName',
   ]
 
   return (

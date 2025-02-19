@@ -5,6 +5,8 @@ import { useGetProducts } from '@/features/products/api'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { zodResolver } from '@hookform/resolvers/zod'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
+import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Alert,
@@ -17,6 +19,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormHelperText,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -39,7 +42,7 @@ interface ModalProps {
 
 const deviceConfigSchema = z.object({
   id: z.number().nullable().optional(),
-  description: z.string(),
+  description: z.string().min(1),
   notes: z.string().optional(),
   protocol: z.string().min(1),
   port: z.number().min(1),
@@ -76,6 +79,7 @@ const DeviceConfigModal = ({
   const [currentQueryIndex, setCurrentQueryIndex] = useState<number | null>(
     null
   )
+  const [pathSuggestionsOpen, setPathSuggestionsOpen] = useState(false)
   const [formatGroup, setFormatGroup] = useState<
     'DateTime' | 'LogStartTime' | null
   >(null)
@@ -101,15 +105,24 @@ const DeviceConfigModal = ({
   ]
 
   const handleSuggestionClick = (token: string) => {
-    if (currentQueryIndex === null) return
-    const currentValue = getValues(`query.${currentQueryIndex}`)
-    const newValue = currentValue.endsWith('[')
-      ? currentValue.slice(0, -1) + token
-      : currentValue + token
-    setValue(`query.${currentQueryIndex}`, newValue)
-    setSuggestionsOpen(false)
-    setCurrentQueryIndex(null)
-    setFormatGroup(null)
+    if (pathSuggestionsOpen) {
+      const currentValue = getValues('path')
+      const newValue = currentValue.endsWith('[')
+        ? currentValue.slice(0, -1) + token
+        : currentValue + token
+      setValue('path', newValue)
+      setPathSuggestionsOpen(false)
+      setFormatGroup(null)
+    } else if (currentQueryIndex !== null) {
+      const currentValue = getValues(`query.${currentQueryIndex}`)
+      const newValue = currentValue.endsWith('[')
+        ? currentValue.slice(0, -1) + token
+        : currentValue + token
+      setValue(`query.${currentQueryIndex}`, newValue)
+      setSuggestionsOpen(false)
+      setCurrentQueryIndex(null)
+      setFormatGroup(null)
+    }
   }
 
   const { data: productData } = useGetProducts()
@@ -225,23 +238,12 @@ const DeviceConfigModal = ({
       <DialogContent sx={{ width: '700px', maxWidth: '100%' }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              {...register('description')}
-              autoFocus
-              margin="dense"
-              id="description"
-              label="Description"
-              type="text"
-              fullWidth
-              error={!!errors.description}
-              helperText={errors.description ? errors.description.message : ''}
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel id="product-label">Product</InputLabel>
+            <FormControl fullWidth margin="dense" error={!!errors.productId}>
+              <InputLabel id="product-label">Product*</InputLabel>
               <Select
                 labelId="product-label"
                 id="product-select"
-                label="Product"
+                label="Product*"
                 error={!!errors.productId}
                 value={watch('productId') || ''}
                 onChange={(e) =>
@@ -257,41 +259,39 @@ const DeviceConfigModal = ({
                 ))}
               </Select>
               {errors.productId && (
-                <p style={{ color: 'red', fontSize: '12px' }}>
-                  Product Required
-                </p>
+                <FormHelperText>
+                  {errors.productId?.message || 'Product Required'}
+                </FormHelperText>
               )}
             </FormControl>
-          </Box>
-
-          <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
-              {...register('path')}
+              {...register('description')}
+              autoFocus
               margin="dense"
-              id="path"
-              label="Path"
+              id="description"
+              label="Description*"
               type="text"
               fullWidth
-              error={!!errors.path}
-              helperText={errors.path ? 'Path Required' : ''}
+              error={!!errors.description}
+              helperText={errors.description ? 'Description Required' : ''}
             />
           </Box>
-          {/* Query Fields Section */}
+
           <Paper
             variant="outlined"
             sx={{ my: 2, bgcolor: 'background.default', p: 2 }}
           >
-            <InputLabel>Queries</InputLabel>
             <Alert severity="info" variant="outlined">
               <Typography
                 sx={{ fontSize: '0.8rem' }}
                 variant="caption"
                 component="div"
               >
-                You can insert dynamic values by enclosing them in square
-                brackets with either <strong>Device</strong> or{' '}
-                <strong>DateTime</strong>, followed by a colon and the property
-                or format. For example, <code>[Device:Ipaddress]</code>
+                You can insert dynamic values for both the path and query
+                inputsby enclosing them in square brackets with either{' '}
+                <strong>Device</strong> or <strong>DateTime</strong>, followed
+                by a colon and the property or format. For example,{' '}
+                <code>[Device:Ipaddress]</code>
                 for device properties, or <code>[DateTime:yyyy-MM-dd]</code> for
                 .NET-supported date/time formats. See{' '}
                 <a
@@ -304,6 +304,149 @@ const DeviceConfigModal = ({
                 for details about date/time formats.
               </Typography>
             </Alert>
+            <InputLabel sx={{ mt: 2 }}>Base URL Path</InputLabel>
+            <Box sx={{ position: 'relative' }}>
+              <TextField
+                {...register('path')}
+                margin="dense"
+                id="path"
+                label="Path*"
+                type="text"
+                fullWidth
+                error={!!errors.path}
+                helperText={errors.path ? 'Path Required' : ''}
+                onKeyUp={(e) => {
+                  if (e.key === '[') {
+                    setPathSuggestionsOpen(true)
+                  }
+                }}
+              />
+              {pathSuggestionsOpen && (
+                <ClickAwayListener
+                  onClickAway={() => {
+                    setPathSuggestionsOpen(false)
+                    setFormatGroup(null)
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      zIndex: 1000,
+                      bgcolor: 'background.paper',
+                      border: '1px solid #ccc',
+                      borderRadius: 1,
+                      p: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 1,
+                      overflowY: 'auto',
+                      maxHeight: '200px',
+                      width: '80%',
+                    }}
+                  >
+                    {formatGroup === null ? (
+                      <>
+                        {deviceOptions.map((opt) => (
+                          <Typography
+                            key={`Device-${opt}`}
+                            onClick={() =>
+                              handleSuggestionClick(`[Device:${opt}]`)
+                            }
+                            sx={{
+                              cursor: 'pointer',
+                              p: 0.5,
+                              textAlign: 'left',
+                            }}
+                          >
+                            [Device:{opt}]
+                          </Typography>
+                        ))}
+                        <Typography
+                          key="DateTime"
+                          onClick={() => setFormatGroup('DateTime')}
+                          sx={{
+                            cursor: 'pointer',
+                            p: 0.5,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '100%',
+                          }}
+                        >
+                          <span>[DateTime]</span>
+                          <ChevronRightIcon />
+                        </Typography>
+
+                        <Typography
+                          key="LogStartTime"
+                          onClick={() => setFormatGroup('LogStartTime')}
+                          sx={{
+                            cursor: 'pointer',
+                            p: 0.5,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '100%',
+                          }}
+                        >
+                          <span>[LogStartTime]</span>
+                          <ChevronRightIcon />
+                        </Typography>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          onClick={() => setFormatGroup(null)}
+                          variant="text"
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            alignSelf: 'flex-start',
+                            minWidth: 'auto',
+                            p: 0,
+                          }}
+                        >
+                          <ChevronLeftIcon />
+                          <span style={{ marginLeft: 4 }}>Back</span>
+                        </Button>
+                        {dateTimeFormats.map((fmt) => (
+                          <Typography
+                            key={`${formatGroup}-${fmt}`}
+                            onClick={() =>
+                              handleSuggestionClick(`[${formatGroup}:${fmt}]`)
+                            }
+                            sx={{
+                              cursor: 'pointer',
+                              p: 0.5,
+                              textAlign: 'left',
+                            }}
+                          >
+                            [{formatGroup}:{fmt}]
+                          </Typography>
+                        ))}
+                        <Typography
+                          variant="caption"
+                          component="a"
+                          href="https://learn.microsoft.com/en-us/system-center/orchestrator/standard-activities/format-date-time?view=sc-orch-2025"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{
+                            textDecoration: 'underline',
+                            cursor: 'pointer',
+                            mt: 1,
+                          }}
+                        >
+                          View all formats
+                        </Typography>
+                      </>
+                    )}
+                  </Box>
+                </ClickAwayListener>
+              )}
+            </Box>
+            <InputLabel sx={{ mt: 2 }}>Queries</InputLabel>
 
             {queryFields.map((field, index) => (
               <Box
@@ -394,10 +537,14 @@ const DeviceConfigModal = ({
                             sx={{
                               cursor: 'pointer',
                               p: 0.5,
-                              textAlign: 'left',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              width: '100%',
                             }}
                           >
-                            [DateTime]
+                            <span>[DateTime]</span>
+                            <ChevronRightIcon />
                           </Typography>
                           <Typography
                             key="LogStartTime"
@@ -405,10 +552,14 @@ const DeviceConfigModal = ({
                             sx={{
                               cursor: 'pointer',
                               p: 0.5,
-                              textAlign: 'left',
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              width: '100%',
                             }}
                           >
-                            [LogStartTime]
+                            <span>[LogStartTime]</span>
+                            <ChevronRightIcon />
                           </Typography>
                         </>
                       ) : (
@@ -417,12 +568,15 @@ const DeviceConfigModal = ({
                             onClick={() => setFormatGroup(null)}
                             variant="text"
                             sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              alignSelf: 'flex-start',
                               minWidth: 'auto',
                               p: 0,
-                              alignSelf: 'flex-start',
                             }}
                           >
                             <ChevronLeftIcon />
+                            <span style={{ marginLeft: 4 }}>Back</span>
                           </Button>
                           {dateTimeFormats.map((fmt) => (
                             <Typography
@@ -531,18 +685,18 @@ const DeviceConfigModal = ({
               {...register('port', { valueAsNumber: true })}
               margin="dense"
               id="port"
-              label="Port"
+              label="Port*"
               type="number"
               fullWidth
               error={!!errors.port}
               helperText={errors.port ? 'Port Required' : ''}
             />
-            <FormControl fullWidth margin="dense">
-              <InputLabel id="protocol-label">Protocol</InputLabel>
+            <FormControl fullWidth margin="dense" error={!!errors.protocol}>
+              <InputLabel id="protocol-label">Protocol*</InputLabel>
               <Select
                 labelId="protocol-label"
                 id="protocol-select"
-                label="Protocol"
+                label="Protocol*"
                 error={!!errors.protocol}
                 value={watch('protocol') || ''}
                 onChange={(e) => setValue('protocol', e.target.value)}
@@ -553,10 +707,9 @@ const DeviceConfigModal = ({
                   </MenuItem>
                 ))}
               </Select>
+
               {errors.protocol && (
-                <p style={{ color: 'red', fontSize: '12px' }}>
-                  Protocol Required
-                </p>
+                <FormHelperText>{'Protocol Required'}</FormHelperText>
               )}
             </FormControl>
           </Box>
@@ -565,7 +718,7 @@ const DeviceConfigModal = ({
               {...register('connectionTimeout', { valueAsNumber: true })}
               margin="dense"
               id="connectionTimeout"
-              label="Connection Timeout"
+              label="Connection Timeout*"
               type="number"
               fullWidth
               error={!!errors.connectionTimeout}
@@ -577,7 +730,7 @@ const DeviceConfigModal = ({
               {...register('operationTimeout', { valueAsNumber: true })}
               margin="dense"
               id="operationTimeout"
-              label="Operation Timeout"
+              label="Operation Timeout*"
               type="number"
               fullWidth
               error={!!errors.operationTimeout}
@@ -599,12 +752,22 @@ const DeviceConfigModal = ({
               {...register('password')}
               margin="dense"
               id="password"
+              en
               label="Password"
               type="text"
               fullWidth
             />
           </Box>
-          <FormControl fullWidth margin="dense" sx={{ mt: 2 }}>
+          <TextField
+            {...register('loggingOffset', { valueAsNumber: true })}
+            margin="dense"
+            id="loggingOffset"
+            label="Logging Offset (min)"
+            type="number"
+            fullWidth
+            error={!!errors.loggingOffset}
+          />
+          <FormControl fullWidth margin="dense">
             <InputLabel id="decoder-label">Decoders</InputLabel>
             <Select
               labelId="decoder-label"
