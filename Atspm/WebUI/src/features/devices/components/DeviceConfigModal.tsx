@@ -287,8 +287,8 @@ const DeviceConfigModal = ({
                 variant="caption"
                 component="div"
               >
-                You can insert dynamic values for both the path and query
-                inputsby enclosing them in square brackets with either{' '}
+                You can insert dynamic values for both the path and query inputs
+                by enclosing them in square brackets with either{' '}
                 <strong>Device</strong> or <strong>DateTime</strong>, followed
                 by a colon and the property or format. For example,{' '}
                 <code>[Device:Ipaddress]</code>
