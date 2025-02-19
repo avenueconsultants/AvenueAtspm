@@ -22,12 +22,13 @@ namespace Utah.Udot.Atspm.Data.Models.EventLogModels
 {
 
 
-    public class EnhancedVehicleEvent : EventLogModelBase
+    public class EnhancedEventLog : SpeedEvent
     {
+
         /// <summary>
         /// Zone Identifier
         /// </summary>
-        public long ZoneId { get; set; } //needs converting to location identifier
+        public long ZoneId { get; set; }
 
         /// <summary>
         /// Name of the Zone
@@ -38,11 +39,6 @@ namespace Utah.Udot.Atspm.Data.Models.EventLogModels
         /// Object Type (e.g., Vehicle)
         /// </summary>
         public string ObjectType { get; set; }
-
-        /// <summary>
-        /// Speed of the object
-        /// </summary>
-        public double Speed { get; set; }
 
         /// <summary>
         /// Length of the object
@@ -57,11 +53,16 @@ namespace Utah.Udot.Atspm.Data.Models.EventLogModels
         ///<inheritdoc/>
         public override bool Equals(object obj)
         {
-            return obj is EnhancedVehicleEvent zoneEvent &&
+            return obj is EnhancedEventLog zoneEvent &&
+                   LocationIdentifier == zoneEvent.LocationIdentifier &&
+                   Timestamp == zoneEvent.Timestamp &&
+                   DetectorId == zoneEvent.DetectorId &&
+                   Mph == zoneEvent.Mph &&
+                   Kph == zoneEvent.Kph &&
                    ZoneId == zoneEvent.ZoneId &&
                    ZoneName == zoneEvent.ZoneName &&
                    ObjectType == zoneEvent.ObjectType &&
-                   Speed == zoneEvent.Speed &&
+                   Mph == zoneEvent.Mph &&
                    Length == zoneEvent.Length &&
                    Direction == zoneEvent.Direction;
         }
@@ -69,13 +70,13 @@ namespace Utah.Udot.Atspm.Data.Models.EventLogModels
         ///<inheritdoc/>
         public override int GetHashCode()
         {
-            return HashCode.Combine(ZoneId, ZoneName, Timestamp, ObjectType, Speed, Length, Direction);
+            return HashCode.Combine(LocationIdentifier, Timestamp, DetectorId, ZoneId, ZoneName, ObjectType, Length, Direction);
         }
 
         ///<inheritdoc/>
         public override string ToString()
         {
-            return $"{ZoneId}-{ZoneName}-{Timestamp}-{ObjectType}-{Speed}-{Length}-{Direction}";
+            return $"{LocationIdentifier}-{Timestamp}-{DetectorId}-{Mph}-{Kph}-{ZoneId}-{ZoneName}-{Timestamp}-{ObjectType}-{Length}-{Direction}";
         }
     }
 
