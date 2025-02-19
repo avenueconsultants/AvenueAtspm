@@ -406,6 +406,7 @@ const DeviceModal = ({
                 />
                 <IconButton
                   size="small"
+                  color="error"
                   onClick={() => removeDeviceProperty(index)}
                   sx={{ mt: 1 }}
                 >

@@ -18,8 +18,10 @@ import {
   DialogTitle,
   FormControl,
   IconButton,
+  InputAdornment,
   InputLabel,
   MenuItem,
+  Paper,
   Select,
   TextField,
   Typography,
@@ -220,7 +222,7 @@ const DeviceConfigModal = ({
         Device Configuration Details
       </DialogTitle>
 
-      <DialogContent sx={{ width: '600px' }}>
+      <DialogContent sx={{ width: '700px', maxWidth: '100%' }}>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
@@ -275,40 +277,40 @@ const DeviceConfigModal = ({
             />
           </Box>
           {/* Query Fields Section */}
-          <Box sx={{ mt: 2 }}>
+          <Paper
+            variant="outlined"
+            sx={{ my: 2, bgcolor: 'background.default', p: 2 }}
+          >
             <InputLabel>Queries</InputLabel>
-            <Alert severity="info" variant="outlined" sx={{ mr: '40px' }}>
+            <Alert severity="info" variant="outlined">
               <Typography
-                sx={{ fontSize: '0.7rem' }}
+                sx={{ fontSize: '0.8rem' }}
                 variant="caption"
                 component="div"
               >
-                You can inject dynamic values into your query by using special
-                tokens. For example, include tokens like{' '}
-                <code>[Device:DeviceIdentifier]</code> or{' '}
-                <code>[Device:Ipaddress]</code> to have the service replace them
-                with the actual device properties. You can also use date/time
-                tokens such as <code>[DateTime:yyyy-MM-dd]</code> or{' '}
-                <code>[LogStartTime:MM/dd/yyyy HH:mm:ss]</code> to format dates
-                dynamically.
-              </Typography>
-              <Typography
-                sx={{ fontSize: '0.7rem', mt: 1 }}
-                variant="caption"
-                component="div"
-              >
-                Example query:{' '}
-                <code>
-                  ?filter=[Device:DeviceStatus]&amp;date=[DateTime:yyyy-MM-dd]
-                </code>
+                You can insert dynamic values by enclosing them in square
+                brackets with either <strong>Device</strong> or{' '}
+                <strong>DateTime</strong>, followed by a colon and the property
+                or format. For example, <code>[Device:Ipaddress]</code>
+                for device properties, or <code>[DateTime:yyyy-MM-dd]</code> for
+                .NET-supported date/time formats. See{' '}
+                <a
+                  href="https://learn.microsoft.com/en-us/dotnet/standard/base-types/standard-date-and-time-format-strings"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Microsoft’s documentation
+                </a>{' '}
+                for details about date/time formats.
               </Typography>
             </Alert>
+
             {queryFields.map((field, index) => (
               <Box
                 key={field.id}
                 sx={{
                   position: 'relative',
-                  mb: 2,
+                  mb: 0,
                   display: 'flex',
                   alignItems: 'center',
                 }}
@@ -322,6 +324,20 @@ const DeviceConfigModal = ({
                   helperText={
                     errors.query?.[index] ? errors.query[index].message : ''
                   }
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => removeQuery(index)}
+                          sx={{ ml: 1 }}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                   onKeyUp={(e) => {
                     if (e.key === '[') {
                       setSuggestionsOpen(true)
@@ -329,13 +345,6 @@ const DeviceConfigModal = ({
                     }
                   }}
                 />
-                <IconButton
-                  size="small"
-                  onClick={() => removeQuery(index)}
-                  sx={{ ml: 1 }}
-                >
-                  <DeleteIcon />
-                </IconButton>
                 {suggestionsOpen && currentQueryIndex === index && (
                   <ClickAwayListener
                     onClickAway={() => {
@@ -455,11 +464,15 @@ const DeviceConfigModal = ({
               variant="outlined"
               size="small"
               onClick={() => appendQuery('')}
+              sx={{ mt: 1 }}
             >
               + Query
             </Button>
-          </Box>
-          <Box sx={{ mt: 2, mb: 2 }}>
+          </Paper>
+          <Paper
+            variant="outlined"
+            sx={{ my: 2, bgcolor: 'background.default', p: 2 }}
+          >
             <InputLabel>Connection Properties</InputLabel>
             {connectionFields.map((field, index) => (
               <Box
@@ -468,7 +481,6 @@ const DeviceConfigModal = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: 1,
-                  mb: 1,
                 }}
               >
                 <TextField
@@ -497,6 +509,7 @@ const DeviceConfigModal = ({
                 />
                 <IconButton
                   size="small"
+                  color="error"
                   onClick={() => removeConnection(index)}
                   sx={{ mt: 1 }}
                 >
@@ -507,11 +520,12 @@ const DeviceConfigModal = ({
             <Button
               variant="outlined"
               size="small"
+              sx={{ mt: 1 }}
               onClick={() => appendConnection({ key: '', value: '' })}
             >
               + Connection Property
             </Button>
-          </Box>
+          </Paper>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
               {...register('port', { valueAsNumber: true })}
