@@ -63,7 +63,7 @@ namespace Utah.Udot.Atspm.ConfigApi.Services
             // Create a list of routeLocation identifiers from the DTO
             var routeLocationIds = routeDto.RouteLocations.Select(rl => rl.LocationIdentifier).ToList();
 
-            // Delete RouteLocations that are not in the DTO
+            // Delete RouteLocations that are not in the DTO. 
             var routeLocationsToDelete = route.RouteLocations
                 .Where(rl => !routeLocationIds.Contains(rl.LocationIdentifier))
                 .ToList();
