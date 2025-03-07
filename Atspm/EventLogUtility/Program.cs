@@ -1,4 +1,4 @@
-﻿#region license
+#region license
 // Copyright 2025 Utah Departement of Transportation
 // for EventLogUtility - %Namespace%/Program.cs
 // 
@@ -16,12 +16,8 @@
 #endregion
 
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System.CommandLine.Builder;
-using System.CommandLine.Hosting;
-using System.CommandLine.Parsing;
-using System.Diagnostics;
-using Utah.Udot.Atspm.EventLogUtility.Commands;
+using System.Threading.Tasks.Dataflow;
+using Utah.Udot.Atspm.Data.Enums;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
 
 //tricking github
@@ -60,6 +56,12 @@ cmdBuilder.UseHost(a =>
     })
     .ConfigureServices((h, s) =>
     {
+        //s.AddDownloaderClients();
+        //s.AddDeviceDownloaders(h);
+        //s.AddEventLogDecoders();
+        //s.AddEventLogImporters(h);
+        //s.AddAtspmEFEventLogRepositories();
+
         s.AddAtspmDbContext(h);
         s.AddAtspmEFConfigRepositories();
         s.AddAtspmEFEventLogRepositories();
