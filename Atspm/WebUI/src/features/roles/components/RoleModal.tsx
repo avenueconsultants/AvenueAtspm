@@ -2,7 +2,6 @@ import { useGetClaims } from '@/features/identity/api/getClaims'
 import { useGetRoles } from '@/features/identity/api/getRoles'
 import { Role } from '@/features/identity/types/roles'
 import PageClaimsCard from '@/features/roles/components/PageClaimsCard'
-import InfoIcon from '@mui/icons-material/Info'
 import {
   Box,
   Button,
@@ -11,7 +10,6 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  Tooltip,
 } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -78,9 +76,7 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
     onClose()
   }
 
-  if (rolesIsLoading || claimsIsLoading) {
-    return
-  }
+  if (rolesIsLoading || claimsIsLoading) return null
 
   if (rolesError || claimsError) {
     return (
@@ -96,6 +92,14 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
       open={isOpen}
       onClose={onClose}
       aria-labelledby="role-permissions-label"
+      maxWidth={false}
+      sx={{
+        '& .MuiDialog-paper': {
+          width: 'auto',
+          maxWidth: 'none',
+          minWidth: '600px',
+        },
+      }}
     >
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle
@@ -112,55 +116,7 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
               )}
             </>
           ) : (
-            <>
-              Role Permissions - {roleId}
-              <Tooltip
-                title={
-                  <React.Fragment>
-                    <p>
-                      Admin – All privileges are granted as described for the
-                      Data, Technician & Configuration users, including access
-                      to Menu Configuration, FAQs, Watch Dog, Settings, General
-                      Settings, Roles, & Users.
-                    </p>
-                    <p>
-                      Data Admin – Privileges are granted to the Admin menu to
-                      access the Raw Data Export page.
-                    </p>
-                    <p>
-                      General Configuration Admin – Privileges are granted to
-                      add, edit, and delete all configurations excluding
-                      location configuration.
-                    </p>
-                    <p>
-                      Location Configuration Admin – Privileges are granted to
-                      add, edit, and delete location configurations excluding
-                      all other configurations.
-                    </p>
-                    <p>
-                      Report Admin – Privileges are granted to access restricted
-                      reports.
-                    </p>
-                    <p>
-                      Role Admin – Privileges are granted to add, edit, and
-                      delete roles.
-                    </p>
-                    <p>
-                      User Admin – Privileges are granted to view, edit, and
-                      delete users.
-                    </p>
-                    <p>
-                      Watchdog Subscriber – Privileges are granted to receive
-                      the watchdog email and access the watchdog report.
-                    </p>
-                  </React.Fragment>
-                }
-              >
-                <InfoIcon
-                  sx={{ ml: 1, color: 'action.active', fontSize: 20 }}
-                />
-              </Tooltip>
-            </>
+            <>Role Permissions - {roleId}</>
           )}
         </DialogTitle>
         <DialogContent>
@@ -171,10 +127,6 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
                 label="Role Name"
                 {...register('roleName', {
                   required: 'Role name is required',
-                  pattern: {
-                    value: /^[A-Za-z0-9\s]+$/,
-                    message: 'Role name can only contain letters and numbers',
-                  },
                 })}
                 error={!!errors.roleName}
                 helperText={errors.roleName?.message}

@@ -12,7 +12,7 @@ import { Role } from '@/features/identity/types/roles'
 import { useDeleteRole } from '@/features/roles/api/deleteRoles'
 import { usePostRoleName } from '@/features/roles/api/postRolesName'
 import RoleModal from '@/features/roles/components/RoleModal'
-import { Backdrop, CircularProgress } from '@mui/material'
+import { Backdrop, Box, CircularProgress } from '@mui/material'
 
 const RolesAdmin = () => {
   const pageAccess = useViewPage(PageNames.Roles)
@@ -26,16 +26,45 @@ const RolesAdmin = () => {
   const { mutateAsync: deleteMutation } = useDeleteRole()
   const { mutateAsync: editMutation } = useAddRoleClaims()
 
-  // TODO - MAKE SURE THIS LOGIC ISCODED IN BACKEND.
   const protectedRoles = [
-    'ReportAdmin',
-    'Admin',
-    'RoleAdmin',
-    'LocationConfigurationAdmin',
-    'GeneralConfigurationAdmin',
-    'DataAdmin',
-    'WatchdogSubscriber',
-    'UserAdmin',
+    {
+      role: 'Admin',
+      description:
+        'All privileges are granted as described for the Data, Technician & Configuration users, including access to Menu Configuration, FAQs, Watch Dog, Settings, General Settings, Roles & Users. To access the Raw Data Export page.',
+    },
+    {
+      role: 'DataAdmin',
+      description:
+        'Privileges are granted to view, edit, and delete all configurations excluding location configuration.',
+    },
+    {
+      role: 'GeneralConfigurationAdmin',
+      description:
+        'Privileges are granted to add, edit, and delete all configurations excluding location configuration.',
+    },
+    {
+      role: 'LocationConfigurationAdmin',
+      description:
+        'Privileges are granted to add, edit, and delete location configurations excluding all other configurations.',
+    },
+    {
+      role: 'ReportAdmin',
+      description: 'Access is granted to Left Turn Gap Report.',
+    },
+    {
+      role: 'RoleAdmin',
+      description:
+        'Privileges are granted to add, edit, and delete roles (this page)',
+    },
+    {
+      role: 'UserAdmin',
+      description: 'Privileges are granted to view, edit, and delete users.',
+    },
+    {
+      role: 'WatchdogSubscriber',
+      description:
+        'Privileges are granted to watchdog the watchdog email and access the watchdog report.',
+    },
   ]
 
   const HandleDeleteRole = async (roleName: string) => {
@@ -103,25 +132,43 @@ const RolesAdmin = () => {
     return <div>Error returning data</div>
   }
 
-  const filteredData = roles
-    .map((role: Role, index: number) => {
-      return {
-        id: index,
-        role: role.role,
-      }
-    })
+  const customRoleFilteredData = roles
+    .filter((role: Role) => !protectedRoles.some((pr) => pr.role === role.role)) // Updated to compare with protectedRoles.role
+    .map((role: Role, index: number) => ({
+      id: index,
+      role: role.role,
+    }))
     .sort((a, b) => a.role.localeCompare(b.role))
 
-  const headers = ['Role']
-  const headerKeys = ['role']
+  const filteredDefaultRoles = protectedRoles.map((roleObj, index: number) => {
+    return {
+      id: index,
+      role: roleObj.role.replace(/(?<!^)([A-Z])/g, ' $1'),
+      description: roleObj.description,
+    }
+  })
+
+  const defaultRoleHeaders = ['Default Roles', 'description']
+  const defaultRoleKeys = ['role', 'description']
+
+  const customRolesHeaders = ['Custom Roles']
+  const customRoleKeys = ['role']
 
   return (
     <ResponsivePageLayout title="Manage Roles" noBottomMargin>
+      <Box sx={{ marginBottom: 10 }}>
+        <AdminTable
+          pageName="Role"
+          headers={defaultRoleHeaders}
+          headerKeys={defaultRoleKeys}
+          data={filteredDefaultRoles}
+        />
+      </Box>
       <AdminTable
-        pageName="Role"
-        headers={headers}
-        headerKeys={headerKeys}
-        data={filteredData}
+        pageName="Custom Role"
+        headers={customRolesHeaders}
+        headerKeys={customRoleKeys}
+        data={customRoleFilteredData}
         hasEditPrivileges={hasRoleEditClaim}
         hasDeletePrivileges={hasRolesDeleteClaim}
         protectedFromDeleteItems={protectedRoles}
