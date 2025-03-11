@@ -90,3 +90,14 @@ jobs:
           push: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: 🚀 Deploy to Cloud Run
+        if: ${{ success() }}
+        uses: google-github-actions/deploy-cloudrun@v0
+        with:
+          # Get the service name from the service-names.json file based on the matrix name
+          service: ${{ fromJson(file('.github/service-names.json'))[matrix.name] }}
+          image: ${{ vars.GCP_ARTIFACT_REPO }}/${{ matrix.name }}:${{ steps.meta.outputs.tags }}
+          region: us-central1
+          platform: managed
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
