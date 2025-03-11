@@ -3,7 +3,7 @@ name: Build Containers
 on:
   push:
     branches:
-      - main
+      - Staging
 
 permissions:
   id-token: write
@@ -46,10 +46,7 @@ jobs:
         id: auth
         uses: google-github-actions/auth@v2
         with:
-          create_credentials_file: true
-          token_format: access_token
-          workload_identity_provider: ${{ secrets.IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.SERVICE_ACCOUNT_EMAIL }}
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
       - name: 🐳 Set up Docker Buildx
         id: builder
