@@ -62,11 +62,7 @@ jobs:
         with:
           images: ${{ vars.GCP_ARTIFACT_REPO }}/${{ matrix.name }}
           tags: |
-            type=ref,suffix=-{{sha}},event=branch
-            type=ref,prefix=pr-,suffix=-{{sha}},event=pr
-            type=semver,pattern={{version}}
             type=sha
-            latest
 
       - name: 📦 Build and push image
         uses: docker/build-push-action@v6
