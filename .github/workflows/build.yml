@@ -70,7 +70,7 @@ jobs:
 
       - name: 📦 Build and push image
         uses: docker/build-push-action@v6
-        if: ${{ matrix.name != 'atspm-webui'}}
+        if: ${{ matrix.name != 'atspmwebsite'}}
         with:
           builder: ${{ steps.builder.outputs.name }}
           tags: ${{ steps.meta.outputs.tags }}
@@ -82,7 +82,7 @@ jobs:
 
       - name: 📦 Build and push image WebUI
         uses: docker/build-push-action@v6
-        if: ${{ matrix.name == 'atspm-webui'}}
+        if: ${{ matrix.name == 'atspmwebsite'}}
         with:
           builder: ${{ steps.builder.outputs.name }}
           tags: ${{ steps.meta.outputs.tags }}
