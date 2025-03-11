@@ -1,6 +1,6 @@
+import { useGetApiV1Claims } from '@/api/identity/atspmAuthenticationApi'
 import { Box, MenuItem, Select, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { Role } from '../types/roles'
 
 interface PageClaimsCardProps {
   currentClaims: { role: string; claims: string[] }[]
@@ -23,79 +23,11 @@ const PageClaimsCard = ({
   setUserClaims,
   id,
 }: PageClaimsCardProps) => {
-  const claims = [
-    'User:View',
-    'User:Edit',
-    'User:Delete',
-    'Role:View',
-    'Role:Edit',
-    'Role:Delete',
-    'LocationConfiguration:View',
-    'LocationConfiguration:Edit',
-    'LocationConfiguration:Delete',
-    'GeneralConfiguration:View',
-    'GeneralConfiguration:Edit',
-    'GeneralConfiguration:Delete',
-    'Data:View',
-    'Data:Edit',
-    'Watchdog:View',
-    'Report:View',
-  ]
-
-  const SetInStone: Role[] = [
-    {
-      role: 'Admin',
-      claims: ['Admin'],
-    },
-    {
-      role: 'ReportAdmin',
-      claims: ['Report:View'],
-    },
-    {
-      role: 'RoleAdmin',
-      claims: ['Role:View', 'Role:Edit', 'Role:Delete'],
-    },
-    {
-      role: 'UserAdmin',
-      claims: ['User:Edit', 'User:Delete', 'User:View'],
-    },
-    {
-      role: 'LocationConfigurationAdmin',
-      claims: [
-        'LocationConfiguration:View',
-        'LocationConfiguration:Edit',
-        'LocationConfiguration:Delete',
-      ],
-    },
-    {
-      role: 'GeneralConfigurationAdmin',
-      claims: [
-        'GeneralConfiguration:View',
-        'GeneralConfiguration:Edit',
-        'GeneralConfiguration:Delete',
-      ],
-    },
-    {
-      role: 'DataAdmin',
-      claims: ['Data:View', 'Data:Edit'],
-    },
-    {
-      role: 'WatchdogSubscriber',
-      claims: ['Watchdog:View'],
-    },
-  ]
-
-  const spaceIdName = id
-    ? id
-        .toString()
-        .replace(/(\[A-Z\])/g, ' $1')
-        .trim()
-    : ''
+  const { data: claimsData } = useGetApiV1Claims()
+  const claims = claimsData?.filter((claim: string) => claim !== 'Admin')
 
   const roleCurrentClaims =
     currentClaims.find((item) => item.role === id)?.claims || []
-  const roleSetInStoneClaims =
-    SetInStone.find((item) => item.role === id)?.claims || []
 
   const [selectedPermissions, setSelectedPermissions] = useState<{
     [key: string]: string
@@ -140,14 +72,14 @@ const PageClaimsCard = ({
     return claim.split(':')[0]
   }
 
-  const uniquePermissions = Array.from(new Set(claims.map(getPermissionName)))
+  const uniquePermissions = Array.from(new Set(claims?.map(getPermissionName)))
 
   const formatPermissionName = (permission: string) => {
     return permission.replace(/(?<!^)([A-Z])/g, ' $1')
   }
 
   const handlePermissionChange = (permission: string, value: string) => {
-    if (id === 'Admin' || roleSetInStoneClaims.length > 0) return
+    if (id === 'Admin') return
 
     const updatedPermissions = {
       ...selectedPermissions,
@@ -215,7 +147,7 @@ const PageClaimsCard = ({
                 onChange={(e) =>
                   handlePermissionChange(permission, e.target.value)
                 }
-                disabled={id === 'Admin' || roleSetInStoneClaims.length > 0}
+                disabled={id === 'Admin'}
                 displayEmpty
               >
                 <MenuItem value="">None</MenuItem>
