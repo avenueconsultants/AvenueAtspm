@@ -4,6 +4,5 @@
   "atspm-data-api": "Atspm/DataApi/**",
   "atspm-identity-api": "Atspm/IdentityApi/**",
   "atspm-report-api": "Atspm/ReportApi/**",
-  "atspm-watchdog": "Atspm/WatchDog/**",
-  "atspm-eventlogutil": "Atspm/EventLogUtility/**"
+  "atspm-watchdog": "Atspm/WatchDog/**"
 }
