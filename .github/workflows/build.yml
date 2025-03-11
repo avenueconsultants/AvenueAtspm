@@ -99,7 +99,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v0
         with:
           service: ${{ env.SERVICE_NAME }}  # Use the service name from the previous step
-          image: ${{ vars.GCP_ARTIFACT_REPO }}/${{ matrix.name }}:${{ steps.meta.outputs.tags }}
+          image: ${{ steps.meta.outputs.tags }}
           region: ${{ secrets.GCP_REGION }}  # Use the region from the previous step
           platform: managed
           credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
