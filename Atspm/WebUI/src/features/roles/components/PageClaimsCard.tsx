@@ -108,7 +108,6 @@ const PageClaimsCard = ({
       }
     })
 
-    // Prevent React from resetting state when newClaims is empty
     setUserClaims(newClaims.length > 0 ? [...newClaims] : [])
     onClaimsChange(id, newClaims.length > 0 ? [...newClaims] : [])
   }

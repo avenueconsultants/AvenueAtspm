@@ -157,7 +157,7 @@ const RolesAdmin = () => {
   }
 
   const customRoleFilteredData = roles
-    .filter((role: Role) => !protectedRoles.some((pr) => pr.role === role.role)) // Updated to compare with protectedRoles.role
+    .filter((role: Role) => !protectedRoles.some((pr) => pr.role === role.role))
     .map((role: Role, index: number) => ({
       id: index,
       role: role.role,

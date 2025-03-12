@@ -67,7 +67,6 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
     setValue('claims', claims)
   }
 
-  // Function to check if all available max permissions are selected
   const checkMaxPermissions = () => {
     if (!claimsData || claimsData.length === 0 || roleId === 'Admin')
       return false
