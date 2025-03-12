@@ -11,7 +11,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface RoleFormData {
@@ -32,59 +32,58 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
     isLoading: rolesIsLoading,
     error: rolesError,
   } = useGetRoles()
-  const { isLoading: claimsIsLoading, error: claimsError } = useGetClaims()
+  const {
+    data: claimsData,
+    isLoading: claimsIsLoading,
+    error: claimsError,
+  } = useGetClaims()
 
-  const [userClaims, setUserClaims] = useState<string[]>([])
-  const [currentRole, setCurrentRole] = useState<string>('')
-  const [tempRoleName, setTempRoleName] = useState<string>('')
-  const [tempClaims, setTempClaims] = useState<string[]>([])
+  const [userClaims, setUserClaims] = useState<string[]>(data?.claims || [])
+  const [currentRole, setCurrentRole] = useState<string>(data?.role || '')
+
   const {
     register,
     handleSubmit,
+    setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<RoleFormData>({
     defaultValues: {
       roleName: data?.role || '',
-      claims: [],
+      claims: data?.claims || [],
     },
+    mode: 'onChange',
   })
 
-  const roleId = data?.role || null
+  const roleId = data?.role
   const isNewRole = !roleId
   const watchedRoleName = watch('roleName')
 
-  useEffect(() => {
-    if (isNewRole) {
-      setCurrentRole(watchedRoleName)
-      setTempRoleName(watchedRoleName)
-    } else {
-      setCurrentRole(data?.role || '')
-    }
-  }, [watchedRoleName, isNewRole, data])
-
   const handleClaimsChange = (_role: string, claims: string[]) => {
     setUserClaims(claims)
-    setTempClaims(claims)
+    setValue('claims', claims)
   }
 
   const onSubmit = (formData: RoleFormData) => {
+    if (!formData.roleName) return
     onSave({
       roleName: formData.roleName,
-      claims: tempClaims,
+      claims: userClaims,
     })
     onClose()
   }
 
-  if (rolesIsLoading || claimsIsLoading) return null
+  const existingRoleNames = (rolesData || []).map((role) =>
+    role.role.toLowerCase()
+  )
+  const isDuplicateRoleName =
+    isNewRole &&
+    watchedRoleName &&
+    existingRoleNames.includes(watchedRoleName.toLowerCase())
 
+  if (rolesIsLoading || claimsIsLoading) return null
   if (rolesError || claimsError) {
-    return (
-      <div>
-        Error:{' '}
-        {(rolesError as Error)?.message || (claimsError as Error)?.message}
-      </div>
-    )
+    return <div>Error: {rolesError?.message || claimsError?.message}</div>
   }
 
   return (
@@ -92,7 +91,6 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
       open={isOpen}
       onClose={onClose}
       aria-labelledby="role-permissions-label"
-      maxWidth={false}
       sx={{
         '& .MuiDialog-paper': {
           width: 'auto',
@@ -106,49 +104,51 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
           sx={{ fontSize: '1.3rem', margin: '2rem', mb: 0 }}
           id="role-permissions-label"
         >
-          {isNewRole ? (
-            <>
-              Create New Role
-              {errors.roleName && (
-                <Box sx={{ color: 'error.main', fontSize: '0.8rem', mt: 1 }}>
-                  {errors.roleName.message}
-                </Box>
-              )}
-            </>
-          ) : (
-            <>Role Permissions - {roleId}</>
-          )}
+          {isNewRole ? 'Create New Role' : `Role Permissions - ${roleId}`}
         </DialogTitle>
         <DialogContent>
           {isNewRole && (
-            <Box sx={{ mb: 3, mt: 1 }}>
+            <Box sx={{ m: 2, mb: 3, mt: 1 }}>
               <TextField
                 fullWidth
                 label="Role Name"
                 {...register('roleName', {
                   required: 'Role name is required',
+                  validate: (value) => {
+                    // Skip validation if value is empty
+                    if (!value || value.trim() === '') return true
+                    // Check for duplicate role name only if value is non-empty
+                    return (
+                      !existingRoleNames.includes(value.toLowerCase()) ||
+                      'Role name already exists'
+                    )
+                  },
                 })}
-                error={!!errors.roleName}
-                helperText={errors.roleName?.message}
+                error={!!errors.roleName || isDuplicateRoleName}
+                helperText={errors.roleName ? errors.roleName.message : ''}
               />
             </Box>
           )}
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <PageClaimsCard
-              id={isNewRole ? tempRoleName : (roleId ?? '')}
-              currentClaims={rolesData || []}
-              onClaimsChange={handleClaimsChange}
-              currentRole={currentRole}
-              setCurrentRole={setCurrentRole}
-              userClaims={userClaims}
-              setUserClaims={setUserClaims}
-            />
-          </Box>
+          <PageClaimsCard
+            id={isNewRole ? watchedRoleName : (roleId ?? '')}
+            currentClaims={rolesData || []}
+            onClaimsChange={handleClaimsChange}
+            currentRole={currentRole}
+            setCurrentRole={setCurrentRole}
+            userClaims={userClaims}
+            setUserClaims={setUserClaims}
+            claimsData={claimsData}
+            isNewRole={isNewRole}
+          />
         </DialogContent>
         <DialogActions>
           <Box sx={{ marginRight: '1rem', marginBottom: '.5rem' }}>
             <Button onClick={onClose}>Cancel</Button>
-            <Button variant="contained" type="submit">
+            <Button
+              variant="contained"
+              type="submit"
+              disabled={!isValid || isDuplicateRoleName}
+            >
               {isNewRole ? 'Create Role' : 'Update Role'}
             </Button>
           </Box>

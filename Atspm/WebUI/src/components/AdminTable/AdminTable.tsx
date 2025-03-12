@@ -141,7 +141,7 @@ const AdminTable = <T extends HasId>({
 
   let deleteModalWithId
   if (deleteModal) {
-    cloneElement(deleteModal, {
+    deleteModalWithId = cloneElement(deleteModal, {
       id: selectedRow?.id,
       name: selectedRow?.name,
       open: isDeleteModalOpen,

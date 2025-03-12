@@ -1,4 +1,3 @@
-import { useGetApiV1Claims } from '@/api/identity/atspmAuthenticationApi'
 import { Box, MenuItem, Select, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 
@@ -10,9 +9,9 @@ interface PageClaimsCardProps {
   userClaims: string[]
   setUserClaims: (claims: string[]) => void
   id: string
+  claimsData?: string[]
+  isNewRole?: boolean // Add isNewRole prop
 }
-
-const permissionOptions = ['View', 'View & Edit', 'View, Edit, Delete']
 
 const PageClaimsCard = ({
   currentClaims,
@@ -22,10 +21,10 @@ const PageClaimsCard = ({
   userClaims,
   setUserClaims,
   id,
+  claimsData,
+  isNewRole,
 }: PageClaimsCardProps) => {
-  const { data: claimsData } = useGetApiV1Claims()
-  const claims = claimsData?.filter((claim: string) => claim !== 'Admin')
-
+  const claims = claimsData?.filter((claim) => claim !== 'Admin') || []
   const roleCurrentClaims =
     currentClaims.find((item) => item.role === id)?.claims || []
 
@@ -33,30 +32,44 @@ const PageClaimsCard = ({
     [key: string]: string
   }>({})
 
-  useEffect(() => {
-    if (id === 'Admin') {
-      setUserClaims(claims)
-      onClaimsChange(id as string, claims)
-    } else {
-      setCurrentRole(id as string)
-      setUserClaims(roleCurrentClaims)
+  const getPermissionName = (claim: string) => claim.split(':')[0]
+  const uniquePermissions = Array.from(new Set(claims.map(getPermissionName)))
 
-      // Initialize selected permissions based on current claims
-      const initialPermissions: { [key: string]: string } = {}
+  const getAvailableOptions = (permission: string) => {
+    const availableClaims = claims.filter((c) => c.startsWith(permission))
+    const options: string[] = []
+    if (availableClaims.some((c) => c.endsWith('View'))) options.push('View')
+    if (availableClaims.some((c) => c.endsWith('Edit')))
+      options.push('View & Edit')
+    if (availableClaims.some((c) => c.endsWith('Delete')))
+      options.push('View, Edit, Delete')
+    return options
+  }
+
+  const permissionDescriptions: Record<string, string> = {
+    User: 'Update and delete user accounts, and assign roles to users.',
+    Role: 'Manage roles, and assign permissions to roles.',
+    LocationConfiguration: 'Manage locations info and settings.',
+    GeneralConfiguration: 'Manage faqs, areas, regions, jurisdictions, etc.',
+    Data: 'Export raw event logs.',
+    Watchdog:
+      'View the system’s watchdog logs and subscribe to daily watchdog email updates.',
+    Report: 'View the left turn gap report.',
+  }
+
+  useEffect(() => {
+    if (!id || !claims.length) return
+
+    const initialPermissions: { [key: string]: string } = {}
+    if (isNewRole) {
+      setUserClaims(userClaims)
+      setCurrentRole(id)
+
       uniquePermissions.forEach((permission) => {
-        const permClaims = roleCurrentClaims.filter((c) =>
-          c.startsWith(permission)
-        )
-        if (
-          permClaims.includes(`${permission}:View`) &&
-          permClaims.includes(`${permission}:Edit`) &&
-          permClaims.includes(`${permission}:Delete`)
-        ) {
+        const permClaims = userClaims.filter((c) => c.startsWith(permission))
+        if (permClaims.includes(`${permission}:Delete`)) {
           initialPermissions[permission] = 'View, Edit, Delete'
-        } else if (
-          permClaims.includes(`${permission}:View`) &&
-          permClaims.includes(`${permission}:Edit`)
-        ) {
+        } else if (permClaims.includes(`${permission}:Edit`)) {
           initialPermissions[permission] = 'View & Edit'
         } else if (permClaims.includes(`${permission}:View`)) {
           initialPermissions[permission] = 'View'
@@ -64,30 +77,46 @@ const PageClaimsCard = ({
           initialPermissions[permission] = ''
         }
       })
-      setSelectedPermissions(initialPermissions)
+    } else {
+      // Existing role editing
+      setCurrentRole(id)
+      const initialClaims =
+        userClaims.length > 0 ? userClaims : roleCurrentClaims
+      setUserClaims(initialClaims)
+
+      uniquePermissions.forEach((permission) => {
+        const permClaims = initialClaims.filter((c) => c.startsWith(permission))
+        if (permClaims.includes(`${permission}:Delete`)) {
+          initialPermissions[permission] = 'View, Edit, Delete'
+        } else if (permClaims.includes(`${permission}:Edit`)) {
+          initialPermissions[permission] = 'View & Edit'
+        } else if (permClaims.includes(`${permission}:View`)) {
+          initialPermissions[permission] = 'View'
+        } else {
+          initialPermissions[permission] = ''
+        }
+      })
     }
-  }, [id, roleCurrentClaims])
+    setSelectedPermissions(initialPermissions)
+  }, [
+    id,
+    claims,
+    userClaims,
+    setUserClaims,
+    setCurrentRole,
+    onClaimsChange,
+    isNewRole,
+  ])
 
-  const getPermissionName = (claim: string) => {
-    return claim.split(':')[0]
-  }
-
-  const uniquePermissions = Array.from(new Set(claims?.map(getPermissionName)))
-
-  const formatPermissionName = (permission: string) => {
-    return permission.replace(/(?<!^)([A-Z])/g, ' $1')
-  }
+  const formatPermissionName = (permission: string) =>
+    permission.replace(/(?<!^)([A-Z])/g, ' $1')
 
   const handlePermissionChange = (permission: string, value: string) => {
-    if (id === 'Admin') return
+    if (id === 'Admin' || !id) return
 
-    const updatedPermissions = {
-      ...selectedPermissions,
-      [permission]: value,
-    }
+    const updatedPermissions = { ...selectedPermissions, [permission]: value }
     setSelectedPermissions(updatedPermissions)
 
-    // Convert selection to claims array
     const newClaims: string[] = []
     Object.entries(updatedPermissions).forEach(([perm, val]) => {
       switch (val) {
@@ -104,63 +133,65 @@ const PageClaimsCard = ({
     })
 
     setUserClaims(newClaims)
-    onClaimsChange(id as string, newClaims)
+    onClaimsChange(id, newClaims)
   }
 
   return (
     <Box sx={{ width: '100%', padding: 2 }}>
-      {uniquePermissions.map((permission) => (
-        <Box
-          key={permission}
-          sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            mb: 2,
-            width: '100%',
-          }}
-        >
+      {uniquePermissions.map((permission) => {
+        const availableOptions = getAvailableOptions(permission)
+        return (
           <Box
+            key={permission}
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              mb: 1,
+              flexDirection: 'column',
+              mb: 2,
+              width: '100%',
             }}
           >
-            <Box>
-              <Typography variant="h6" component="div" fontWeight="bold">
-                {`${formatPermissionName(permission)}:`}
-              </Typography>
-              <Box sx={{ marginRight: 2 }}>
-                <Typography variant="body2" color="text.secondary">
-                  Placeholder description for {formatPermissionName(permission)}
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mb: 1,
+              }}
+            >
+              <Box>
+                <Typography variant="h6" component="div" fontWeight="bold">
+                  {formatPermissionName(permission)}
                 </Typography>
+                <Box sx={{ marginRight: 2, maxWidth: '400px' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    {permissionDescriptions[permission] ||
+                      'No description available.'}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ minWidth: 200 }}>
+                <Select
+                  fullWidth
+                  size="small"
+                  value={selectedPermissions[permission] || ''}
+                  onChange={(e) =>
+                    handlePermissionChange(permission, e.target.value)
+                  }
+                  disabled={id === 'Admin' || !id}
+                  displayEmpty
+                >
+                  <MenuItem value="">None</MenuItem>
+                  {availableOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </Select>
               </Box>
             </Box>
-            <Box sx={{ minWidth: 200 }}>
-              {' '}
-              {/* Fixed width for dropdown */}
-              <Select
-                fullWidth
-                size="small"
-                value={selectedPermissions[permission] || ''}
-                onChange={(e) =>
-                  handlePermissionChange(permission, e.target.value)
-                }
-                disabled={id === 'Admin'}
-                displayEmpty
-              >
-                <MenuItem value="">None</MenuItem>
-                {permissionOptions.map((option) => (
-                  <MenuItem key={option} value={option}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Box>
           </Box>
-        </Box>
-      ))}
+        )
+      })}
     </Box>
   )
 }
