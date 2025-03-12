@@ -3,6 +3,7 @@ import { useGetRoles } from '@/features/identity/api/getRoles'
 import { Role } from '@/features/identity/types/roles'
 import PageClaimsCard from '@/features/roles/components/PageClaimsCard'
 import {
+  Alert,
   Box,
   Button,
   Dialog,
@@ -11,7 +12,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface RoleFormData {
@@ -40,6 +41,8 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
 
   const [userClaims, setUserClaims] = useState<string[]>(data?.claims || [])
   const [currentRole, setCurrentRole] = useState<string>(data?.role || '')
+  const [showMaxPermissionsWarning, setShowMaxPermissionsWarning] =
+    useState(false)
 
   const {
     register,
@@ -63,6 +66,32 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
     setUserClaims(claims)
     setValue('claims', claims)
   }
+
+  // Function to check if all available max permissions are selected
+  const checkMaxPermissions = () => {
+    if (!claimsData || claimsData.length === 0 || roleId === 'Admin')
+      return false
+
+    const uniquePermissions = Array.from(
+      new Set(claimsData.map((claim) => claim.split(':')[0]))
+    ).filter((perm) => perm !== 'Admin')
+
+    const hasMaxPermission = (permission: string) => {
+      const availableClaims = claimsData.filter((c) => c.startsWith(permission))
+      const maxLevel = availableClaims.some((c) => c.endsWith('Delete'))
+        ? `${permission}:Delete`
+        : availableClaims.some((c) => c.endsWith('Edit'))
+          ? `${permission}:Edit`
+          : `${permission}:View`
+      return userClaims.includes(maxLevel)
+    }
+
+    return uniquePermissions.every(hasMaxPermission)
+  }
+
+  useEffect(() => {
+    setShowMaxPermissionsWarning(checkMaxPermissions())
+  }, [userClaims, claimsData])
 
   const onSubmit = (formData: RoleFormData) => {
     if (!formData.roleName) return
@@ -115,9 +144,7 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
                 {...register('roleName', {
                   required: 'Role name is required',
                   validate: (value) => {
-                    // Skip validation if value is empty
                     if (!value || value.trim() === '') return true
-                    // Check for duplicate role name only if value is non-empty
                     return (
                       !existingRoleNames.includes(value.toLowerCase()) ||
                       'Role name already exists'
@@ -128,6 +155,11 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
                 helperText={errors.roleName ? errors.roleName.message : ''}
               />
             </Box>
+          )}
+          {showMaxPermissionsWarning && (
+            <Alert severity="warning" sx={{ m: 2 }}>
+              You've selected all permissions. This is the same as Admin
+            </Alert>
           )}
           <PageClaimsCard
             id={isNewRole ? watchedRoleName : (roleId ?? '')}
@@ -147,7 +179,9 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
             <Button
               variant="contained"
               type="submit"
-              disabled={!isValid || isDuplicateRoleName}
+              disabled={
+                !isValid || isDuplicateRoleName || showMaxPermissionsWarning
+              }
             >
               {isNewRole ? 'Create Role' : 'Update Role'}
             </Button>

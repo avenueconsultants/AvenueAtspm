@@ -1,41 +1,49 @@
+import {
+  useDeleteApiV1RolesRoleName,
+  useGetApiV1Roles,
+  usePostApiV1Roles,
+} from '@/api/identity/atspmAuthenticationApi'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import { useAddRoleClaims } from '@/features/identity/api/addRoleClaims'
-import { useGetRoles } from '@/features/identity/api/getRoles'
 import {
   PageNames,
   useUserHasClaim,
   useViewPage,
 } from '@/features/identity/pagesCheck'
 import { Role } from '@/features/identity/types/roles'
-import { useDeleteRole } from '@/features/roles/api/deleteRoles'
-import { usePostRoleName } from '@/features/roles/api/postRolesName'
 import RoleModal from '@/features/roles/components/RoleModal'
+import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, Box, CircularProgress } from '@mui/material'
 
 const RolesAdmin = () => {
   const pageAccess = useViewPage(PageNames.Roles)
   const hasRoleEditClaim = useUserHasClaim('Role:Edit')
   const hasRolesDeleteClaim = useUserHasClaim('Role:Delete')
+  const { addNotification } = useNotificationStore()
 
-  const { data: allRolesData, isLoading, refetch: refetchRoles } = useGetRoles()
+  const {
+    data: allRolesData,
+    isLoading,
+    refetch: refetchRoles,
+  } = useGetApiV1Roles()
   const roles = allRolesData
 
-  const { mutateAsync: createMutation } = usePostRoleName()
-  const { mutateAsync: deleteMutation } = useDeleteRole()
+  const { mutateAsync: createMutation } = usePostApiV1Roles()
+  const { mutateAsync: deleteMutation } = useDeleteApiV1RolesRoleName()
   const { mutateAsync: editMutation } = useAddRoleClaims()
 
   const protectedRoles = [
     {
       role: 'Admin',
       description:
-        'All privileges are granted as described for the Data, Technician & Configuration users, including access to Menu Configuration, FAQs, Watch Dog, Settings, General Settings, Roles & Users. To access the Raw Data Export page.',
+        'All privileges are granted for the user. Unrestricted Access to ATSPM',
     },
     {
       role: 'DataAdmin',
       description:
-        'Privileges are granted to view, edit, and delete all configurations excluding location configuration.',
+        'Privileges are granted to the Admin menu to access the Raw Data Export page.',
     },
     {
       role: 'GeneralConfigurationAdmin',
@@ -49,7 +57,7 @@ const RolesAdmin = () => {
     },
     {
       role: 'ReportAdmin',
-      description: 'Access is granted to Left Turn Gap Report.',
+      description: 'Privileges are granted to access restricted reports.',
     },
     {
       role: 'RoleAdmin',
@@ -63,7 +71,7 @@ const RolesAdmin = () => {
     {
       role: 'WatchdogSubscriber',
       description:
-        'Privileges are granted to watchdog the watchdog email and access the watchdog report.',
+        'Privileges are granted to view the watchdog report & subscribe to watchdog emails.',
     },
   ]
 
@@ -72,10 +80,12 @@ const RolesAdmin = () => {
       return
     }
     try {
-      await deleteMutation(roleName)
+      await deleteMutation({ roleName })
       refetchRoles()
+      addNotification({ title: 'Role Deleted', type: 'success' })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({ title: 'Delete role Unsuccessful', type: 'error' })
     }
   }
 
@@ -89,8 +99,13 @@ const RolesAdmin = () => {
         claims: roleData.claims,
       })
       refetchRoles()
+      addNotification({
+        title: `${roleData.roleName} updated`,
+        type: 'success',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({ title: ' Role update Unsuccessful', type: 'error' })
     }
   }
 
@@ -99,7 +114,11 @@ const RolesAdmin = () => {
     claims: string[]
   }) => {
     try {
-      await createMutation({ roleName: roleData.roleName })
+      await createMutation({
+        data: {
+          roleName: roleData.roleName,
+        },
+      })
       if (roleData.claims.length > 0) {
         await editMutation({
           roleName: roleData.roleName,
@@ -107,8 +126,13 @@ const RolesAdmin = () => {
         })
       }
       refetchRoles()
+      addNotification({
+        title: `${roleData.roleName} created`,
+        type: 'success',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({ title: ' Role create Unsuccessful', type: 'error' })
     }
   }
 

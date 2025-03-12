@@ -10,7 +10,7 @@ interface PageClaimsCardProps {
   setUserClaims: (claims: string[]) => void
   id: string
   claimsData?: string[]
-  isNewRole?: boolean // Add isNewRole prop
+  isNewRole?: boolean
 }
 
 const PageClaimsCard = ({
@@ -61,52 +61,27 @@ const PageClaimsCard = ({
     if (!id || !claims.length) return
 
     const initialPermissions: { [key: string]: string } = {}
-    if (isNewRole) {
-      setUserClaims(userClaims)
-      setCurrentRole(id)
+    const initialClaims = isNewRole
+      ? userClaims
+      : userClaims.length > 0
+        ? userClaims
+        : roleCurrentClaims
 
-      uniquePermissions.forEach((permission) => {
-        const permClaims = userClaims.filter((c) => c.startsWith(permission))
-        if (permClaims.includes(`${permission}:Delete`)) {
-          initialPermissions[permission] = 'View, Edit, Delete'
-        } else if (permClaims.includes(`${permission}:Edit`)) {
-          initialPermissions[permission] = 'View & Edit'
-        } else if (permClaims.includes(`${permission}:View`)) {
-          initialPermissions[permission] = 'View'
-        } else {
-          initialPermissions[permission] = ''
-        }
-      })
-    } else {
-      // Existing role editing
-      setCurrentRole(id)
-      const initialClaims =
-        userClaims.length > 0 ? userClaims : roleCurrentClaims
-      setUserClaims(initialClaims)
+    uniquePermissions.forEach((permission) => {
+      const permClaims = initialClaims.filter((c) => c.startsWith(permission))
+      if (permClaims.includes(`${permission}:Delete`)) {
+        initialPermissions[permission] = 'View, Edit, Delete'
+      } else if (permClaims.includes(`${permission}:Edit`)) {
+        initialPermissions[permission] = 'View & Edit'
+      } else if (permClaims.includes(`${permission}:View`)) {
+        initialPermissions[permission] = 'View'
+      } else {
+        initialPermissions[permission] = ''
+      }
+    })
 
-      uniquePermissions.forEach((permission) => {
-        const permClaims = initialClaims.filter((c) => c.startsWith(permission))
-        if (permClaims.includes(`${permission}:Delete`)) {
-          initialPermissions[permission] = 'View, Edit, Delete'
-        } else if (permClaims.includes(`${permission}:Edit`)) {
-          initialPermissions[permission] = 'View & Edit'
-        } else if (permClaims.includes(`${permission}:View`)) {
-          initialPermissions[permission] = 'View'
-        } else {
-          initialPermissions[permission] = ''
-        }
-      })
-    }
     setSelectedPermissions(initialPermissions)
-  }, [
-    id,
-    claims,
-    userClaims,
-    setUserClaims,
-    setCurrentRole,
-    onClaimsChange,
-    isNewRole,
-  ])
+  }, [id, roleCurrentClaims, isNewRole])
 
   const formatPermissionName = (permission: string) =>
     permission.replace(/(?<!^)([A-Z])/g, ' $1')
@@ -118,6 +93,7 @@ const PageClaimsCard = ({
     setSelectedPermissions(updatedPermissions)
 
     const newClaims: string[] = []
+
     Object.entries(updatedPermissions).forEach(([perm, val]) => {
       switch (val) {
         case 'View':
@@ -132,8 +108,9 @@ const PageClaimsCard = ({
       }
     })
 
-    setUserClaims(newClaims)
-    onClaimsChange(id, newClaims)
+    // Prevent React from resetting state when newClaims is empty
+    setUserClaims(newClaims.length > 0 ? [...newClaims] : [])
+    onClaimsChange(id, newClaims.length > 0 ? [...newClaims] : [])
   }
 
   return (
