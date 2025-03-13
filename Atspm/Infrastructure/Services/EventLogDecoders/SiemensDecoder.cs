@@ -24,7 +24,7 @@ using Utah.Udot.Atspm.Data.Models.EventLogModels;
 
 namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogDecoders
 {
-    /// <inheritdoc/>
+    /// <inheritdoc/> hi
     public class SiemensDecoder : EventLogDecoderBase<IndianaEvent>
     {
         private readonly IConfiguration configuration;
