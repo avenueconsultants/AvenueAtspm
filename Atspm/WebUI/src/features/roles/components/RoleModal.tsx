@@ -3,7 +3,6 @@ import { useGetRoles } from '@/features/identity/api/getRoles'
 import { Role } from '@/features/identity/types/roles'
 import PageClaimsCard from '@/features/roles/components/PageClaimsCard'
 import {
-  Alert,
   Box,
   Button,
   Dialog,
@@ -12,7 +11,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material'
-import React, { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface RoleFormData {
@@ -27,7 +26,7 @@ interface ModalProps {
   onSave: (roleData: RoleFormData) => void
 }
 
-const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
+const RoleModal = ({ isOpen, onSave, onClose, data }: ModalProps) => {
   const {
     data: rolesData,
     isLoading: rolesIsLoading,
@@ -41,8 +40,6 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
 
   const [userClaims, setUserClaims] = useState<string[]>(data?.claims || [])
   const [currentRole, setCurrentRole] = useState<string>(data?.role || '')
-  const [showMaxPermissionsWarning, setShowMaxPermissionsWarning] =
-    useState(false)
 
   const {
     register,
@@ -87,10 +84,6 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
 
     return uniquePermissions.every(hasMaxPermission)
   }
-
-  useEffect(() => {
-    setShowMaxPermissionsWarning(checkMaxPermissions())
-  }, [userClaims, claimsData])
 
   const onSubmit = (formData: RoleFormData) => {
     if (!formData.roleName) return
@@ -155,12 +148,7 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
               />
             </Box>
           )}
-          {showMaxPermissionsWarning && (
-            <Alert severity="warning" sx={{ mb: 2 }}>
-              You've selected all permissions. Please use the Admin role
-              instead.
-            </Alert>
-          )}
+
           <PageClaimsCard
             id={isNewRole ? watchedRoleName : (roleId ?? '')}
             currentClaims={rolesData || []}
@@ -179,9 +167,7 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
             <Button
               variant="contained"
               type="submit"
-              disabled={
-                !isValid || isDuplicateRoleName || showMaxPermissionsWarning
-              }
+              disabled={!isValid || isDuplicateRoleName}
             >
               {isNewRole ? 'Create Role' : 'Update Role'}
             </Button>

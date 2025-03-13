@@ -4,8 +4,6 @@ import { useEffect, useState } from 'react'
 interface PageClaimsCardProps {
   currentClaims: { role: string; claims: string[] }[]
   onClaimsChange: (role: string, claims: string[]) => void
-  currentRole: string
-  setCurrentRole: (role: string) => void
   userClaims: string[]
   setUserClaims: (claims: string[]) => void
   id: string
@@ -16,8 +14,6 @@ interface PageClaimsCardProps {
 const PageClaimsCard = ({
   currentClaims,
   onClaimsChange,
-  currentRole,
-  setCurrentRole,
   userClaims,
   setUserClaims,
   id,
@@ -87,8 +83,6 @@ const PageClaimsCard = ({
     permission.replace(/(?<!^)([A-Z])/g, ' $1')
 
   const handlePermissionChange = (permission: string, value: string) => {
-    if (id === 'Admin' || !id) return
-
     const updatedPermissions = { ...selectedPermissions, [permission]: value }
     setSelectedPermissions(updatedPermissions)
 
@@ -153,7 +147,6 @@ const PageClaimsCard = ({
                   onChange={(e) =>
                     handlePermissionChange(permission, e.target.value)
                   }
-                  disabled={id === 'Admin' || !id}
                   displayEmpty
                 >
                   <MenuItem value="">None</MenuItem>

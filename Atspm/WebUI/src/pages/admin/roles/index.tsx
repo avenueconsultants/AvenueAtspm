@@ -34,7 +34,7 @@ const RolesAdmin = () => {
   const { mutateAsync: deleteMutation } = useDeleteApiV1RolesRoleName()
   const { mutateAsync: editMutation } = useAddRoleClaims()
 
-  const protectedRoles = [
+  const builtInRoles = [
     {
       role: 'Admin',
       description:
@@ -50,11 +50,7 @@ const RolesAdmin = () => {
         'Can manage all system-wide configurations except location-specific settings.',
     },
     {
-      role: 'RoleAdmin',
-      description: 'Can manage roles and permissions.',
-    },
-    {
-      role: 'LocationAdmin',
+      role: 'LocationConfigurationAdmin',
       description: 'Can manage location-specific settings and configurations.',
     },
     {
@@ -62,10 +58,29 @@ const RolesAdmin = () => {
       description: 'Can manage roles and permissions.',
     },
     {
+      role: 'UserAdmin',
+      description: 'Can manage Users.',
+    },
+    {
+      role: 'ReportAdmin',
+      description: 'Privileges are granted to access restricted reports.',
+    },
+    {
       role: 'WatchdogSubscriber',
       description:
         'Can view Watchdog reports and is subscribed to email notifications for Watchdog alerts.',
     },
+  ]
+
+  const protectedRoles: string[] = [
+    'Admin',
+    'DataAdmin',
+    'GeneralConfigurationAdmin',
+    'LocationConfigurationAdmin',
+    'RoleAdmin',
+    'UserAdmin',
+    'ReportAdmin',
+    'WatchdogSubscriber',
   ]
 
   const HandleDeleteRole = async (roleName: string) => {
@@ -150,23 +165,23 @@ const RolesAdmin = () => {
   }
 
   const customRoleFilteredData = roles
-    .filter((role: Role) => !protectedRoles.some((pr) => pr.role === role.role))
+    .filter((role: Role) => !builtInRoles.some((pr) => pr.role === role.role))
     .map((role: Role, index: number) => ({
       id: index,
       role: role.role,
     }))
-    .sort((a, b) => a.role.localeCompare(b.role))
+    .sort((a: Role, b: Role) => a.role.localeCompare(b.role))
 
-  const filteredDefaultRoles = protectedRoles.map((roleObj, index: number) => {
+  const filteredDefaultRoles = builtInRoles.map((roleObj, index: number) => {
     return {
       id: index,
-      role: roleObj.role.replace(/(?<!^)([A-Z])/g, ' $1'),
+      name: roleObj.role.replace(/(?<!^)([A-Z])/g, ' $1'),
       description: roleObj.description,
     }
   })
 
   const defaultRoleHeaders = ['Name', 'Description']
-  const defaultRoleKeys = ['role', 'description']
+  const defaultRoleKeys = ['name', 'description']
 
   const customRolesHeaders = ['Name']
   const customRoleKeys = ['role']
@@ -200,6 +215,7 @@ const RolesAdmin = () => {
             isOpen={true}
             onSave={HandleEditRole}
             onClose={onModalClose}
+            data={null}
           />
         }
         createModal={
@@ -207,11 +223,12 @@ const RolesAdmin = () => {
             isOpen={true}
             onSave={HandleCreateRole}
             onClose={onModalClose}
+            data={null}
           />
         }
         deleteModal={
           <DeleteModal
-            id={''}
+            id={0}
             name={''}
             objectType="Role"
             deleteByKey="role"

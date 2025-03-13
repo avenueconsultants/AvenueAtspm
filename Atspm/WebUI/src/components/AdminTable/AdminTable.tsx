@@ -57,8 +57,8 @@ interface AdminChartProps<T extends HasId> {
   headerKeys: string[]
   data: T[]
   pageName: string
-  hasEditPrivileges: boolean
-  hasDeletePrivileges: boolean
+  hasEditPrivileges?: boolean
+  hasDeletePrivileges?: boolean
   protectedFromDeleteItems?: string[]
   customEditFunction?: (selectedRow: T) => void
   editModal?: ReactElement<EditModalProps<T>>
@@ -243,7 +243,7 @@ const AdminTable = <T extends HasId>({
                     )
 
                     return (
-                      <TableCell key={header}>
+                      <TableCell key={header} sx={{ height: '53px' }}>
                         {customRenderer
                           ? customRenderer.component(
                               row[header as keyof T],
