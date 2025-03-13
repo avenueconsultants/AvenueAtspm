@@ -129,14 +129,14 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
     >
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogTitle
-          sx={{ fontSize: '1.3rem', margin: '2rem', mb: 0 }}
+          sx={{ fontSize: '1.3rem', mb: 0 }}
           id="role-permissions-label"
         >
           {isNewRole ? 'Create New Role' : `Role Permissions - ${roleId}`}
         </DialogTitle>
         <DialogContent>
           {isNewRole && (
-            <Box sx={{ m: 2, mb: 3, mt: 1 }}>
+            <Box sx={{ mb: 3, mt: 1 }}>
               <TextField
                 fullWidth
                 label="Role Name"
@@ -156,8 +156,9 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
             </Box>
           )}
           {showMaxPermissionsWarning && (
-            <Alert severity="warning" sx={{ m: 2 }}>
-              You've selected all permissions. This is the same as Admin
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              You've selected all permissions. Please use the Admin role
+              instead.
             </Alert>
           )}
           <PageClaimsCard
@@ -173,7 +174,7 @@ const RoleModal: React.FC<ModalProps> = ({ isOpen, onSave, onClose, data }) => {
           />
         </DialogContent>
         <DialogActions>
-          <Box sx={{ marginRight: '1rem', marginBottom: '.5rem' }}>
+          <Box sx={{ mr: 2, mb: 2 }}>
             <Button onClick={onClose}>Cancel</Button>
             <Button
               variant="contained"

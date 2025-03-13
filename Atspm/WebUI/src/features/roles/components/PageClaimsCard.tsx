@@ -113,7 +113,7 @@ const PageClaimsCard = ({
   }
 
   return (
-    <Box sx={{ width: '100%', padding: 2 }}>
+    <>
       {uniquePermissions.map((permission) => {
         const availableOptions = getAvailableOptions(permission)
         return (
@@ -168,7 +168,7 @@ const PageClaimsCard = ({
           </Box>
         )
       })}
-    </Box>
+    </>
   )
 }
 
