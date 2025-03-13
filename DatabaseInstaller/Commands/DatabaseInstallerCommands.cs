@@ -38,6 +38,7 @@ namespace DatabaseInstaller.Commands
         public TransferEventLogsCommand TransferEventLogsCommand { get; set; } = new TransferEventLogsCommand();
         public TransferSpeedEventsCommand TransferSpeedEventsCommand { get; set; } = new TransferSpeedEventsCommand();
         public TranslateEventLogsCommand TranslateEventLogsCommand { get; set; } = new TranslateEventLogsCommand();
+        public TransferConfigFromCsvCommand TransferConfigFromCsvCommand { get; set; } = new TransferConfigFromCsvCommand();
 
     }
 }
