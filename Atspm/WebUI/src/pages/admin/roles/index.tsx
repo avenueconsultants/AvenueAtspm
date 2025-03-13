@@ -15,7 +15,7 @@ import {
 import { Role } from '@/features/identity/types/roles'
 import RoleModal from '@/features/roles/components/RoleModal'
 import { useNotificationStore } from '@/stores/notifications'
-import { Backdrop, Box, CircularProgress } from '@mui/material'
+import { Backdrop, Box, CircularProgress, Typography } from '@mui/material'
 
 const RolesAdmin = () => {
   const pageAccess = useViewPage(PageNames.Roles)
@@ -38,40 +38,33 @@ const RolesAdmin = () => {
     {
       role: 'Admin',
       description:
-        'All privileges are granted for the user. Unrestricted Access to ATSPM',
+        'Full access to all configurations, data, reports, and user management.',
     },
     {
       role: 'DataAdmin',
-      description:
-        'Privileges are granted to the Admin menu to access the Raw Data Export page.',
+      description: 'Can access and export raw data logs from the export page.',
     },
     {
       role: 'GeneralConfigurationAdmin',
       description:
-        'Privileges are granted to add, edit, and delete all configurations excluding location configuration.',
-    },
-    {
-      role: 'LocationConfigurationAdmin',
-      description:
-        'Privileges are granted to add, edit, and delete location configurations excluding all other configurations.',
-    },
-    {
-      role: 'ReportAdmin',
-      description: 'Privileges are granted to access restricted reports.',
+        'Can manage all system-wide configurations except location-specific settings.',
     },
     {
       role: 'RoleAdmin',
-      description:
-        'Privileges are granted to add, edit, and delete roles (this page)',
+      description: 'Can manage roles and permissions.',
     },
     {
-      role: 'UserAdmin',
-      description: 'Privileges are granted to view, edit, and delete users.',
+      role: 'LocationAdmin',
+      description: 'Can manage location-specific settings and configurations.',
+    },
+    {
+      role: 'RoleAdmin',
+      description: 'Can manage roles and permissions.',
     },
     {
       role: 'WatchdogSubscriber',
       description:
-        'Privileges are granted to view the watchdog report & subscribe to watchdog emails.',
+        'Can view Watchdog reports and is subscribed to email notifications for Watchdog alerts.',
     },
   ]
 
@@ -172,15 +165,18 @@ const RolesAdmin = () => {
     }
   })
 
-  const defaultRoleHeaders = ['Default Roles', 'description']
+  const defaultRoleHeaders = ['Name', 'Description']
   const defaultRoleKeys = ['role', 'description']
 
-  const customRolesHeaders = ['Custom Roles']
+  const customRolesHeaders = ['Name']
   const customRoleKeys = ['role']
 
   return (
     <ResponsivePageLayout title="Manage Roles" noBottomMargin>
       <Box sx={{ marginBottom: 10 }}>
+        <Typography variant="h5" fontWeight={'bold'} sx={{ mt: 2, mb: -6 }}>
+          Built-in Roles
+        </Typography>
         <AdminTable
           pageName="Role"
           headers={defaultRoleHeaders}
@@ -188,6 +184,9 @@ const RolesAdmin = () => {
           data={filteredDefaultRoles}
         />
       </Box>
+      <Typography variant="h5" fontWeight={'bold'} sx={{ mb: -2 }}>
+        Custom Roles
+      </Typography>
       <AdminTable
         pageName="Custom Role"
         headers={customRolesHeaders}
