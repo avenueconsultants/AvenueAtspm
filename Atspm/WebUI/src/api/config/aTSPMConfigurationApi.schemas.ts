@@ -246,17 +246,17 @@ count?: boolean;
 };
 
 export type GetRouteRouteViewFromIdParams = {
-  includeLocationDetail?: boolean
-  'api-version': string
-  select?: string
-  expand?: string
-}
+includeLocationDetail?: boolean;
+'api-version'?: string;
+select?: string;
+expand?: string;
+};
 
 export type UpsertRouteRouteParams = {
-  'api-version': string
-  select?: string
-  expand?: string
-}
+'api-version'?: string;
+select?: string;
+expand?: string;
+};
 
 export type GetRouteRouteLocationsCountFromKeyParams = {
 select?: string;
@@ -490,6 +490,52 @@ skip?: number;
 count?: boolean;
 };
 
+export type PatchMeasureOptionsSaveFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type PutMeasureOptionsSaveFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetMeasureOptionsSaveFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetMeasureOptionsSaveCountParams = {
+select?: string;
+expand?: string;
+filter?: string;
+orderby?: string;
+top?: number;
+skip?: number;
+count?: boolean;
+};
+
+export type PostMeasureOptionsSaveParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetMeasureOptionsSaveParams = {
+select?: string;
+expand?: string;
+filter?: string;
+orderby?: string;
+top?: number;
+skip?: number;
+count?: boolean;
+};
+
+export type GetMeasureOptionsSaveSavedOptionsParams = {
+'api-version'?: string;
+select?: string;
+expand?: string;
+};
+
 export type PatchMeasureOptionFromKeyParams = {
 select?: string;
 expand?: string;
@@ -581,6 +627,46 @@ count?: boolean;
 
 export type GetMeasureCommentMeasureTypesFromKeyParams = {
 select?: string;
+filter?: string;
+orderby?: string;
+top?: number;
+skip?: number;
+count?: boolean;
+};
+
+export type PatchMapLayerFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type PutMapLayerFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetMapLayerFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetMapLayerCountParams = {
+select?: string;
+expand?: string;
+filter?: string;
+orderby?: string;
+top?: number;
+skip?: number;
+count?: boolean;
+};
+
+export type PostMapLayerParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetMapLayerParams = {
+select?: string;
+expand?: string;
 filter?: string;
 orderby?: string;
 top?: number;
@@ -745,6 +831,16 @@ expand?: string;
 };
 
 export type DeleteLocationSetLocationTodFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetLocationSaveTemplatedLocationFromKeyParams = {
+select?: string;
+expand?: string;
+};
+
+export type GetLocationSyncLocationFromKeyParams = {
 select?: string;
 expand?: string;
 };
@@ -1422,16 +1518,16 @@ expand?: string;
 };
 
 export type GetApproachApproachDtoFromIdParams = {
-  'api-version': string
-  select?: string
-  expand?: string
-}
+'api-version'?: string;
+select?: string;
+expand?: string;
+};
 
 export type UpsertApproachApproachParams = {
-  'api-version': string
-  select?: string
-  expand?: string
-}
+'api-version'?: string;
+select?: string;
+expand?: string;
+};
 
 export type GetApproachDetectorsCountFromKeyParams = {
 select?: string;
@@ -1456,17 +1552,19 @@ export type WatchDogIssueTypes = typeof WatchDogIssueTypes[keyof typeof WatchDog
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const WatchDogIssueTypes = {
-  RecordCount: 'RecordCount',
-  LowDetectorHits: 'LowDetectorHits',
-  StuckPed: 'StuckPed',
-  ForceOffThreshold: 'ForceOffThreshold',
-  MaxOutThreshold: 'MaxOutThreshold',
-  UnconfiguredApproach: 'UnconfiguredApproach',
-  UnconfiguredDetector: 'UnconfiguredDetector',
-} as const
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3,
+  NUMBER_4: 4,
+  NUMBER_5: 5,
+  NUMBER_6: 6,
+  NUMBER_7: 7,
+  NUMBER_8: 8,
+  NUMBER_9: 9,
+} as const;
 
-export type WatchDogComponentTypes =
-  (typeof WatchDogComponentTypes)[keyof typeof WatchDogComponentTypes]
+export type WatchDogComponentTypes = typeof WatchDogComponentTypes[keyof typeof WatchDogComponentTypes];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const WatchDogComponentTypes = {
@@ -1477,43 +1575,43 @@ export const WatchDogComponentTypes = {
 
 export interface WatchDogIgnoreEvent {
   componentId?: number | null;
-  componentType: WatchDogComponentTypes;
-  end: string;
-  id: number;
-  issueType: WatchDogIssueTypes;
-  location: Location;
-  locationId: number;
+  componentType?: WatchDogComponentTypes;
+  end?: string;
+  id?: number;
+  issueType?: WatchDogIssueTypes;
+  location?: Location;
+  locationId?: number;
   locationIdentifier?: string | null;
   phase?: number | null;
-  start: string;
+  start?: string;
 }
 
 export interface VersionHistory {
   children?: VersionHistory[] | null;
-  date: string;
-  id: number;
+  date?: string;
+  id?: number;
   name?: string | null;
   notes?: string | null;
-  parent: VersionHistory;
+  parent?: VersionHistory;
   parentId?: number | null;
-  version: number;
+  version?: number;
 }
 
 export interface UserRegion {
-  region?: Region
-  regionId?: number
-  userId?: string | null
+  region?: Region;
+  regionId?: number;
+  userId?: string | null;
 }
 
 export interface UserJurisdiction {
-  jurisdiction: Jurisdiction;
-  jurisdictionId: number;
+  jurisdiction?: Jurisdiction;
+  jurisdictionId?: number;
   userId?: string | null;
 }
 
 export interface UserArea {
-  area: Area;
-  areaId: number;
+  area?: Area;
+  areaId?: number;
   userId?: string | null;
 }
 
@@ -1529,74 +1627,77 @@ export const TransportProtocols = {
   NUMBER_4: 4,
 } as const;
 
-export type ServiceType = (typeof ServiceType)[keyof typeof ServiceType]
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const ServiceType = {
-  FeatureServer: 'FeatureServer',
-  MapServer: 'MapServer',
-} as const
+export interface TemplateLocationModifiedDto {
+  id?: string | null;
+  locationId?: number;
+  loggedButUnusedDetectorChannels?: number[] | null;
+  loggedButUnusedOverlapPhases?: number[] | null;
+  loggedButUnusedPedestrianPhases?: number[] | null;
+  loggedButUnusedProtectedOrPermissivePhases?: number[] | null;
+  removedApproachIds?: number[] | null;
+  removedDetectors?: string[] | null;
+}
 
 export interface SearchLocation {
   areas?: number[] | null;
-  chartEnabled: boolean;
+  chartEnabled?: boolean;
   charts?: number[] | null;
   hasRampDevice?: boolean | null;
-  id: number;
+  id?: number;
   jurisdictionId?: number | null;
-  latitude: number;
+  latitude?: number;
   locationIdentifier?: string | null;
-  locationTypeId: number;
-  longitude: number;
+  locationTypeId?: number;
+  longitude?: number;
   primaryName?: string | null;
   regionId?: number | null;
   secondaryName?: string | null;
-  start: string;
+  start?: string;
 }
 
 export interface RouteLocationDto {
-  approaches?: RouteApproachDto[] | null
-  id?: number
-  isOpposingOverlap?: boolean
-  isPrimaryOverlap?: boolean
-  latitude?: number
-  locationId?: number | null
-  locationIdentifier?: string | null
-  longitude?: number
-  nextLocationDistance?: RouteDistanceDto
-  nextLocationDistanceId?: number | null
-  opposingDirectionDescription?: string | null
-  opposingDirectionId?: number
-  opposingPhase?: number
-  order?: number
-  previousLocationDistance?: RouteDistanceDto
-  previousLocationDistanceId?: number | null
-  primaryDirectionDescription?: string | null
-  primaryDirectionId?: number
-  primaryName?: string | null
-  primaryPhase?: number
-  routeId?: number
-  secondaryName?: string | null
+  approaches?: RouteApproachDto[] | null;
+  id?: number;
+  isOpposingOverlap?: boolean;
+  isPrimaryOverlap?: boolean;
+  latitude?: number;
+  locationId?: number | null;
+  locationIdentifier?: string | null;
+  longitude?: number;
+  nextLocationDistance?: RouteDistanceDto;
+  nextLocationDistanceId?: number | null;
+  opposingDirectionDescription?: string | null;
+  opposingDirectionId?: number;
+  opposingPhase?: number;
+  order?: number;
+  previousLocationDistance?: RouteDistanceDto;
+  previousLocationDistanceId?: number | null;
+  primaryDirectionDescription?: string | null;
+  primaryDirectionId?: number;
+  primaryName?: string | null;
+  primaryPhase?: number;
+  routeId?: number;
+  secondaryName?: string | null;
 }
 
 export interface RouteLocation {
-  id?: number
-  isOpposingOverlap?: boolean
-  isPrimaryOverlap?: boolean
-  locationIdentifier?: string | null
-  nextLocationDistance?: RouteDistance
-  nextLocationDistanceId?: number | null
-  opposingDirection?: DirectionType
-  opposingDirectionId?: DirectionTypes
-  opposingPhase?: number
-  order?: number
-  previousLocationDistance?: RouteDistance
-  previousLocationDistanceId?: number | null
-  primaryDirection?: DirectionType
-  primaryDirectionId?: DirectionTypes
-  primaryPhase?: number
-  route?: Route
-  routeId?: number
+  id?: number;
+  isOpposingOverlap?: boolean;
+  isPrimaryOverlap?: boolean;
+  locationIdentifier?: string | null;
+  nextLocationDistance?: RouteDistance;
+  nextLocationDistanceId?: number | null;
+  opposingDirection?: DirectionType;
+  opposingDirectionId?: DirectionTypes;
+  opposingPhase?: number;
+  order?: number;
+  previousLocationDistance?: RouteDistance;
+  previousLocationDistanceId?: number | null;
+  primaryDirection?: DirectionType;
+  primaryDirectionId?: DirectionTypes;
+  primaryPhase?: number;
+  route?: Route;
+  routeId?: number;
 }
 
 export interface RouteDto {
@@ -1606,102 +1707,69 @@ export interface RouteDto {
 }
 
 export interface RouteDistanceDto {
-  distance: number;
-  id: number;
+  distance?: number;
+  id?: number;
   locationIdentifierA?: string | null;
   locationIdentifierB?: string | null;
 }
 
-export interface RouteLocationDto {
-  approaches?: RouteApproachDto[] | null;
-  id: number;
-  isOpposingOverlap: boolean;
-  isPrimaryOverlap: boolean;
-  latitude: number;
-  locationId?: number | null;
-  locationIdentifier?: string | null;
-  longitude: number;
-  nextLocationDistance: RouteDistanceDto;
-  nextLocationDistanceId?: number | null;
-  opposingDirectionDescription?: string | null;
-  opposingDirectionId: number;
-  opposingPhase: number;
-  order: number;
-  previousLocationDistance: RouteDistanceDto;
-  previousLocationDistanceId?: number | null;
-  primaryDirectionDescription?: string | null;
-  primaryDirectionId: number;
-  primaryName?: string | null;
-  primaryPhase: number;
-  routeId: number;
-  secondaryName?: string | null;
-}
-
 export interface RouteDistance {
-  distance: number;
-  id: number;
+  distance?: number;
+  id?: number;
   locationIdentifierA?: string | null;
   locationIdentifierB?: string | null;
   nextLocations?: RouteLocation[] | null;
   previousLocations?: RouteLocation[] | null;
 }
 
+export interface RouteDetectorDto {
+  approachId?: number;
+  dateAdded?: string;
+  dateDisabled?: string | null;
+  decisionPoint?: number | null;
+  dectectorIdentifier?: string | null;
+  detectionHardware?: DetectionHardwareTypes;
+  detectorChannel?: number;
+  distanceFromStopBar?: number | null;
+  id?: number;
+  laneNumber?: number | null;
+  laneType?: LaneTypes;
+  latencyCorrection?: number;
+  minSpeedFilter?: number | null;
+  movementDelay?: number | null;
+  movementType?: MovementTypes;
+}
+
 export interface RouteApproachDto {
   description?: string | null;
   detectors?: RouteDetectorDto[] | null;
-  id: number;
-  isPedestrianPhaseOverlap: boolean;
-  isPermissivePhaseOverlap: boolean;
-  isProtectedPhaseOverlap: boolean;
-  locationId: number;
+  id?: number;
+  isPedestrianPhaseOverlap?: boolean;
+  isPermissivePhaseOverlap?: boolean;
+  isProtectedPhaseOverlap?: boolean;
+  locationId?: number;
   mph?: number | null;
   pedestrianDetectors?: string | null;
   pedestrianPhaseNumber?: number | null;
   permissivePhaseNumber?: number | null;
-  protectedPhaseNumber: number;
+  protectedPhaseNumber?: number;
 }
 
 export interface Route {
-  id: number;
+  id?: number;
   name?: string | null;
   routeLocations?: RouteLocation[] | null;
 }
 
-export interface RouteLocation {
-  id: number;
-  isOpposingOverlap: boolean;
-  isPrimaryOverlap: boolean;
-  locationIdentifier?: string | null;
-  nextLocationDistance: RouteDistance;
-  nextLocationDistanceId?: number | null;
-  opposingDirection: DirectionType;
-  opposingDirectionId: DirectionTypes;
-  opposingPhase: number;
-  order: number;
-  previousLocationDistance: RouteDistance;
-  previousLocationDistanceId?: number | null;
-  primaryDirection: DirectionType;
-  primaryDirectionId: DirectionTypes;
-  primaryPhase: number;
-  route: Route;
-  routeId: number;
-}
-
 export interface Region {
   description?: string | null;
-  id: number;
+  id?: number;
   locations?: Location[] | null;
   userRegions?: UserRegion[] | null;
 }
 
-export interface UserRegion {
-  region: Region;
-  regionId: number;
-  userId?: string | null;
-}
-
 export interface Product {
-  id: number;
+  id?: number;
   manufacturer?: string | null;
   model?: string | null;
   notes?: string | null;
@@ -1723,58 +1791,52 @@ export const MovementTypes = {
   NUMBER_7: 7,
 } as const;
 
-export interface RouteDetectorDto {
-  approachId: number;
-  dateAdded: string;
-  dateDisabled?: string | null;
-  decisionPoint?: number | null;
-  dectectorIdentifier?: string | null;
-  detectionHardware: DetectionHardwareTypes;
-  detectorChannel: number;
-  distanceFromStopBar?: number | null;
-  id: number;
-  laneNumber?: number | null;
-  laneType: LaneTypes;
-  latencyCorrection: number;
-  minSpeedFilter?: number | null;
-  movementDelay?: number | null;
-  movementType: MovementTypes;
-}
-
 export interface MenuItem {
   children?: MenuItem[] | null;
-  displayOrder: number;
+  displayOrder?: number;
   document?: string | null;
   icon?: string | null;
-  id: number;
+  id?: number;
   link?: string | null;
   name?: string | null;
-  parent: MenuItem;
+  parent?: MenuItem;
   parentId?: number | null;
+}
+
+export interface MeasureOptionsSave {
+  createdByUserId?: string | null;
+  createdOn?: string;
+  id?: number;
+  measureType?: MeasureType;
+  measureTypeId?: number;
+  modifiedByUserId?: string | null;
+  modifiedOn?: string;
+  name?: string | null;
+  selectedParametersJson?: JsonDocument;
 }
 
 export interface MeasureOptionDto {
   id?: number | null;
-  measureTypeId: number;
+  measureTypeId?: number;
   option?: string | null;
   value?: string | null;
 }
 
 export interface MeasureTypeDto {
   abbreviation?: string | null;
-  displayOrder: number;
+  displayOrder?: number;
   id?: number | null;
   measureComments?: MeasureCommentsDto[] | null;
   measureOptions?: MeasureOptionDto[] | null;
   name?: string | null;
-  showOnAggregationSite: boolean;
-  showOnWebsite: boolean;
+  showOnAggregationSite?: boolean;
+  showOnWebsite?: boolean;
 }
 
 export interface MeasureOption {
-  id: number;
-  measureType: MeasureType;
-  measureTypeId: number;
+  id?: number;
+  measureType?: MeasureType;
+  measureTypeId?: number;
   option?: string | null;
   value?: string | null;
 }
@@ -1783,75 +1845,69 @@ export interface MeasureCommentsDto {
   comment?: string | null;
   id?: number | null;
   locationIdentifier?: string | null;
-  timeStamp: string;
+  timeStamp?: string;
 }
 
 export interface MeasureComment {
   comment?: string | null;
-  id: number;
+  id?: number;
   locationIdentifier?: string | null;
   measureTypes?: MeasureType[] | null;
-  timeStamp: string;
+  timeStamp?: string;
 }
 
 export interface MeasureType {
   abbreviation?: string | null;
   detectionTypes?: DetectionType[] | null;
-  displayOrder: number;
-  id: number;
+  displayOrder?: number;
+  id?: number;
   measureComments?: MeasureComment[] | null;
   measureOptions?: MeasureOption[] | null;
   name?: string | null;
-  showOnAggregationSite: boolean;
-  showOnWebsite: boolean;
+  showOnAggregationSite?: boolean;
+  showOnWebsite?: boolean;
 }
 
 export interface MapLayer {
-  createdBy?: string | null
-  createdOn?: string
-  deletedBy?: string | null
-  deletedOn?: string | null
-  id?: number
-  mapLayerUrl?: string | null
-  name?: string | null
-  serviceType?: ServiceType
-  showByDefault?: boolean
-  updatedBy?: string | null
-  updatedOn?: string
-  refreshIntervalSeconds?: number | null
+  createdBy?: string | null;
+  createdOn?: string;
+  deletedBy?: string | null;
+  deletedOn?: string | null;
+  id?: number;
+  mapLayerUrl?: string | null;
+  name?: string | null;
+  refreshIntervalSeconds?: number | null;
+  serviceType?: string | null;
+  showByDefault?: boolean;
+  updatedBy?: string | null;
+  updatedOn?: string;
 }
 
-export type LocationVersionActions =
-  (typeof LocationVersionActions)[keyof typeof LocationVersionActions]
+export type LocationVersionActions = typeof LocationVersionActions[keyof typeof LocationVersionActions];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const LocationVersionActions = {
-  Unknown: 'Unknown',
-  New: 'New',
-  Edit: 'Edit',
-  Delete: 'Delete',
-  NewVersion: 'NewVersion',
-  Initial: 'Initial',
-} as const
-
-export interface LocationType {
-  icon?: string | null
-  id?: number
-  locations?: Location[] | null
-  name?: string | null
-}
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3,
+  NUMBER_4: 4,
+  NUMBER_10: 10,
+} as const;
 
 export interface LocationSaveTemplatedLocationParameters {
-  devices?: Device[] | null
-  latitude: number
-  locationIdentifier?: string | null
-  longitude: number
-  note?: string | null
-  primaryName?: string | null
-  secondaryName?: string | null
+  devices?: Device[] | null;
+  latitude: number;
+  locationIdentifier?: string | null;
+  longitude: number;
+  note?: string | null;
+  primaryName?: string | null;
+  secondaryName?: string | null;
 }
 
-export type LaneTypes = (typeof LaneTypes)[keyof typeof LaneTypes]
+export type LaneTypes = typeof LaneTypes[keyof typeof LaneTypes];
+
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const LaneTypes = {
@@ -1867,7 +1923,7 @@ export const LaneTypes = {
 
 export interface Jurisdiction {
   countyParish?: string | null;
-  id: number;
+  id?: number;
   locations?: Location[] | null;
   mpo?: string | null;
   name?: string | null;
@@ -1878,38 +1934,40 @@ export interface Jurisdiction {
 export interface Location {
   approaches?: Approach[] | null;
   areas?: Area[] | null;
-  chartEnabled: boolean;
+  chartEnabled?: boolean;
   devices?: Device[] | null;
-  id: number;
-  jurisdiction: Jurisdiction;
+  id?: number;
+  jurisdiction?: Jurisdiction;
   jurisdictionId?: number | null;
-  latitude: number;
+  latitude?: number;
   locationIdentifier?: string | null;
-  locationType: LocationType;
-  locationTypeId: number;
-  longitude: number;
+  locationType?: LocationType;
+  locationTypeId?: number;
+  longitude?: number;
   note?: string | null;
-  pedsAre1to1: boolean;
+  pedsAre1to1?: boolean;
   primaryName?: string | null;
-  region: Region;
+  region?: Region;
   regionId?: number | null;
   secondaryName?: string | null;
-  start: string;
-  versionAction: LocationVersionActions;
+  start?: string;
+  versionAction?: LocationVersionActions;
 }
 
 export interface LocationType {
   icon?: string | null;
-  id: number;
+  id?: number;
   locations?: Location[] | null;
   name?: string | null;
 }
 
+export interface JsonDocument { [key: string]: any }
+
 export interface Faq {
   body?: string | null;
-  displayOrder: number;
+  displayOrder?: number;
   header?: string | null;
-  id: number;
+  id?: number;
 }
 
 export type DirectionTypes = typeof DirectionTypes[keyof typeof DirectionTypes];
@@ -1932,8 +1990,8 @@ export interface DirectionType {
   abbreviation?: string | null;
   approaches?: Approach[] | null;
   description?: string | null;
-  displayOrder: number;
-  id: DirectionTypes;
+  displayOrder?: number;
+  id?: DirectionTypes;
   opposingDirections?: RouteLocation[] | null;
   primaryDirections?: RouteLocation[] | null;
 }
@@ -1966,104 +2024,95 @@ export const DeviceStatus = {
 } as const;
 
 export interface DeviceGroup {
-  count: number;
+  count?: number;
   firmware?: string | null;
   manufacturer?: string | null;
   model?: string | null;
 }
 
 export interface Device {
-  deviceConfiguration: DeviceConfiguration;
+  deviceConfiguration?: DeviceConfiguration;
   deviceConfigurationId?: number | null;
   deviceIdentifier?: string | null;
-  deviceStatus: DeviceStatus;
-  deviceType: DeviceTypes;
-  id: number;
+  deviceStatus?: DeviceStatus;
+  deviceType?: DeviceTypes;
+  id?: number;
   ipaddress?: string | null;
-  location: Location;
-  locationId: number;
-  loggingEnabled: boolean;
+  location?: Location;
+  locationId?: number;
+  loggingEnabled?: boolean;
   notes?: string | null;
 }
 
 export interface DeviceConfiguration {
-  connectionTimeout: number;
+  connectionTimeout?: number;
   decoders?: string[] | null;
   description?: string | null;
   devices?: Device[] | null;
-  id: number;
-  loggingOffset: number;
+  id?: number;
+  loggingOffset?: number;
   notes?: string | null;
-  operationTimeout: number;
+  operationTimeout?: number;
   password?: string | null;
   path?: string | null;
-  port: number;
-  product: Product;
+  port?: number;
+  product?: Product;
   productId?: number | null;
-  protocol: TransportProtocols;
+  protocol?: TransportProtocols;
   query?: string[] | null;
   userName?: string | null;
 }
 
 export interface DetectorDto {
   approachId?: number | null;
-  dateAdded: string;
+  dateAdded?: string;
   dateDisabled?: string | null;
   decisionPoint?: number | null;
   dectectorIdentifier?: string | null;
-  detectionHardware: DetectionHardwareTypes;
+  detectionHardware?: DetectionHardwareTypes;
   detectionTypes?: DetectionTypeDto[] | null;
-  detectorChannel: number;
+  detectorChannel?: number;
   distanceFromStopBar?: number | null;
   id?: number | null;
   laneNumber?: number | null;
-  laneType: LaneTypes;
-  latencyCorrection: number;
+  laneType?: LaneTypes;
+  latencyCorrection?: number;
   minSpeedFilter?: number | null;
   movementDelay?: number | null;
-  movementType: MovementTypes;
+  movementType?: MovementTypes;
 }
 
 export interface Detector {
-  approach: Approach;
-  approachId: number;
-  dateAdded: string;
+  approach?: Approach;
+  approachId?: number;
+  dateAdded?: string;
   dateDisabled?: string | null;
   decisionPoint?: number | null;
   dectectorIdentifier?: string | null;
-  detectionHardware: DetectionHardwareTypes;
+  detectionHardware?: DetectionHardwareTypes;
   detectionTypes?: DetectionType[] | null;
-  detectorChannel: number;
+  detectorChannel?: number;
   detectorComments?: DetectorComment[] | null;
   distanceFromStopBar?: number | null;
-  id: number;
+  id?: number;
   laneNumber?: number | null;
-  laneType: LaneTypes;
-  latencyCorrection: number;
+  laneType?: LaneTypes;
+  latencyCorrection?: number;
   minSpeedFilter?: number | null;
   movementDelay?: number | null;
-  movementType: MovementTypes;
+  movementType?: MovementTypes;
 }
 
 export interface DetectorComment {
   comment?: string | null;
-  detector: Detector;
-  detectorId: number;
-  id: number;
-  timeStamp: string;
+  detector?: Detector;
+  detectorId?: number;
+  id?: number;
+  timeStamp?: string;
 }
 
-export type GetApproachDetectorsFromKeyParams = {
-  select?: string
-  filter?: string
-  orderby?: string
-  top?: number
-  skip?: number
-  count?: boolean
-}
+export type DetectionTypes = typeof DetectionTypes[keyof typeof DetectionTypes];
 
-export type WatchDogIssueTypes =
-  (typeof WatchDogIssueTypes)[keyof typeof WatchDogIssueTypes]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DetectionTypes = {
@@ -2082,15 +2131,15 @@ export const DetectionTypes = {
 } as const;
 
 export interface DetectionTypeGroup {
-  count: number;
+  count?: number;
   id?: string | null;
 }
 
 export interface DetectionTypeDto {
   abbreviation?: string | null;
   description?: string | null;
-  displayOrder: number;
-  id: DetectionTypes;
+  displayOrder?: number;
+  id?: DetectionTypes;
   measureTypes?: MeasureTypeDto[] | null;
 }
 
@@ -2098,8 +2147,8 @@ export interface DetectionType {
   abbreviation?: string | null;
   description?: string | null;
   detectors?: Detector[] | null;
-  displayOrder: number;
-  id: DetectionTypes;
+  displayOrder?: number;
+  id?: DetectionTypes;
   measureTypes?: MeasureType[] | null;
 }
 
@@ -2108,17 +2157,18 @@ export type DetectionHardwareTypes = typeof DetectionHardwareTypes[keyof typeof 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const DetectionHardwareTypes = {
-  NA: 'NA',
-  WavetronixMatrix: 'WavetronixMatrix',
-  WavetronixAdvance: 'WavetronixAdvance',
-  InductiveLoops: 'InductiveLoops',
-  Sensys: 'Sensys',
-  Video: 'Video',
-  FLIRThermalCamera: 'FLIRThermalCamera',
-} as const
+  NUMBER_0: 0,
+  NUMBER_1: 1,
+  NUMBER_2: 2,
+  NUMBER_3: 3,
+  NUMBER_4: 4,
+  NUMBER_5: 5,
+  NUMBER_6: 6,
+  NUMBER_7: 7,
+} as const;
 
 export interface Area {
-  id: number;
+  id?: number;
   locations?: Location[] | null;
   name?: string | null;
   userAreas?: UserArea[] | null;
@@ -2127,34 +2177,34 @@ export interface Area {
 export interface ApproachDto {
   description?: string | null;
   detectors?: DetectorDto[] | null;
-  directionTypeId: DirectionTypes;
+  directionTypeId?: DirectionTypes;
   id?: number | null;
-  isPedestrianPhaseOverlap: boolean;
-  isPermissivePhaseOverlap: boolean;
-  isProtectedPhaseOverlap: boolean;
-  locationId: number;
+  isPedestrianPhaseOverlap?: boolean;
+  isPermissivePhaseOverlap?: boolean;
+  isProtectedPhaseOverlap?: boolean;
+  locationId?: number;
   mph?: number | null;
   pedestrianDetectors?: string | null;
   pedestrianPhaseNumber?: number | null;
   permissivePhaseNumber?: number | null;
-  protectedPhaseNumber: number;
+  protectedPhaseNumber?: number;
 }
 
 export interface Approach {
   description?: string | null;
   detectors?: Detector[] | null;
-  directionType: DirectionType;
-  directionTypeId: DirectionTypes;
-  id: number;
-  isPedestrianPhaseOverlap: boolean;
-  isPermissivePhaseOverlap: boolean;
-  isProtectedPhaseOverlap: boolean;
-  location: Location;
-  locationId: number;
+  directionType?: DirectionType;
+  directionTypeId?: DirectionTypes;
+  id?: number;
+  isPedestrianPhaseOverlap?: boolean;
+  isPermissivePhaseOverlap?: boolean;
+  isProtectedPhaseOverlap?: boolean;
+  location?: Location;
+  locationId?: number;
   mph?: number | null;
   pedestrianDetectors?: string | null;
   pedestrianPhaseNumber?: number | null;
   permissivePhaseNumber?: number | null;
-  protectedPhaseNumber: number;
+  protectedPhaseNumber?: number;
 }
 

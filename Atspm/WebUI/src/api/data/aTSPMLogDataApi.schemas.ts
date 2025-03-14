@@ -71,32 +71,6 @@ start?: string;
 end?: string;
 };
 
-export interface VisionCameraStatisticsEvent {
-  averageSpeed?: number;
-  leftToRightCount?: number;
-  leftTurnCount?: number;
-  locationIdentifier?: string | null;
-  occupancy?: number;
-  rightToLeftCount?: number;
-  rightTurnCount?: number;
-  throughCount?: number;
-  timestamp?: string;
-  volume?: number;
-  zoneId?: number;
-  zoneName?: string | null;
-}
-
-export interface VisionCameraDetectionEvent {
-  direction?: string | null;
-  length?: number;
-  locationIdentifier?: string | null;
-  objectType?: string | null;
-  speed?: number;
-  timestamp?: string;
-  zoneId?: number;
-  zoneName?: string | null;
-}
-
 export interface SpeedEvent {
   detectorId?: string | null;
   kph?: number;
@@ -249,29 +223,6 @@ export interface IndianaEvent {
   eventParam?: number;
   locationIdentifier?: string | null;
   timestamp?: string;
-}
-
-export type DeviceTypes = typeof DeviceTypes[keyof typeof DeviceTypes];
-
-
-// eslint-disable-next-line @typescript-eslint/no-redeclare
-export const DeviceTypes = {
-  NUMBER_0: 0,
-  NUMBER_1: 1,
-  NUMBER_2: 2,
-  NUMBER_3: 3,
-  NUMBER_4: 4,
-  NUMBER_5: 5,
-  NUMBER_6: 6,
-} as const;
-
-export interface DeviceEventDownload {
-  afterWorkflowEventCount?: number;
-  beforeWorkflowEventCount?: number;
-  changeInEventCount?: number;
-  deviceId?: number;
-  deviceType?: DeviceTypes;
-  ipaddress?: string | null;
 }
 
 export interface DetectorEventCountAggregation {

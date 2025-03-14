@@ -5,14 +5,15 @@
  * ATSPM Log Data with OpenAPI, Swashbuckle, and API versioning.
  * OpenAPI spec version: 1.0
  */
+import {
+  useQuery
+} from 'react-query'
 import type {
   QueryFunction,
   QueryKey,
   UseQueryOptions,
-  UseQueryResult,
+  UseQueryResult
 } from 'react-query'
-import { useQuery } from 'react-query'
-import { dataRequest } from '../../lib/axios'
 import type {
   GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams,
   GetAggregationArchivedAggregationsFromLocationIdentifierParams,
@@ -20,1113 +21,617 @@ import type {
   GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams,
   GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams,
   GetEventLogArchivedEventsFromLocationIdentifierParams,
-  ProblemDetails,
+  ProblemDetails
 } from './aTSPMLogDataApi.schemas'
+import { dataRequest } from '../../lib/axios';
+
+
 
 /**
  * @summary Returns the possible aggregated data types
  */
-export const getAggregationDataTypes = (signal?: AbortSignal) => {
-  return dataRequest<string[]>({
-    url: `/Aggregation/GetDataTypes`,
-    method: 'GET',
-    signal,
-  })
-}
+export const getAggregationDataTypes = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<string[]>(
+      {url: `/api/v1/Aggregation/GetDataTypes`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getGetAggregationDataTypesQueryKey = () => {
-  return [`/Aggregation/GetDataTypes`] as const
+    return [`/api/v1/Aggregation/GetDataTypes`] as const;
+    }
+
+    
+export const getGetAggregationDataTypesQueryOptions = <TData = Awaited<ReturnType<typeof getAggregationDataTypes>>, TError = void | ProblemDetails>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAggregationDataTypes>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAggregationDataTypesQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAggregationDataTypes>>> = ({ signal }) => getAggregationDataTypes(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAggregationDataTypes>>, TError, TData> & { queryKey: QueryKey }
 }
 
-export const getGetAggregationDataTypesQueryOptions = <
-  TData = Awaited<ReturnType<typeof getAggregationDataTypes>>,
-  TError = void | ProblemDetails,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getAggregationDataTypes>>,
-    TError,
-    TData
-  >
-}) => {
-  const { query: queryOptions } = options ?? {}
-
-  const queryKey =
-    queryOptions?.queryKey ?? getGetAggregationDataTypesQueryKey()
-
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getAggregationDataTypes>>
-  > = ({ signal }) => getAggregationDataTypes(signal)
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getAggregationDataTypes>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type GetAggregationDataTypesQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getAggregationDataTypes>>
->
+export type GetAggregationDataTypesQueryResult = NonNullable<Awaited<ReturnType<typeof getAggregationDataTypes>>>
 export type GetAggregationDataTypesQueryError = void | ProblemDetails
 
 /**
  * @summary Returns the possible aggregated data types
  */
-export const useGetAggregationDataTypes = <
-  TData = Awaited<ReturnType<typeof getAggregationDataTypes>>,
-  TError = void | ProblemDetails,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getAggregationDataTypes>>,
-    TError,
-    TData
-  >
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+export const useGetAggregationDataTypes = <TData = Awaited<ReturnType<typeof getAggregationDataTypes>>, TError = void | ProblemDetails>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAggregationDataTypes>>, TError, TData>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+
   const queryOptions = getGetAggregationDataTypesQueryOptions(options)
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey
-  }
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-  query.queryKey = queryOptions.queryKey
+  query.queryKey = queryOptions.queryKey ;
 
-  return query
+  return query;
 }
+
+
+
 
 /**
  * @summary Get all aggregations for location by date
  */
 export const getAggregationArchivedAggregationsFromLocationIdentifier = (
-  locationIdentifier: string,
-  params?: GetAggregationArchivedAggregationsFromLocationIdentifierParams,
-  signal?: AbortSignal
-) => {
-  return dataRequest<void>({
-    url: `/Aggregation/GetArchivedAggregations/${locationIdentifier}`,
-    method: 'GET',
-    params,
-    signal,
-  })
-}
-
-export const getGetAggregationArchivedAggregationsFromLocationIdentifierQueryKey =
-  (
-    locationIdentifier: string,
-    params?: GetAggregationArchivedAggregationsFromLocationIdentifierParams
-  ) => {
-    return [
-      `/Aggregation/GetArchivedAggregations/${locationIdentifier}`,
-      ...(params ? [params] : []),
-    ] as const
-  }
-
-export const getGetAggregationArchivedAggregationsFromLocationIdentifierQueryOptions =
-  <
-    TData = Awaited<
-      ReturnType<
-        typeof getAggregationArchivedAggregationsFromLocationIdentifier
-      >
-    >,
-    TError = ProblemDetails,
-  >(
     locationIdentifier: string,
     params?: GetAggregationArchivedAggregationsFromLocationIdentifierParams,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getAggregationArchivedAggregationsFromLocationIdentifier
-          >
-        >,
-        TError,
-        TData
-      >
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<void>(
+      {url: `/api/v1/Aggregation/GetArchivedAggregations/${locationIdentifier}`, method: 'GET',
+        params, signal
+    },
+      );
     }
-  ) => {
-    const { query: queryOptions } = options ?? {}
+  
 
-    const queryKey =
-      queryOptions?.queryKey ??
-      getGetAggregationArchivedAggregationsFromLocationIdentifierQueryKey(
-        locationIdentifier,
-        params
-      )
+export const getGetAggregationArchivedAggregationsFromLocationIdentifierQueryKey = (locationIdentifier: string,
+    params?: GetAggregationArchivedAggregationsFromLocationIdentifierParams,) => {
+    return [`/api/v1/Aggregation/GetArchivedAggregations/${locationIdentifier}`, ...(params ? [params]: [])] as const;
+    }
 
-    const queryFn: QueryFunction<
-      Awaited<
-        ReturnType<
-          typeof getAggregationArchivedAggregationsFromLocationIdentifier
-        >
-      >
-    > = ({ signal }) =>
-      getAggregationArchivedAggregationsFromLocationIdentifier(
-        locationIdentifier,
-        params,
-        signal
-      )
+    
+export const getGetAggregationArchivedAggregationsFromLocationIdentifierQueryOptions = <TData = Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>>, TError = ProblemDetails>(locationIdentifier: string,
+    params?: GetAggregationArchivedAggregationsFromLocationIdentifierParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>>, TError, TData>, }
+) => {
 
-    return {
-      queryKey,
-      queryFn,
-      enabled: !!locationIdentifier,
-      ...queryOptions,
-    } as UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getAggregationArchivedAggregationsFromLocationIdentifier
-        >
-      >,
-      TError,
-      TData
-    > & { queryKey: QueryKey }
-  }
+const {query: queryOptions} = options ?? {};
 
-export type GetAggregationArchivedAggregationsFromLocationIdentifierQueryResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        typeof getAggregationArchivedAggregationsFromLocationIdentifier
-      >
-    >
-  >
-export type GetAggregationArchivedAggregationsFromLocationIdentifierQueryError =
-  ProblemDetails
+  const queryKey =  queryOptions?.queryKey ?? getGetAggregationArchivedAggregationsFromLocationIdentifierQueryKey(locationIdentifier,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>>> = ({ signal }) => getAggregationArchivedAggregationsFromLocationIdentifier(locationIdentifier,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(locationIdentifier), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAggregationArchivedAggregationsFromLocationIdentifierQueryResult = NonNullable<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>>>
+export type GetAggregationArchivedAggregationsFromLocationIdentifierQueryError = ProblemDetails
 
 /**
  * @summary Get all aggregations for location by date
  */
-export const useGetAggregationArchivedAggregationsFromLocationIdentifier = <
-  TData = Awaited<
-    ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>
-  >,
-  TError = ProblemDetails,
->(
-  locationIdentifier: string,
-  params?: GetAggregationArchivedAggregationsFromLocationIdentifierParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getAggregationArchivedAggregationsFromLocationIdentifier
-        >
-      >,
-      TError,
-      TData
-    >
-  }
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions =
-    getGetAggregationArchivedAggregationsFromLocationIdentifierQueryOptions(
-      locationIdentifier,
-      params,
-      options
-    )
+export const useGetAggregationArchivedAggregationsFromLocationIdentifier = <TData = Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>>, TError = ProblemDetails>(
+ locationIdentifier: string,
+    params?: GetAggregationArchivedAggregationsFromLocationIdentifierParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifier>>, TError, TData>, }
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey
-  }
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
 
-  query.queryKey = queryOptions.queryKey
+  const queryOptions = getGetAggregationArchivedAggregationsFromLocationIdentifierQueryOptions(locationIdentifier,params,options)
 
-  return query
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
 }
 
-/**
- * @summary Get all aggregations for location by date and datatype
- */
-export const getAggregationArchivedAggregationsFromLocationIdentifierAndDataType =
-  (
-    locationIdentifier: string,
-    dataType: string,
-    params?: GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams,
-    signal?: AbortSignal
-  ) => {
-    return dataRequest<void>({
-      url: `/Aggregation/GetArchivedAggregations/${locationIdentifier}/${dataType}`,
-      method: 'GET',
-      params,
-      signal,
-    })
-  }
 
-export const getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryKey =
-  (
-    locationIdentifier: string,
-    dataType: string,
-    params?: GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams
-  ) => {
-    return [
-      `/Aggregation/GetArchivedAggregations/${locationIdentifier}/${dataType}`,
-      ...(params ? [params] : []),
-    ] as const
-  }
 
-export const getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryOptions =
-  <
-    TData = Awaited<
-      ReturnType<
-        typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType
-      >
-    >,
-    TError = ProblemDetails,
-  >(
-    locationIdentifier: string,
-    dataType: string,
-    params?: GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType
-          >
-        >,
-        TError,
-        TData
-      >
-    }
-  ) => {
-    const { query: queryOptions } = options ?? {}
-
-    const queryKey =
-      queryOptions?.queryKey ??
-      getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryKey(
-        locationIdentifier,
-        dataType,
-        params
-      )
-
-    const queryFn: QueryFunction<
-      Awaited<
-        ReturnType<
-          typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType
-        >
-      >
-    > = ({ signal }) =>
-      getAggregationArchivedAggregationsFromLocationIdentifierAndDataType(
-        locationIdentifier,
-        dataType,
-        params,
-        signal
-      )
-
-    return {
-      queryKey,
-      queryFn,
-      enabled: !!(locationIdentifier && dataType),
-      ...queryOptions,
-    } as UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType
-        >
-      >,
-      TError,
-      TData
-    > & { queryKey: QueryKey }
-  }
-
-export type GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType
-      >
-    >
-  >
-export type GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryError =
-  ProblemDetails
 
 /**
  * @summary Get all aggregations for location by date and datatype
  */
-export const useGetAggregationArchivedAggregationsFromLocationIdentifierAndDataType =
-  <
-    TData = Awaited<
-      ReturnType<
-        typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType
-      >
-    >,
-    TError = ProblemDetails,
-  >(
+export const getAggregationArchivedAggregationsFromLocationIdentifierAndDataType = (
     locationIdentifier: string,
     dataType: string,
     params?: GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType
-          >
-        >,
-        TError,
-        TData
-      >
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<void>(
+      {url: `/api/v1/Aggregation/GetArchivedAggregations/${locationIdentifier}/${dataType}`, method: 'GET',
+        params, signal
+    },
+      );
     }
-  ): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-    const queryOptions =
-      getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryOptions(
-        locationIdentifier,
-        dataType,
-        params,
-        options
-      )
+  
 
-    const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-      queryKey: QueryKey
+export const getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryKey = (locationIdentifier: string,
+    dataType: string,
+    params?: GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams,) => {
+    return [`/api/v1/Aggregation/GetArchivedAggregations/${locationIdentifier}/${dataType}`, ...(params ? [params]: [])] as const;
     }
 
-    query.queryKey = queryOptions.queryKey
+    
+export const getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryOptions = <TData = Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType>>, TError = ProblemDetails>(locationIdentifier: string,
+    dataType: string,
+    params?: GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType>>, TError, TData>, }
+) => {
 
-    return query
-  }
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryKey(locationIdentifier,dataType,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType>>> = ({ signal }) => getAggregationArchivedAggregationsFromLocationIdentifierAndDataType(locationIdentifier,dataType,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(locationIdentifier && dataType), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType>>>
+export type GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryError = ProblemDetails
+
+/**
+ * @summary Get all aggregations for location by date and datatype
+ */
+export const useGetAggregationArchivedAggregationsFromLocationIdentifierAndDataType = <TData = Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType>>, TError = ProblemDetails>(
+ locationIdentifier: string,
+    dataType: string,
+    params?: GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAggregationArchivedAggregationsFromLocationIdentifierAndDataType>>, TError, TData>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+
+  const queryOptions = getGetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeQueryOptions(locationIdentifier,dataType,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
 
 /**
  * @summary Returns the possible event log data types
  */
-export const getEventLogDataTypes = (signal?: AbortSignal) => {
-  return dataRequest<string[]>({
-    url: `/EventLog/GetDataTypes`,
-    method: 'GET',
-    signal,
-  })
-}
+export const getEventLogDataTypes = (
+    
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<string[]>(
+      {url: `/api/v1/EventLog/GetDataTypes`, method: 'GET', signal
+    },
+      );
+    }
+  
 
 export const getGetEventLogDataTypesQueryKey = () => {
-  return [`/EventLog/GetDataTypes`] as const
+    return [`/api/v1/EventLog/GetDataTypes`] as const;
+    }
+
+    
+export const getGetEventLogDataTypesQueryOptions = <TData = Awaited<ReturnType<typeof getEventLogDataTypes>>, TError = void | ProblemDetails>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogDataTypes>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventLogDataTypesQueryKey();
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventLogDataTypes>>> = ({ signal }) => getEventLogDataTypes(signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventLogDataTypes>>, TError, TData> & { queryKey: QueryKey }
 }
 
-export const getGetEventLogDataTypesQueryOptions = <
-  TData = Awaited<ReturnType<typeof getEventLogDataTypes>>,
-  TError = void | ProblemDetails,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getEventLogDataTypes>>,
-    TError,
-    TData
-  >
-}) => {
-  const { query: queryOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getGetEventLogDataTypesQueryKey()
-
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getEventLogDataTypes>>
-  > = ({ signal }) => getEventLogDataTypes(signal)
-
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getEventLogDataTypes>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type GetEventLogDataTypesQueryResult = NonNullable<
-  Awaited<ReturnType<typeof getEventLogDataTypes>>
->
+export type GetEventLogDataTypesQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLogDataTypes>>>
 export type GetEventLogDataTypesQueryError = void | ProblemDetails
 
 /**
  * @summary Returns the possible event log data types
  */
-export const useGetEventLogDataTypes = <
-  TData = Awaited<ReturnType<typeof getEventLogDataTypes>>,
-  TError = void | ProblemDetails,
->(options?: {
-  query?: UseQueryOptions<
-    Awaited<ReturnType<typeof getEventLogDataTypes>>,
-    TError,
-    TData
-  >
-}): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+export const useGetEventLogDataTypes = <TData = Awaited<ReturnType<typeof getEventLogDataTypes>>, TError = void | ProblemDetails>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogDataTypes>>, TError, TData>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+
   const queryOptions = getGetEventLogDataTypesQueryOptions(options)
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey
-  }
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
-  query.queryKey = queryOptions.queryKey
+  query.queryKey = queryOptions.queryKey ;
 
-  return query
+  return query;
 }
+
+
+
 
 /**
  * @summary Get all event logs for location by date
  */
 export const getEventLogArchivedEventsFromLocationIdentifier = (
-  locationIdentifier: string,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierParams,
-  signal?: AbortSignal
+    locationIdentifier: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierParams,
+ signal?: AbortSignal
 ) => {
-  return dataRequest<void>({
-    url: `/EventLog/GetArchivedEvents/${locationIdentifier}`,
-    method: 'GET',
-    params,
-    signal,
-  })
+      
+      
+      return dataRequest<void>(
+      {url: `/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}`, method: 'GET',
+        params, signal
+    },
+      );
+    }
+  
+
+export const getGetEventLogArchivedEventsFromLocationIdentifierQueryKey = (locationIdentifier: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierParams,) => {
+    return [`/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}`, ...(params ? [params]: [])] as const;
+    }
+
+    
+export const getGetEventLogArchivedEventsFromLocationIdentifierQueryOptions = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>, TError = ProblemDetails>(locationIdentifier: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>, TError, TData>, }
+) => {
+
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventLogArchivedEventsFromLocationIdentifierQueryKey(locationIdentifier,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>> = ({ signal }) => getEventLogArchivedEventsFromLocationIdentifier(locationIdentifier,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(locationIdentifier), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>, TError, TData> & { queryKey: QueryKey }
 }
 
-export const getGetEventLogArchivedEventsFromLocationIdentifierQueryKey = (
-  locationIdentifier: string,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierParams
-) => {
-  return [
-    `/EventLog/GetArchivedEvents/${locationIdentifier}`,
-    ...(params ? [params] : []),
-  ] as const
-}
-
-export const getGetEventLogArchivedEventsFromLocationIdentifierQueryOptions = <
-  TData = Awaited<
-    ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>
-  >,
-  TError = ProblemDetails,
->(
-  locationIdentifier: string,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>
-      >,
-      TError,
-      TData
-    >
-  }
-) => {
-  const { query: queryOptions } = options ?? {}
-
-  const queryKey =
-    queryOptions?.queryKey ??
-    getGetEventLogArchivedEventsFromLocationIdentifierQueryKey(
-      locationIdentifier,
-      params
-    )
-
-  const queryFn: QueryFunction<
-    Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>
-  > = ({ signal }) =>
-    getEventLogArchivedEventsFromLocationIdentifier(
-      locationIdentifier,
-      params,
-      signal
-    )
-
-  return {
-    queryKey,
-    queryFn,
-    enabled: !!locationIdentifier,
-    ...queryOptions,
-  } as UseQueryOptions<
-    Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>,
-    TError,
-    TData
-  > & { queryKey: QueryKey }
-}
-
-export type GetEventLogArchivedEventsFromLocationIdentifierQueryResult =
-  NonNullable<
-    Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>
-  >
-export type GetEventLogArchivedEventsFromLocationIdentifierQueryError =
-  ProblemDetails
+export type GetEventLogArchivedEventsFromLocationIdentifierQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>>
+export type GetEventLogArchivedEventsFromLocationIdentifierQueryError = ProblemDetails
 
 /**
  * @summary Get all event logs for location by date
  */
-export const useGetEventLogArchivedEventsFromLocationIdentifier = <
-  TData = Awaited<
-    ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>
-  >,
-  TError = ProblemDetails,
->(
-  locationIdentifier: string,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>
-      >,
-      TError,
-      TData
-    >
-  }
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions =
-    getGetEventLogArchivedEventsFromLocationIdentifierQueryOptions(
-      locationIdentifier,
-      params,
-      options
-    )
+export const useGetEventLogArchivedEventsFromLocationIdentifier = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>, TError = ProblemDetails>(
+ locationIdentifier: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifier>>, TError, TData>, }
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey
-  }
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
 
-  query.queryKey = queryOptions.queryKey
+  const queryOptions = getGetEventLogArchivedEventsFromLocationIdentifierQueryOptions(locationIdentifier,params,options)
 
-  return query
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
 }
+
+
+
 
 /**
  * @summary Get all event logs for location by date and device id
  */
 export const getEventLogArchivedEventsFromLocationIdentifierAndDeviceId = (
-  locationIdentifier: string,
-  deviceId: number,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams,
-  signal?: AbortSignal
-) => {
-  return dataRequest<void>({
-    url: `/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}`,
-    method: 'GET',
-    params,
-    signal,
-  })
-}
-
-export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryKey =
-  (
-    locationIdentifier: string,
-    deviceId: number,
-    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams
-  ) => {
-    return [
-      `/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}`,
-      ...(params ? [params] : []),
-    ] as const
-  }
-
-export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryOptions =
-  <
-    TData = Awaited<
-      ReturnType<
-        typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId
-      >
-    >,
-    TError = ProblemDetails,
-  >(
     locationIdentifier: string,
     deviceId: number,
     params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId
-          >
-        >,
-        TError,
-        TData
-      >
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<void>(
+      {url: `/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}`, method: 'GET',
+        params, signal
+    },
+      );
     }
-  ) => {
-    const { query: queryOptions } = options ?? {}
+  
 
-    const queryKey =
-      queryOptions?.queryKey ??
-      getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryKey(
-        locationIdentifier,
-        deviceId,
-        params
-      )
+export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryKey = (locationIdentifier: string,
+    deviceId: number,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams,) => {
+    return [`/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}`, ...(params ? [params]: [])] as const;
+    }
 
-    const queryFn: QueryFunction<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId
-        >
-      >
-    > = ({ signal }) =>
-      getEventLogArchivedEventsFromLocationIdentifierAndDeviceId(
-        locationIdentifier,
-        deviceId,
-        params,
-        signal
-      )
+    
+export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryOptions = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId>>, TError = ProblemDetails>(locationIdentifier: string,
+    deviceId: number,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId>>, TError, TData>, }
+) => {
 
-    return {
-      queryKey,
-      queryFn,
-      enabled: !!(locationIdentifier && deviceId),
-      ...queryOptions,
-    } as UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId
-        >
-      >,
-      TError,
-      TData
-    > & { queryKey: QueryKey }
-  }
+const {query: queryOptions} = options ?? {};
 
-export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId
-      >
-    >
-  >
-export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryError =
-  ProblemDetails
+  const queryKey =  queryOptions?.queryKey ?? getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryKey(locationIdentifier,deviceId,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId>>> = ({ signal }) => getEventLogArchivedEventsFromLocationIdentifierAndDeviceId(locationIdentifier,deviceId,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(locationIdentifier && deviceId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId>>>
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryError = ProblemDetails
 
 /**
  * @summary Get all event logs for location by date and device id
  */
-export const useGetEventLogArchivedEventsFromLocationIdentifierAndDeviceId = <
-  TData = Awaited<
-    ReturnType<
-      typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId
-    >
-  >,
-  TError = ProblemDetails,
->(
-  locationIdentifier: string,
-  deviceId: number,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId
-        >
-      >,
-      TError,
-      TData
-    >
-  }
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions =
-    getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryOptions(
-      locationIdentifier,
-      deviceId,
-      params,
-      options
-    )
+export const useGetEventLogArchivedEventsFromLocationIdentifierAndDeviceId = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId>>, TError = ProblemDetails>(
+ locationIdentifier: string,
+    deviceId: number,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceId>>, TError, TData>, }
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey
-  }
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
 
-  query.queryKey = queryOptions.queryKey
+  const queryOptions = getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdQueryOptions(locationIdentifier,deviceId,params,options)
 
-  return query
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
 }
+
+
+
 
 /**
  * @summary Get all event logs for location by date and datatype
  */
 export const getEventLogArchivedEventsFromLocationIdentifierAndDataType = (
-  locationIdentifier: string,
-  dataType: string,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams,
-  signal?: AbortSignal
-) => {
-  return dataRequest<void>({
-    url: `/EventLog/GetArchivedEvents/${locationIdentifier}/${dataType}`,
-    method: 'GET',
-    params,
-    signal,
-  })
-}
-
-export const getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryKey =
-  (
-    locationIdentifier: string,
-    dataType: string,
-    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams
-  ) => {
-    return [
-      `/EventLog/GetArchivedEvents/${locationIdentifier}/${dataType}`,
-      ...(params ? [params] : []),
-    ] as const
-  }
-
-export const getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryOptions =
-  <
-    TData = Awaited<
-      ReturnType<
-        typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType
-      >
-    >,
-    TError = ProblemDetails,
-  >(
     locationIdentifier: string,
     dataType: string,
     params?: GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType
-          >
-        >,
-        TError,
-        TData
-      >
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<void>(
+      {url: `/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}/${dataType}`, method: 'GET',
+        params, signal
+    },
+      );
     }
-  ) => {
-    const { query: queryOptions } = options ?? {}
+  
 
-    const queryKey =
-      queryOptions?.queryKey ??
-      getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryKey(
-        locationIdentifier,
-        dataType,
-        params
-      )
+export const getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryKey = (locationIdentifier: string,
+    dataType: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams,) => {
+    return [`/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}/${dataType}`, ...(params ? [params]: [])] as const;
+    }
 
-    const queryFn: QueryFunction<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType
-        >
-      >
-    > = ({ signal }) =>
-      getEventLogArchivedEventsFromLocationIdentifierAndDataType(
-        locationIdentifier,
-        dataType,
-        params,
-        signal
-      )
+    
+export const getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryOptions = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType>>, TError = ProblemDetails>(locationIdentifier: string,
+    dataType: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType>>, TError, TData>, }
+) => {
 
-    return {
-      queryKey,
-      queryFn,
-      enabled: !!(locationIdentifier && dataType),
-      ...queryOptions,
-    } as UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType
-        >
-      >,
-      TError,
-      TData
-    > & { queryKey: QueryKey }
-  }
+const {query: queryOptions} = options ?? {};
 
-export type GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType
-      >
-    >
-  >
-export type GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryError =
-  ProblemDetails
+  const queryKey =  queryOptions?.queryKey ?? getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryKey(locationIdentifier,dataType,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType>>> = ({ signal }) => getEventLogArchivedEventsFromLocationIdentifierAndDataType(locationIdentifier,dataType,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(locationIdentifier && dataType), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType>>>
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryError = ProblemDetails
 
 /**
  * @summary Get all event logs for location by date and datatype
  */
-export const useGetEventLogArchivedEventsFromLocationIdentifierAndDataType = <
-  TData = Awaited<
-    ReturnType<
-      typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType
-    >
-  >,
-  TError = ProblemDetails,
->(
-  locationIdentifier: string,
-  dataType: string,
-  params?: GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType
-        >
-      >,
-      TError,
-      TData
-    >
-  }
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions =
-    getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryOptions(
-      locationIdentifier,
-      dataType,
-      params,
-      options
-    )
+export const useGetEventLogArchivedEventsFromLocationIdentifierAndDataType = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType>>, TError = ProblemDetails>(
+ locationIdentifier: string,
+    dataType: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDataType>>, TError, TData>, }
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey
-  }
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
 
-  query.queryKey = queryOptions.queryKey
+  const queryOptions = getGetEventLogArchivedEventsFromLocationIdentifierAndDataTypeQueryOptions(locationIdentifier,dataType,params,options)
 
-  return query
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
 }
 
-/**
- * @summary Get all event logs for location by date, device id and datatype
- */
-export const getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType =
-  (
-    locationIdentifier: string,
-    deviceId: number,
-    dataType: string,
-    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams,
-    signal?: AbortSignal
-  ) => {
-    return dataRequest<void>({
-      url: `/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}/${dataType}`,
-      method: 'GET',
-      params,
-      signal,
-    })
-  }
 
-export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryKey =
-  (
-    locationIdentifier: string,
-    deviceId: number,
-    dataType: string,
-    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams
-  ) => {
-    return [
-      `/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}/${dataType}`,
-      ...(params ? [params] : []),
-    ] as const
-  }
 
-export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryOptions =
-  <
-    TData = Awaited<
-      ReturnType<
-        typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType
-      >
-    >,
-    TError = ProblemDetails,
-  >(
-    locationIdentifier: string,
-    deviceId: number,
-    dataType: string,
-    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType
-          >
-        >,
-        TError,
-        TData
-      >
-    }
-  ) => {
-    const { query: queryOptions } = options ?? {}
-
-    const queryKey =
-      queryOptions?.queryKey ??
-      getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryKey(
-        locationIdentifier,
-        deviceId,
-        dataType,
-        params
-      )
-
-    const queryFn: QueryFunction<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType
-        >
-      >
-    > = ({ signal }) =>
-      getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType(
-        locationIdentifier,
-        deviceId,
-        dataType,
-        params,
-        signal
-      )
-
-    return {
-      queryKey,
-      queryFn,
-      enabled: !!(locationIdentifier && deviceId && dataType),
-      ...queryOptions,
-    } as UseQueryOptions<
-      Awaited<
-        ReturnType<
-          typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType
-        >
-      >,
-      TError,
-      TData
-    > & { queryKey: QueryKey }
-  }
-
-export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryResult =
-  NonNullable<
-    Awaited<
-      ReturnType<
-        typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType
-      >
-    >
-  >
-export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryError =
-  ProblemDetails
 
 /**
  * @summary Get all event logs for location by date, device id and datatype
  */
-export const useGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType =
-  <
-    TData = Awaited<
-      ReturnType<
-        typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType
-      >
-    >,
-    TError = ProblemDetails,
-  >(
+export const getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType = (
     locationIdentifier: string,
     deviceId: number,
     dataType: string,
     params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<
-            typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType
-          >
-        >,
-        TError,
-        TData
-      >
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<void>(
+      {url: `/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}/${dataType}`, method: 'GET',
+        params, signal
+    },
+      );
     }
-  ): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-    const queryOptions =
-      getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryOptions(
-        locationIdentifier,
-        deviceId,
-        dataType,
-        params,
-        options
-      )
+  
 
-    const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-      queryKey: QueryKey
+export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryKey = (locationIdentifier: string,
+    deviceId: number,
+    dataType: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams,) => {
+    return [`/api/v1/EventLog/GetArchivedEvents/${locationIdentifier}/${deviceId}/${dataType}`, ...(params ? [params]: [])] as const;
     }
 
-    query.queryKey = queryOptions.queryKey
+    
+export const getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryOptions = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType>>, TError = ProblemDetails>(locationIdentifier: string,
+    deviceId: number,
+    dataType: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType>>, TError, TData>, }
+) => {
 
-    return query
-  }
+const {query: queryOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryKey(locationIdentifier,deviceId,dataType,params);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType>>> = ({ signal }) => getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType(locationIdentifier,deviceId,dataType,params, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(locationIdentifier && deviceId && dataType), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType>>>
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryError = ProblemDetails
+
+/**
+ * @summary Get all event logs for location by date, device id and datatype
+ */
+export const useGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType = <TData = Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType>>, TError = ProblemDetails>(
+ locationIdentifier: string,
+    deviceId: number,
+    dataType: string,
+    params?: GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataType>>, TError, TData>, }
+
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+
+  const queryOptions = getGetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeQueryOptions(locationIdentifier,deviceId,dataType,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
+}
+
+
+
 
 /**
  * @summary Get all days that have event logs for a given location.
  */
 export const getEventLogDaysWithEventLogsFromLocationIdentifier = (
-  locationIdentifier: string,
-  signal?: AbortSignal
-) => {
-  return dataRequest<void>({
-    url: `/EventLog/GetDaysWithEventLogs/${locationIdentifier}`,
-    method: 'GET',
-    signal,
-  })
-}
-
-export const getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryKey = (
-  locationIdentifier: string
-) => {
-  return [`/EventLog/GetDaysWithEventLogs/${locationIdentifier}`] as const
-}
-
-export const getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryOptions =
-  <
-    TData = Awaited<
-      ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>
-    >,
-    TError = ProblemDetails,
-  >(
     locationIdentifier: string,
-    options?: {
-      query?: UseQueryOptions<
-        Awaited<
-          ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>
-        >,
-        TError,
-        TData
-      >
+ signal?: AbortSignal
+) => {
+      
+      
+      return dataRequest<void>(
+      {url: `/api/v1/EventLog/GetDaysWithEventLogs/${locationIdentifier}`, method: 'GET', signal
+    },
+      );
     }
-  ) => {
-    const { query: queryOptions } = options ?? {}
+  
 
-    const queryKey =
-      queryOptions?.queryKey ??
-      getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryKey(
-        locationIdentifier
-      )
+export const getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryKey = (locationIdentifier: string,) => {
+    return [`/api/v1/EventLog/GetDaysWithEventLogs/${locationIdentifier}`] as const;
+    }
 
-    const queryFn: QueryFunction<
-      Awaited<
-        ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>
-      >
-    > = ({ signal }) =>
-      getEventLogDaysWithEventLogsFromLocationIdentifier(
-        locationIdentifier,
-        signal
-      )
+    
+export const getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryOptions = <TData = Awaited<ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>>, TError = ProblemDetails>(locationIdentifier: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>>, TError, TData>, }
+) => {
 
-    return {
-      queryKey,
-      queryFn,
-      enabled: !!locationIdentifier,
-      ...queryOptions,
-    } as UseQueryOptions<
-      Awaited<
-        ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>
-      >,
-      TError,
-      TData
-    > & { queryKey: QueryKey }
-  }
+const {query: queryOptions} = options ?? {};
 
-export type GetEventLogDaysWithEventLogsFromLocationIdentifierQueryResult =
-  NonNullable<
-    Awaited<
-      ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>
-    >
-  >
-export type GetEventLogDaysWithEventLogsFromLocationIdentifierQueryError =
-  ProblemDetails
+  const queryKey =  queryOptions?.queryKey ?? getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryKey(locationIdentifier);
+
+  
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>>> = ({ signal }) => getEventLogDaysWithEventLogsFromLocationIdentifier(locationIdentifier, signal);
+
+      
+
+      
+
+   return  { queryKey, queryFn, enabled: !!(locationIdentifier), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetEventLogDaysWithEventLogsFromLocationIdentifierQueryResult = NonNullable<Awaited<ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>>>
+export type GetEventLogDaysWithEventLogsFromLocationIdentifierQueryError = ProblemDetails
 
 /**
  * @summary Get all days that have event logs for a given location.
  */
-export const useGetEventLogDaysWithEventLogsFromLocationIdentifier = <
-  TData = Awaited<
-    ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>
-  >,
-  TError = ProblemDetails,
->(
-  locationIdentifier: string,
-  options?: {
-    query?: UseQueryOptions<
-      Awaited<
-        ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>
-      >,
-      TError,
-      TData
-    >
-  }
-): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions =
-    getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryOptions(
-      locationIdentifier,
-      options
-    )
+export const useGetEventLogDaysWithEventLogsFromLocationIdentifier = <TData = Awaited<ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>>, TError = ProblemDetails>(
+ locationIdentifier: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getEventLogDaysWithEventLogsFromLocationIdentifier>>, TError, TData>, }
 
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
-    queryKey: QueryKey
-  }
+  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
 
-  query.queryKey = queryOptions.queryKey
+  const queryOptions = getGetEventLogDaysWithEventLogsFromLocationIdentifierQueryOptions(locationIdentifier,options)
 
-  return query
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  query.queryKey = queryOptions.queryKey ;
+
+  return query;
 }
+
+
+
+
