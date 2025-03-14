@@ -1,5 +1,6 @@
 import {
   Alert,
+  Badge,
   Box,
   Button,
   Divider,
@@ -10,9 +11,10 @@ import {
   DateCalendar,
   DateOrTimeView,
   DateTimePicker,
+  PickersDay,
   TimePicker,
 } from '@mui/x-date-pickers'
-import { add, startOfToday } from 'date-fns'
+import { add, isSameDay, startOfToday } from 'date-fns'
 import { useEffect, useState } from 'react'
 
 export interface SelectDateTimeProps {
@@ -30,6 +32,7 @@ export interface SelectDateTimeProps {
   endTimePeriod?: Date
   changeStartTimePeriod?(date: Date): void
   changeEndTimePeriod?(date: Date): void
+  markDays?: Date[]
   warning?: string | null
 }
 
@@ -48,6 +51,7 @@ export default function SelectDateTime({
   startDateOnly,
   changeStartTimePeriod,
   changeEndTimePeriod,
+  markDays = [],
   warning = null,
 }: SelectDateTimeProps) {
   const [showWarning, setShowWarning] = useState(false)
@@ -67,9 +71,20 @@ export default function SelectDateTime({
 
   const handleCalendarChange = (newDate: Date | null) => {
     if (!newDate) return
+    if (!endDateTime || !startDateTime) return
 
     changeStartDate(newDate)
-    changeEndDate(add(newDate, { days: 1 }))
+    const newEndDate = new Date(newDate)
+    newEndDate.setHours(endDateTime.getHours())
+    newEndDate.setMinutes(endDateTime.getMinutes())
+    if (
+      startDateTime.getMonth() == endDateTime.getMonth() &&
+      startDateTime.getDate() === endDateTime.getDate()
+    ) {
+      changeEndDate(newEndDate)
+    } else {
+      changeEndDate(add(newEndDate, { days: 1 }))
+    }
   }
 
   const handleResetDate = () => {
@@ -95,6 +110,12 @@ export default function SelectDateTime({
         onChange={handleCalendarChange}
         showDaysOutsideCurrentMonth={true}
         disableFuture={true}
+        slots={{
+          day: MarkedDay,
+        }}
+        slotProps={{
+          day: { highlightedDays: markDays } as any,
+        }}
       />
     ) : (
       <Skeleton width={320} height={334} />
@@ -104,10 +125,8 @@ export default function SelectDateTime({
   const handleSameDay = () => {
     if (!startDateTime || !endDateTime) return
     const newEndDate = new Date(startDateTime)
-    newEndDate.setHours(startDateTime.getHours())
+    newEndDate.setHours(endDateTime.getHours())
     newEndDate.setMinutes(endDateTime.getMinutes())
-    newEndDate.setSeconds(endDateTime.getSeconds())
-    newEndDate.setMilliseconds(endDateTime.getMilliseconds())
     changeEndDate(newEndDate)
   }
 
@@ -135,10 +154,7 @@ export default function SelectDateTime({
           sx={
             calendarLocation === 'right'
               ? sideBySideStyleInnerBoxStyle
-              : {
-                  display: 'flex',
-                  flexDirection: 'column',
-                }
+              : { display: 'flex', flexDirection: 'column' }
           }
         >
           <DateTimePicker
@@ -202,5 +218,31 @@ export default function SelectDateTime({
       </Box>
       {showWarning && warning && <Alert severity="warning">{warning}</Alert>}
     </>
+  )
+}
+
+const MarkedDay = (props: any & { highlightedDays?: Date[] }) => {
+  const { highlightedDays = [], day, outsideCurrentMonth, ...other } = props
+
+  const isSelected =
+    !outsideCurrentMonth &&
+    highlightedDays.some((markDay: Date) => isSameDay(markDay, day))
+
+  return (
+    <Badge
+      variant="dot"
+      overlap="circular"
+      sx={{
+        '& .MuiBadge-badge': {
+          backgroundColor: isSelected ? '#6abf2f' : 'transparent',
+        },
+      }}
+    >
+      <PickersDay
+        {...other}
+        outsideCurrentMonth={outsideCurrentMonth}
+        day={day}
+      />
+    </Badge>
   )
 }

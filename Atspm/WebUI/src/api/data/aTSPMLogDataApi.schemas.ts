@@ -5,11 +5,7 @@
  * ATSPM Log Data with OpenAPI, Swashbuckle, and API versioning.
  * OpenAPI spec version: 1.0
  */
-export type GetV1LoggingLogParams = {
-deviceIds?: string;
-};
-
-export type GetV1EventLogGetArchivedEventsLocationIdentifierDeviceIdDataTypeParams = {
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdAndDataTypeParams = {
 /**
  * Archive date of event to start with
  */
@@ -20,7 +16,7 @@ start?: string;
 end?: string;
 };
 
-export type GetV1EventLogGetArchivedEventsLocationIdentifierDataTypeParams = {
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDataTypeParams = {
 /**
  * Archive date of event to start with
  */
@@ -31,7 +27,7 @@ start?: string;
 end?: string;
 };
 
-export type GetV1EventLogGetArchivedEventsLocationIdentifierDeviceIdParams = {
+export type GetEventLogArchivedEventsFromLocationIdentifierAndDeviceIdParams = {
 /**
  * Archive date of event to start with
  */
@@ -42,7 +38,7 @@ start?: string;
 end?: string;
 };
 
-export type GetV1EventLogGetArchivedEventsLocationIdentifierParams = {
+export type GetEventLogArchivedEventsFromLocationIdentifierParams = {
 /**
  * Archive date of event to start with
  */
@@ -53,7 +49,7 @@ start?: string;
 end?: string;
 };
 
-export type GetV1AggregationGetArchivedAggregationsLocationIdentifierDataTypeParams = {
+export type GetAggregationArchivedAggregationsFromLocationIdentifierAndDataTypeParams = {
 /**
  * Archive date of aggregation to start with
  */
@@ -64,7 +60,7 @@ start?: string;
 end?: string;
 };
 
-export type GetV1AggregationGetArchivedAggregationsLocationIdentifierParams = {
+export type GetAggregationArchivedAggregationsFromLocationIdentifierParams = {
 /**
  * Archive date of aggregation to start with
  */

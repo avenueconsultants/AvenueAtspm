@@ -20,8 +20,6 @@ using System.Threading.Tasks.Dataflow;
 using Utah.Udot.Atspm.Data.Enums;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
 
-//tricking github
-
 if (OperatingSystem.IsWindows())
 {
     if (!EventLog.SourceExists("Atspm"))
