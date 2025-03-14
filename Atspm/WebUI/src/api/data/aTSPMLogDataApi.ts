@@ -5,9 +5,6 @@
  * ATSPM Log Data with OpenAPI, Swashbuckle, and API versioning.
  * OpenAPI spec version: 1.0
  */
-import {
-  useQuery
-} from 'react-query'
 import type {
   QueryFunction,
   QueryKey,
@@ -25,9 +22,6 @@ import type {
   GetEventLogArchivedEventsFromLocationIdentifierParams,
   ProblemDetails,
 } from './aTSPMLogDataApi.schemas'
-import { dataRequest } from '../../lib/axios';
-
-
 
 /**
  * @summary Returns the possible aggregated data types
@@ -99,9 +93,6 @@ export const useGetAggregationDataTypes = <
   return query
 }
 
-
-
-
 /**
  * @summary Get all aggregations for location by date
  */
@@ -151,10 +142,6 @@ export const getGetAggregationArchivedAggregationsFromLocationIdentifierQueryOpt
         TData
       >
     }
-
-    
-export const getGetV1AggregationGetArchivedAggregationsLocationIdentifierQueryOptions = <TData = Awaited<ReturnType<typeof getV1AggregationGetArchivedAggregationsLocationIdentifier>>, TError = ProblemDetails>(locationIdentifier: string,
-    params?: GetV1AggregationGetArchivedAggregationsLocationIdentifierParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getV1AggregationGetArchivedAggregationsLocationIdentifier>>, TError, TData>, }
   ) => {
     const { query: queryOptions } = options ?? {}
 
@@ -243,9 +230,6 @@ export const useGetAggregationArchivedAggregationsFromLocationIdentifier = <
 
   return query
 }
-
-
-
 
 /**
  * @summary Get all aggregations for location by date and datatype
@@ -396,9 +380,6 @@ export const useGetAggregationArchivedAggregationsFromLocationIdentifierAndDataT
     return query
   }
 
-
-
-
 /**
  * @summary Returns the possible event log data types
  */
@@ -468,9 +449,6 @@ export const useGetEventLogDataTypes = <
   return query
 }
 
-
-
-
 /**
  * @summary Get all event logs for location by date
  */
@@ -514,10 +492,6 @@ export const getGetEventLogArchivedEventsFromLocationIdentifierQueryOptions = <
       TData
     >
   }
-
-    
-export const getGetV1EventLogGetArchivedEventsLocationIdentifierQueryOptions = <TData = Awaited<ReturnType<typeof getV1EventLogGetArchivedEventsLocationIdentifier>>, TError = ProblemDetails>(locationIdentifier: string,
-    params?: GetV1EventLogGetArchivedEventsLocationIdentifierParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getV1EventLogGetArchivedEventsLocationIdentifier>>, TError, TData>, }
 ) => {
   const { query: queryOptions } = options ?? {}
 
