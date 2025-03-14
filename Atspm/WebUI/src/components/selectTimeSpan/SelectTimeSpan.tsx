@@ -73,8 +73,6 @@ export default function SelectDateTime({
     const newEndDate = new Date(newDate)
     newEndDate.setHours(endDateTime.getHours())
     newEndDate.setMinutes(endDateTime.getMinutes())
-    newEndDate.setSeconds(endDateTime.getSeconds())
-    newEndDate.setMilliseconds(endDateTime.getMilliseconds())
     if (
       startDateTime.getMonth() == endDateTime.getMonth() &&
       startDateTime.getDate() === endDateTime.getDate()
@@ -119,8 +117,6 @@ export default function SelectDateTime({
     const newEndDate = new Date(startDateTime)
     newEndDate.setHours(endDateTime.getHours())
     newEndDate.setMinutes(endDateTime.getMinutes())
-    newEndDate.setSeconds(endDateTime.getSeconds())
-    newEndDate.setMilliseconds(endDateTime.getMilliseconds())
     changeEndDate(newEndDate)
   }
 
