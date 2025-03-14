@@ -1,5 +1,4 @@
 import { useGetMapLayer } from '@/api/config/aTSPMConfigurationApi'
-import { ServiceType } from '@/api/config/aTSPMConfigurationApi.schemas'
 import { SearchLocation as Location } from '@/api/config/aTSPMConfigurationApi.schemas'
 import Markers from '@/components/LocationMap/Markers'
 import MapFilters from '@/components/MapFilters'
@@ -17,8 +16,6 @@ import {
   Skeleton,
   useTheme,
 } from '@mui/material'
-import { DynamicMapLayer, FeatureLayer } from 'esri-leaflet'
-import 'esri-leaflet-renderers'
 import L, { Map as LeafletMap } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
@@ -79,65 +76,65 @@ const LocationMap = ({
   const [activeLayers, setActiveLayers] = useState<number[]>([])
   const layerRefreshers = useRef<{ [key: number]: number | null }>({})
 
-  useEffect(() => {
-    if (mapLayerData?.value) {
-      setActiveLayers(
-        mapLayerData.value
-          .filter((layer) => layer.showByDefault)
-          .map((layer) => layer.id)
-      )
-    }
-  }, [mapLayerData])
+  // useEffect(() => {
+  //   if (mapLayerData?.value) {
+  //     setActiveLayers(
+  //       mapLayerData.value
+  //         .filter((layer) => layer.showByDefault)
+  //         .map((layer) => layer.id)
+  //     )
+  //   }
+  // }, [mapLayerData])
 
-  useEffect(() => {
-    if (!mapRef) return
+  // useEffect(() => {
+  //   if (!mapRef) return
 
-    mapRef.eachLayer((layer) => {
-      if (layer instanceof FeatureLayer || layer instanceof DynamicMapLayer) {
-        mapRef.removeLayer(layer)
-      }
-    })
-    Object.values(layerRefreshers.current).forEach(
-      (refreshId) => refreshId !== null && clearInterval(refreshId)
-    )
-    layerRefreshers.current = {}
+  //   mapRef.eachLayer((layer) => {
+  //     if (layer instanceof FeatureLayer || layer instanceof DynamicMapLayer) {
+  //       mapRef.removeLayer(layer)
+  //     }
+  //   })
+  //   Object.values(layerRefreshers.current).forEach(
+  //     (refreshId) => refreshId !== null && clearInterval(refreshId)
+  //   )
+  //   layerRefreshers.current = {}
 
-    mapLayerData?.value?.forEach((layer) => {
-      if (activeLayers.includes(layer.id)) {
-        let newLayer
-        if (layer.serviceType === ServiceType.MapServer) {
-          newLayer = new DynamicMapLayer({
-            url: layer.mapLayerUrl,
-            opacity: 1,
-          })
-        } else {
-          newLayer = new FeatureLayer({
-            url: layer.mapLayerUrl,
-            useCors: false,
-          })
-        }
-        newLayer.addTo(mapRef)
+  //   mapLayerData?.value?.forEach((layer) => {
+  //     if (activeLayers.includes(layer.id)) {
+  //       let newLayer
+  //       if (layer.serviceType === ServiceType.MapServer) {
+  //         newLayer = new DynamicMapLayer({
+  //           url: layer.mapLayerUrl,
+  //           opacity: 1,
+  //         })
+  //       } else {
+  //         newLayer = new FeatureLayer({
+  //           url: layer.mapLayerUrl,
+  //           useCors: false,
+  //         })
+  //       }
+  //       newLayer.addTo(mapRef)
 
-        if (layer.refreshIntervalSeconds) {
-          const refreshId = setInterval(() => {
-            if (newLayer instanceof FeatureLayer && newLayer.refresh) {
-              newLayer.refresh()
-            } else if (newLayer instanceof DynamicMapLayer && newLayer.redraw) {
-              newLayer.redraw()
-            } else {
-              setTimeout(() => {
-                mapRef.removeLayer(newLayer)
-                newLayer.addTo(mapRef)
-              }, 50)
-            }
-            // console.log(`Refreshing layer ${layer.name}`)
-          }, layer.refreshIntervalSeconds * 1000)
+  //       if (layer.refreshIntervalSeconds) {
+  //         const refreshId = setInterval(() => {
+  //           if (newLayer instanceof FeatureLayer && newLayer.refresh) {
+  //             newLayer.refresh()
+  //           } else if (newLayer instanceof DynamicMapLayer && newLayer.redraw) {
+  //             newLayer.redraw()
+  //           } else {
+  //             setTimeout(() => {
+  //               mapRef.removeLayer(newLayer)
+  //               newLayer.addTo(mapRef)
+  //             }, 50)
+  //           }
+  //           // console.log(`Refreshing layer ${layer.name}`)
+  //         }, layer.refreshIntervalSeconds * 1000)
 
-          layerRefreshers.current[layer.id] = refreshId
-        }
-      }
-    })
-  }, [mapRef, activeLayers, mapLayerData])
+  //         layerRefreshers.current[layer.id] = refreshId
+  //       }
+  //     }
+  //   })
+  // }, [mapRef, activeLayers, mapLayerData])
 
   const handleLayerToggle = (layerId: number) => {
     setActiveLayers((prev) =>
