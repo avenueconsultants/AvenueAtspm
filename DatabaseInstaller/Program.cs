@@ -59,6 +59,7 @@ cmdBuilder.UseHost(hostBuilder =>
 
         //// Optional: Register any core services your application might need here.
         services.Configure<UpdateCommandConfiguration>(hostContext.Configuration.GetSection("CommandLineOptions"));
+        services.Configure<CopyFromCsvConfiguration>(hostContext.Configuration.GetSection("CopyFromCsvConfiguration"));
         services.Configure<TransferCommandConfiguration>(hostContext.Configuration.GetSection(nameof(TransferCommandConfiguration)));
         services.Configure<TransferConfigCommandConfiguration>(hostContext.Configuration.GetSection(nameof(TransferConfigCommandConfiguration)));
 
