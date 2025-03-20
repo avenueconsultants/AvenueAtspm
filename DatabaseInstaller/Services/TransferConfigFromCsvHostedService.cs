@@ -51,26 +51,37 @@ namespace DatabaseInstaller.Services
                 {
                     while (csv.Read())
                     {
+                        var locationIdentifier = csv.GetField<string>(0) ?? string.Empty;
+                        var primaryName = csv.GetField<string>(3) ?? string.Empty;
+                        var secondaryName = csv.GetField<string>(4) ?? string.Empty;
+                        var latitude = csv.TryGetField<double>(1, out var lat) ? lat : 0.0;
+                        var longitude = csv.TryGetField<double>(2, out var lon) ? lon : 0.0;
+                        var versionAction = csv.TryGetField<int>(12, out var action) ? (LocationVersionActions)action : LocationVersionActions.Unknown;
+                        var start = csv.TryGetField<DateTime>(14, out var startDate) ? startDate : DateTime.MinValue;
+                        var locationId = csv.TryGetField<int>(11, out var locId) ? locId : -1;
 
                         var location = new Location
                         {
-                            LocationIdentifier = csv.GetField<string>(0),
-                            PrimaryName = csv.GetField<string>(3),
-                            SecondaryName = csv.GetField<string>(4),
-                            Latitude = csv.GetField<double>(1),
-                            Longitude = csv.GetField<double>(2),
+                            LocationIdentifier = locationIdentifier,
+                            PrimaryName = primaryName,
+                            SecondaryName = secondaryName,
+                            Latitude = latitude,
+                            Longitude = longitude,
                             ChartEnabled = true,
-                            VersionAction = (LocationVersionActions)csv.GetField<int>(12),
-                            Start = csv.GetField<DateTime>(14),
+                            VersionAction = versionAction,
+                            Start = start,
                             RegionId = 1,
                             JurisdictionId = 1,
                             PedsAre1to1 = true,
                             LocationTypeId = 1,
                         };
 
+                        var deviceConfigId = csv.TryGetField<int>(7, out var configId) ? configId : -1;
                         var device = new Device
                         {
-                            DeviceConfigurationId = csv.GetField<int>(7),
+                            DeviceConfigurationId = deviceConfigId,
+                            DeviceIdentifier = locationIdentifier,
+                            Notes = locationIdentifier,
                             DeviceStatus = DeviceStatus.Active,
                             DeviceType = DeviceTypes.SignalController,
                             Ipaddress = "127.0.0.1",
@@ -100,25 +111,29 @@ namespace DatabaseInstaller.Services
                 {
                     while (csv.Read())
                     {
-                        var approachId = csv.GetField<int>(12);
+                        var approachId = csv.TryGetField<int>(12, out var appId) ? appId : -1;
+                        if (approachId == -1 || !approachesMap.ContainsKey(approachId))
+                            continue;
+
                         var approach = approachesMap[approachId];
-                        var detectionTypeIds = detectionTypeMap.Where(dt => dt.Item1 == csv.GetField<int>(0)).Select(dt => dt.Item2).ToList();
+                        var detectorId = csv.TryGetField<int>(0, out var detId) ? detId : -1;
+                        var detectionTypeIds = detectionTypeMap.Where(dt => dt.Item1 == detectorId).Select(dt => dt.Item2).ToList();
                         var detectionTypesForDetector = detectionTypes.Where(dt => detectionTypeIds.Contains((int)dt.Id)).ToList();
 
                         var detector = new Detector
                         {
-                            DectectorIdentifier = csv.GetField<string>(1),
-                            DetectorChannel = csv.GetField<int>(2),
-                            DistanceFromStopBar = csv.GetField<string>(3) == "NULL" ? null : csv.GetField<int>(3),
-                            MinSpeedFilter = csv.GetField<string>(4) == "NULL" ? null : csv.GetField<int>(4),
-                            DateAdded = csv.GetField<DateTime>(5),
-                            DateDisabled = csv.GetField<string>(6) == "NULL" ? null : csv.GetField<DateTime>(6),
-                            LaneNumber = csv.GetField<string>(7) == "NULL" ? null : csv.GetField<int>(7),
-                            MovementType = csv.GetField<string>(8) == "NULL" ? MovementTypes.NA : (MovementTypes)csv.GetField<int>(8),
-                            LaneType = csv.GetField<string>(9) == "NULL" ? LaneTypes.NA : (LaneTypes)csv.GetField<int>(9),
-                            DecisionPoint = csv.GetField<string>(10) == "NULL" ? null : csv.GetField<int>(10),
-                            MovementDelay = csv.GetField<string>(11) == "NULL" ? null : csv.GetField<int>(11),
-                            LatencyCorrection = csv.GetField<int>(13),
+                            DectectorIdentifier = csv.GetField<string>(1) ?? string.Empty,
+                            DetectorChannel = csv.TryGetField<int>(2, out var channel) ? channel : 0,
+                            DistanceFromStopBar = csv.TryGetField<int>(3, out var dist) ? (int?)dist : null,
+                            MinSpeedFilter = csv.TryGetField<int>(4, out var minSpeed) ? (int?)minSpeed : null,
+                            DateAdded = csv.TryGetField<DateTime>(5, out var dateAdded) ? dateAdded : DateTime.MinValue,
+                            DateDisabled = csv.TryGetField<DateTime>(6, out var dateDisabled) ? (DateTime?)dateDisabled : null,
+                            LaneNumber = csv.TryGetField<int>(7, out var laneNumber) ? (int?)laneNumber : null,
+                            MovementType = csv.TryGetField<int>(8, out var movementType) ? (MovementTypes)movementType : MovementTypes.NA,
+                            LaneType = csv.TryGetField<int>(9, out var laneType) ? (LaneTypes)laneType : LaneTypes.NA,
+                            DecisionPoint = csv.TryGetField<int>(10, out var decisionPoint) ? (int?)decisionPoint : null,
+                            MovementDelay = csv.TryGetField<int>(11, out var movementDelay) ? (int?)movementDelay : null,
+                            LatencyCorrection = csv.TryGetField<int>(13, out var latencyCorrection) ? latencyCorrection : 0,
                             DetectionTypes = detectionTypesForDetector,
                         };
 
@@ -154,22 +169,34 @@ namespace DatabaseInstaller.Services
                 {
                     while (csv.Read())
                     {
-                        var locationId = csv.GetField<int>(8);
-                        var locationIdentifier = csv.GetField<string>(1);
+                        var locationId = csv.TryGetField<int>(8, out var locId) ? locId : -1;
+                        var locationIdentifier = csv.GetField<string>(1) ?? string.Empty;
+                        var directionTypeId = csv.TryGetField<int>(2, out var dirType) ? (DirectionTypes)dirType : DirectionTypes.NA;
+                        var description = csv.GetField<string>(3) ?? string.Empty;
+                        var mph = csv.TryGetField<int>(4, out var speed) ? speed : 0;
+                        var protectedPhaseNumber = csv.TryGetField<int>(5, out var protPhase) ? protPhase : 0;
+                        var isProtectedPhaseOverlap = csv.TryGetField<int>(6, out var protOverlap) && protOverlap != 0;
+                        var permissivePhaseNumber = csv.TryGetField<int>(7, out var permPhase) ? permPhase : 0;
+                        var isPermissivePhaseOverlap = csv.TryGetField<int>(9, out var permOverlap) && permOverlap != 0;
+                        var approachId = csv.TryGetField<int>(0, out var appId) ? appId : -1;
+
+                        if (locationId == -1 || appId == -1 || !locations.ContainsKey(locationId))
+                            continue;
+
                         var location = locations[locationId];
 
                         var approach = new Approach
                         {
-                            DirectionTypeId = (DirectionTypes)csv.GetField<int>(2),
-                            Description = csv.GetField<string>(3),
-                            Mph = csv.GetField<int>(4),
-                            ProtectedPhaseNumber = csv.GetField<int>(5),
-                            IsProtectedPhaseOverlap = csv.GetField<int>(6) == 0 ? false : true,
-                            PermissivePhaseNumber = csv.GetField<int>(7),
-                            IsPermissivePhaseOverlap = csv.GetField<int>(9) == 0 ? false : true,
+                            DirectionTypeId = directionTypeId,
+                            Description = description,
+                            Mph = mph,
+                            ProtectedPhaseNumber = protectedPhaseNumber,
+                            IsProtectedPhaseOverlap = isProtectedPhaseOverlap,
+                            PermissivePhaseNumber = permissivePhaseNumber,
+                            IsPermissivePhaseOverlap = isPermissivePhaseOverlap,
                         };
                         location.Approaches.Add(approach);
-                        approachesDictionary.Add(csv.GetField<int>(0), approach);
+                        approachesDictionary.Add(approachId, approach);
                     }
                 }
             }
