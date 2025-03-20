@@ -16,6 +16,7 @@
 #endregion
 
 using DatabaseInstaller.Commands;
+using Microsoft.CodeAnalysis;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -352,8 +353,34 @@ public class TransferConfigCommandHostedService : IHostedService
             return;
         }
         _logger.LogInformation("Adding Device Configurations");
-        var deviceConfigurations = ImportData<DeviceConfiguration>(queries["DeviceConfigurations"], columnMappings["DeviceConfigurations"]);      
-        _deviceConfigurationRepository.AddRange(deviceConfigurations);
+        var products = _productRepository.GetList().ToList();
+        var deviceConfigurations = new List<DeviceConfiguration>()
+        {
+            new DeviceConfiguration
+            {
+                ProductId = products.First(p => p.Manufacturer == "Econolite").Id,
+                Description = ">02.47",
+                Path = "//Set1",
+                Query = new string[] { "dat", "datZ" },
+                Protocol = TransportProtocols.Ftp,
+                ConnectionProperties = new Dictionary<string, object>
+                {
+                    {"DataConnectionConnectTimeout", 5000 },
+                    {"DataConnectionReadTimeout", 15000 },
+                    {"DataConnectionType", "AutoActive" },
+                    {"AutoConnect", true },
+                },
+                ConnectionTimeout = 5000,
+                OperationTimeout = 15000,
+                Port = 21,
+                UserName = "econolite",
+                Password = "ecpi2ecpi",
+                LoggingOffset = 0,
+                Decoders = new string[] { "AscToIndianaDecoder" }
+            },
+        };
+        //var deviceConfigurations = ImportData<DeviceConfiguration>(queries["DeviceConfigurations"], columnMappings["DeviceConfigurations"]);      
+        //_deviceConfigurationRepository.AddRange(deviceConfigurations);
         _logger.LogInformation("Device Configurations Added");
     }
 
