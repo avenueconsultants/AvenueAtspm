@@ -30,6 +30,7 @@ namespace DatabaseInstaller.Commands
             AddCommand(TransferEventLogsCommand);
             AddCommand(TransferSpeedEventsCommand);
             AddCommand(TranslateEventLogsCommand);
+            AddCommand(TransferConfigFromCsvCommand);
         }
 
         public UpdateCommand UpdateCommand { get; set; } = new UpdateCommand();

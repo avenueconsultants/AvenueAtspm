@@ -16,6 +16,7 @@
 #endregion
 
 using DatabaseInstaller.Commands;
+using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,11 +56,12 @@ cmdBuilder.UseHost(hostBuilder =>
         services.AddIdentity<ApplicationUser, IdentityRole>()
         .AddEntityFrameworkStores<IdentityContext>()
         .AddDefaultTokenProviders();
+        services.AddSingleton(StorageClient.Create());
 
 
         //// Optional: Register any core services your application might need here.
         services.Configure<UpdateCommandConfiguration>(hostContext.Configuration.GetSection("CommandLineOptions"));
-        services.Configure<CopyFromCsvConfiguration>(hostContext.Configuration.GetSection("CopyFromCsvConfiguration"));
+        services.Configure<CopyFromCsvConfiguration>(hostContext.Configuration.GetSection("CopyConfigFromCsvOptions"));
         services.Configure<TransferCommandConfiguration>(hostContext.Configuration.GetSection(nameof(TransferCommandConfiguration)));
         services.Configure<TransferConfigCommandConfiguration>(hostContext.Configuration.GetSection(nameof(TransferConfigCommandConfiguration)));
 

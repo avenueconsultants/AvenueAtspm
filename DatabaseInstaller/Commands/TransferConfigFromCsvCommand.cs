@@ -4,11 +4,10 @@ using Microsoft.Extensions.Hosting;
 using System.CommandLine;
 using System.CommandLine.Hosting;
 using System.CommandLine.NamingConventionBinder;
-using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 
 namespace DatabaseInstaller.Commands
 {
-    public class TransferConfigFromCsvCommand : Command
+    public class TransferConfigFromCsvCommand : Command, ICommandOption<CopyFromCsvConfiguration>
     {
         public TransferConfigFromCsvCommand()
         : base("copy-config-csv", "Copy Config Data for new data format in a Postgres database")
