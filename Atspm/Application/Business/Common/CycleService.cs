@@ -18,7 +18,6 @@
 using Utah.Udot.Atspm.Business.ApproachSpeed;
 using Utah.Udot.Atspm.Business.PreemptService;
 using Utah.Udot.Atspm.Business.SplitFail;
-using Utah.Udot.Atspm.Business.TransitSignalPriority;
 using Utah.Udot.Atspm.Business.YellowRedActivations;
 using Utah.Udot.Atspm.Data.Models.EventLogModels;
 using Utah.Udot.Atspm.Extensions;
@@ -240,7 +239,7 @@ namespace Utah.Udot.Atspm.Business.Common
                             cycleEvents[i + 3].EventCode == 66))
                 .Select(i =>
                 {
-                    var termEvent = GetTerminationTypeBetweenStartAndEnd(cycleEvents[i].Timestamp, cycleEvents[i + 3].Timestamp, terminationEvents);
+                    var termEvent = GetTerminationEventBetweenStartAndEnd(cycleEvents[i].Timestamp, cycleEvents[i + 3].Timestamp, terminationEvents);
                     return new CycleSplitFail(cycleEvents[i].Timestamp, cycleEvents[i + 2].Timestamp, cycleEvents[i + 1].Timestamp,
                                               cycleEvents[i + 3].Timestamp, termEvent, options.FirstSecondsOfRed);
                 })
@@ -300,11 +299,6 @@ namespace Utah.Udot.Atspm.Business.Common
             return terminationType;
         }
 
-        private static short? GetTerminationEventBetweenStartAndEnd(DateTime start,
-            DateTime end, IReadOnlyList<IndianaEvent> terminationEvents)
-        {
-            return terminationEvents.Where(t => t.Timestamp > start && t.Timestamp <= end).OrderBy(t => t.Timestamp).LastOrDefault()?.EventCode;
-        }
 
         private static YellowRedEventType GetYellowToRedEventType(short EventCode)
         {
@@ -679,31 +673,6 @@ namespace Utah.Udot.Atspm.Business.Common
                 await Task.WhenAll(tasks);
             }
             return cycles.Where(c => c.GreenEvent >= start && c.GreenEvent <= end || c.RedEvent <= end && c.RedEvent >= end).ToList();
-        }
-
-        public List<IndianaEvent> CleanTerminationEvents(IReadOnlyList<IndianaEvent> terminationEvents)
-        {
-
-            var sortedEvents = terminationEvents.OrderBy(x => x.Timestamp).ThenBy(y => y.EventCode).ToList();
-            var duplicateList = new List<IndianaEvent>();
-            for (int i = 0; i < sortedEvents.Count - 1; i++)
-            {
-                var event1 = sortedEvents[i];
-                var event2 = sortedEvents[i + 1];
-                if (event1.Timestamp == event2.Timestamp)
-                {
-                    if (event1.EventCode == 7)
-                        duplicateList.Add(event1);
-                    if (event2.EventCode == 7)
-                        duplicateList.Add(event2);
-                }
-            }
-
-            foreach (var e in duplicateList)
-            {
-                sortedEvents.Remove(e);
-            }
-            return sortedEvents;
         }
     }
 }
