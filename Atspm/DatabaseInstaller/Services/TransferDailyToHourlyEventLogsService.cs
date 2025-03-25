@@ -59,25 +59,25 @@ namespace DatabaseInstaller.Services
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
+            var locationsQuery = _locationRepository.GetList()
+                .Include(s => s.Devices)
+                .AsQueryable();
+
+            if (_config.Device != null)
+            {
+                locationsQuery = locationsQuery
+                    .Where(l => l.Devices.Any(d => d.DeviceType == (DeviceTypes)_config.Device));
+            }
+
+            var locations = locationsQuery
+                .FromSpecification(new ActiveLocationSpecification())
+                .GroupBy(r => r.LocationIdentifier)
+                .Select(g => g.OrderByDescending(r => r.Start).FirstOrDefault())
+                .ToList();
+
             for (var date = _config.Start; date <= _config.End; date = date.AddDays(1)) // Process daily logs
             {
                 _logger.LogInformation($"Processing daily log for {date.Date}");
-
-                var locationsQuery = _locationRepository.GetList()
-                    .Include(s => s.Devices)
-                    .AsQueryable();
-
-                if (_config.Device != null)
-                {
-                    locationsQuery = locationsQuery
-                        .Where(l => l.Devices.Any(d => d.DeviceType == (DeviceTypes)_config.Device));
-                }
-
-                var locations = locationsQuery
-                    .FromSpecification(new ActiveLocationSpecification())
-                    .GroupBy(r => r.LocationIdentifier)
-                    .Select(g => g.OrderByDescending(r => r.Start).FirstOrDefault())
-                    .ToList();
 
                 var allHourlyLogs = new ConcurrentBag<CompressedEventLogs<IndianaEvent>>();
 
@@ -93,9 +93,9 @@ namespace DatabaseInstaller.Services
                             // Convert to hourly compressed logs
                             var hourlyLogs = ConvertToHourlyCompressedEvents(dailyLogs, location, date);
 
-                            foreach (var log in hourlyLogs)
+                            if (hourlyLogs.Count != 0)
                             {
-                                allHourlyLogs.Add(log);
+                                await InsertLogsWithRetryAsync(hourlyLogs.ToList());
                             }
                         }
                         else
@@ -108,11 +108,6 @@ namespace DatabaseInstaller.Services
                         _logger.LogError($"Failed to process logs for location {location.LocationIdentifier} on {date.Date}: {ex.Message}");
                     }
                 }));
-
-                if (allHourlyLogs.Any())
-                {
-                    await InsertLogsWithRetryAsync(allHourlyLogs.ToList());
-                }
             }
 
             _logger.LogInformation("Execution completed.");
@@ -121,32 +116,36 @@ namespace DatabaseInstaller.Services
 
         private async Task<List<IndianaEvent>> GetDecompressedEvents(DateTime date, Location location)
         {
-            string selectQuery = $"SELECT \"Data\" FROM {_config.SourceTable} WHERE \"LocationIdentifier\" = @locationId AND \"ArchiveDate\" = @archiveDate";
+            string selectQuery = $"SELECT \"Data\"  FROM {_config.SourceTable} WHERE \"LocationIdentifier\" = '{location.LocationIdentifier}' AND \"ArchiveDate\" = '{date.Date}'";
             var jsonObject = new List<IndianaEvent>();
 
             await _retryPolicy.ExecuteAsync(async () =>
             {
                 try
                 {
-                    await using var connection = new NpgsqlConnection(_config.Source);
-                    await connection.OpenAsync();
-
-                    await using var command = new NpgsqlCommand(selectQuery, connection);
-                    command.Parameters.AddWithValue("@locationId", location.LocationIdentifier);
-                    command.Parameters.AddWithValue("@archiveDate", date.Date);
-
-                    await using var reader = await command.ExecuteReaderAsync();
-                    if (await reader.ReadAsync())
+                    using (var connection = new NpgsqlConnection(_config.Source))
                     {
-                        var compressedData = (byte[])reader["Data"]; // Ensure correct column name
+                        connection.Open();
 
-                        await using var memoryStream = new MemoryStream(compressedData);
-                        await using var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
-                        using var streamReader = new StreamReader(gzipStream);
+                        using (NpgsqlCommand command = new NpgsqlCommand(selectQuery, connection))
+                        {
+                            using (NpgsqlDataReader reader = command.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    byte[] compressedData = (byte[])reader["Data"];
 
-                        string json = await streamReader.ReadToEndAsync();
-                        jsonObject = JsonConvert.DeserializeObject<List<IndianaEvent>>(json) ?? new List<IndianaEvent>();
-                        jsonObject.ForEach(x => x.LocationIdentifier = location.LocationIdentifier);
+                                    using (MemoryStream memoryStream = new MemoryStream(compressedData))
+                                    using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+                                    using (StreamReader streamReader = new StreamReader(gzipStream))
+                                    {
+                                        string json = await streamReader.ReadToEndAsync();
+                                        jsonObject = JsonConvert.DeserializeObject<List<IndianaEvent>>(json);
+                                        jsonObject.ForEach(x => x.LocationIdentifier = location.LocationIdentifier);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -257,39 +256,20 @@ namespace DatabaseInstaller.Services
 
         private async Task InsertLogsWithRetryAsync(List<CompressedEventLogs<IndianaEvent>> hourlyLogs)
         {
-            if (hourlyLogs == null || !hourlyLogs.Any())
-            {
-                _logger.LogInformation("No hourly logs to insert.");
-                return;
-            }
-
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                try
+                using var scope = _serviceProvider.CreateScope();
+                var context = scope.ServiceProvider.GetService<EventLogContext>();
+                if (context == null)
                 {
-                    using (var scope = _serviceProvider.CreateScope())
-                    {
-                        var context = scope.ServiceProvider.GetService<EventLogContext>();
-
-                        if (context != null)
-                        {
-                            // Insert logs in bulk for efficiency
-                            await context.CompressedEvents.AddRangeAsync(hourlyLogs);
-                            await context.SaveChangesAsync();
-
-                            _logger.LogInformation($"Successfully inserted {hourlyLogs.Count} hourly logs.");
-                        }
-                        else
-                        {
-                            _logger.LogError("Failed to retrieve EventLogContext from service provider.");
-                        }
-                    }
+                    _logger.LogError("EventLogContext is not available.");
+                    return;
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error inserting hourly logs. Retrying...");
-                    throw; // Ensure the retry policy handles it
-                }
+                context.CompressedEvents.AddRange(hourlyLogs);
+                //context.CompressedEvents.Add(archiveLog);
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation($"Successfully inserted log on {hourlyLogs.FirstOrDefault()?.Start}");
             });
         }
 
