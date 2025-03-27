@@ -190,7 +190,6 @@ namespace DatabaseInstaller.Services
                         var sqltestSeverRepository = new EventLogEFRepository(sqlServerContext, scope.ServiceProvider.GetService<ILogger<EventLogEFRepository>>());
                         var context = scope.ServiceProvider.GetService<EventLogContext>();
                         var postgresSeverRepository = new EventLogEFRepository(context, scope.ServiceProvider.GetService<ILogger<EventLogEFRepository>>());
-                        Console.WriteLine(context.Database.GetDbConnection().ConnectionString);
 
 
                         try
@@ -198,8 +197,8 @@ namespace DatabaseInstaller.Services
                             Console.WriteLine($"Getting logs for {location}...");
                             var logs = sqltestSeverRepository.GetArchivedEvents(
                                 location,
-                                DateOnly.FromDateTime(_config.Start),
-                                DateOnly.FromDateTime(_config.End));
+                                _config.Start,
+                                _config.End);
                             Console.WriteLine($"Logs for {location} retrieved");
                             Console.WriteLine($"Saving logs for {location}...");
                             postgresSeverRepository.AddRange(logs);
