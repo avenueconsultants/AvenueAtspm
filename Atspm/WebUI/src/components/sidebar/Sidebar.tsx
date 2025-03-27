@@ -7,6 +7,7 @@ import ForkLeftIcon from '@mui/icons-material/ForkLeft'
 import RouteOutlinedIcon from '@mui/icons-material/RouteOutlined'
 import ShowChartOutlinedIcon from '@mui/icons-material/ShowChartOutlined'
 import SignalCellularAltOutlinedIcon from '@mui/icons-material/SignalCellularAltOutlined'
+import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation'
 import { Box, Drawer, List, useTheme } from '@mui/material'
 import Image from 'next/image'
 import React from 'react'
@@ -78,6 +79,11 @@ export default function Sidebar() {
               icon={<RouteOutlinedIcon />}
               text={'Link Pivot'}
               url={'/link-pivot'}
+            />
+            <NavItem
+              icon={<TransferWithinAStationIcon />}
+              text={'Active Transportation'}
+              url={'/active-transportation'}
             />
             {hasLTGRPermission && (
               <NavItem
