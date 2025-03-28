@@ -87,6 +87,7 @@ namespace Utah.Udot.Atspm.Business.Common
             {
                 analysisPhaseData.TerminationEvents = new List<IndianaEvent>();
             }
+            //Change to loop through cycles checking termination types for multiple
             analysisPhaseData.ConsecutiveGapOuts = FindConsecutiveEvents(analysisPhaseData.TerminationEvents, 4, consecutiveCount) ?? new List<IndianaEvent>();
             analysisPhaseData.ConsecutiveMaxOut = FindConsecutiveEvents(analysisPhaseData.TerminationEvents, 5, consecutiveCount) ?? new List<IndianaEvent>();
             analysisPhaseData.ConsecutiveForceOff = FindConsecutiveEvents(analysisPhaseData.TerminationEvents, 6, consecutiveCount) ?? new List<IndianaEvent>();

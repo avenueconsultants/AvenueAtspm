@@ -50,7 +50,12 @@ namespace Utah.Udot.Atspm.Business.Common
 
                 if (cycle != null && cycleEvent.EventParam == phasenumber &&
                     (cycleEvent.EventCode == 4 || cycleEvent.EventCode == 5 || cycleEvent.EventCode == 6))
-                    cycle.SetTerminationEvent(cycleEvent.EventCode);
+                {
+                    if (!cycle.TerminationEvent.HasValue)
+                    {
+                        cycle.SetTerminationEvent(cycleEvent.EventCode);
+                    }
+                }
 
                 if (cycle != null && cycleEvent.EventParam == phasenumber && cycleEvent.EventCode == 8)
                     cycle.YellowEvent = cycleEvent.Timestamp;
@@ -69,7 +74,7 @@ namespace Utah.Udot.Atspm.Business.Common
                                              where r.Timestamp >=
                                                    c.StartTime && r.Timestamp <= c.EndTime
                                              select r).ToList();
-
+                    //This may be to handle stuck peds
                     if ((c.EndTime - c.StartTime).Seconds > PedEventsForCycle.Count)
                     {
                         SetPedTimesForCycle(PedEventsForCycle, c);
