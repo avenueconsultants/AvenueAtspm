@@ -129,7 +129,14 @@ export default function ApproachesReconcilationReport({
   )
 
   return (
-    <Paper sx={{ p: 2, bgColor: 'primary.main.light' }}>
+    <Paper
+      sx={{
+        p: 2,
+        bgColor: 'primary.main.light',
+        boxShadow: '0 0 15px rgba(0, 123, 255, 0.5)',
+        mb: 2,
+      }}
+    >
       <Box
         onClick={handleToggle}
         sx={{

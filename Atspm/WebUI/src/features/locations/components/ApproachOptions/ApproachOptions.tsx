@@ -9,18 +9,21 @@ import { Box } from '@mui/material'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const ApproachOptions = () => {
+  // Pull wizard store items
   const {
-    shouldSyncApproaches,
-    approachesSynced,
-    setShouldSyncApproaches,
-    setApproachesSynced,
+    approachSyncStatus, // 'NOT_STARTED' | 'READY_TO_RUN' | 'DONE'
+    setApproachSyncStatus,
     setBadApproaches,
     setBadDetectors,
   } = useLocationWizardStore()
+
+  // Grab approaches and location from your local location store
   const { approaches, location, addApproach } = useLocationStore()
 
+  // API for syncing location → logs/reports
   const { mutateAsync, isLoading } = useGetLocationSyncLocationFromKey()
 
+  // Local state to hold various categories from the sync result
   const [categories, setCategories] = useState({
     foundPhases: [] as string[],
     foundDetectors: [] as string[],
@@ -28,6 +31,7 @@ const ApproachOptions = () => {
     notFoundDetectors: [] as string[],
   })
 
+  // For display, gather all phases in the store (already “synced” locally)
   const syncedPhases = useMemo(
     () =>
       approaches.flatMap((approach) => [
@@ -38,6 +42,7 @@ const ApproachOptions = () => {
     [approaches]
   )
 
+  // For display, gather all detector channels in the store (already “synced” locally)
   const syncedDetectors = useMemo(
     () =>
       approaches.flatMap((approach) =>
@@ -46,12 +51,18 @@ const ApproachOptions = () => {
     [approaches]
   )
 
+  /**
+   * Called whenever we explicitly sync from the server.
+   * On success, we store "bad approaches/detectors" in the wizard store
+   * and also capture the found/not-found categories for the UI.
+   */
   const handleSyncLocation = useCallback(async () => {
     try {
       const response = await mutateAsync({
         key: parseInt(location.id, 10),
       })
 
+      // Build a list of approach descriptions that got removed
       const notFoundApproaches = response.removedApproachIds.map(
         (id: number) => {
           const approach = approaches.find((a: any) => a.id === id)
@@ -61,9 +72,11 @@ const ApproachOptions = () => {
         }
       )
 
+      // Store “bad” approach/detector IDs in Zustand
       setBadApproaches(response.removedApproachIds)
       setBadDetectors(response.removedDetectors)
 
+      // For the UI, store categorization
       setCategories({
         foundPhases: [
           ...response.loggedButUnusedProtectedOrPermissivePhases,
@@ -85,25 +98,25 @@ const ApproachOptions = () => {
     setCategories,
   ])
 
-  // If the store says we should sync, and we haven't yet, do it automatically
+  /**
+   * If the wizard store sets approachSyncStatus = "READY_TO_RUN",
+   * we auto-run the sync once, then mark approachSyncStatus = "DONE".
+   */
   useEffect(() => {
-    if (shouldSyncApproaches && !approachesSynced) {
+    if (approachSyncStatus === 'READY_TO_RUN') {
       ;(async () => {
         await handleSyncLocation()
-        setApproachesSynced(true)
-        setShouldSyncApproaches(false)
+        setApproachSyncStatus('DONE')
       })()
     }
-  }, [
-    shouldSyncApproaches,
-    approachesSynced,
-    handleSyncLocation,
-    setApproachesSynced,
-    setShouldSyncApproaches,
-  ])
+  }, [approachSyncStatus, handleSyncLocation, setApproachSyncStatus])
+
+  // Are we “synced” yet? (used by ApproachesReconcilationReport)
+  const approachesSynced = approachSyncStatus === 'DONE'
 
   return (
     <Box>
+      {/* Top bar: "Add Approach" + "Sync" button */}
       <Box
         sx={{
           display: 'flex',
@@ -120,15 +133,19 @@ const ApproachOptions = () => {
           variant="contained"
           color="primary"
           onClick={async () => {
+            // Manual re-sync
             await handleSyncLocation()
-            setApproachesSynced(true)
-            setShouldSyncApproaches(false)
+            setApproachSyncStatus('DONE')
           }}
         >
           Sync
         </LoadingButton>
       </Box>
 
+      {/* 
+        Show a summary of how approaches/detectors from the server 
+        match up with the store, using the categories we set
+      */}
       <ApproachesReconcilationReport
         synced={approachesSynced}
         categories={categories}
