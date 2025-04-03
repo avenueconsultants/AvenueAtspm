@@ -9,6 +9,7 @@ import { LoadingButton } from '@mui/lab'
 import {
   Badge,
   Box,
+  Button,
   Collapse,
   IconButton,
   TextField,
@@ -25,6 +26,9 @@ interface DevicesWizardPanelProps {
   devices: CombinedDeviceEvent[] | undefined
   onResync: () => void
   isResyncing: boolean
+  setShowSyncPanel: (show: boolean) => void
+  ipChanges: Record<number, string>
+  setIpChanges: React.Dispatch<React.SetStateAction<Record<number, string>>>
 }
 
 // Function to get the device name
@@ -46,8 +50,15 @@ const DevicesWizardPanel = ({
   devices,
   onResync,
   isResyncing,
+  setShowSyncPanel,
+  ipChanges,
+  setIpChanges,
 }: DevicesWizardPanelProps) => {
   const [isExpanded, setIsExpanded] = useState(true)
+
+  const handleIpChange = (deviceId: number, newIp: string) => {
+    setIpChanges((prev) => ({ ...prev, [deviceId]: newIp }))
+  }
 
   return (
     <>
@@ -98,70 +109,83 @@ const DevicesWizardPanel = ({
         </Box>
 
         {/* Rows */}
-        {devices?.map((device, i) => (
-          <Box
-            key={i}
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              p: 2,
-              mb: 2,
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-            }}
-          >
-            {/* Device Name */}
-            <Typography sx={{ flex: 3 }}>{getDeviceName(device)}</Typography>
-
-            {/* IP Address */}
-            <Badge
-              color="error"
-              variant="dot"
-              invisible={!device?.ipModified}
-              sx={{ flex: 2, width: '200px' }}
-            >
-              <TextField
-                label="IP Address"
-                defaultValue={device.ipaddress}
-                variant="outlined"
-                size="small"
-              />
-            </Badge>
-
-            {/* Rows Downloaded */}
-            <Typography sx={{ flex: 1, textAlign: 'right', width: '250px' }}>
-              {device.changeInEventCount?.toLocaleString() ?? 'N/A'}
-            </Typography>
-
-            {/* Status */}
+        {devices?.map((device, i) => {
+          const newIp = ipChanges[device.id] ?? device.ipaddress
+          return (
             <Box
+              key={i}
               sx={{
-                flex: 2,
-                textAlign: 'center',
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                justifyContent: 'center',
+                p: 2,
+                mb: 2,
+                border: '1px solid #ccc',
+                borderRadius: '4px',
               }}
             >
-              {device?.changeInEventCount && device.changeInEventCount > 1 ? (
-                <>
-                  <CheckIcon color="success" />
+              {/* Device Name */}
+              <Typography sx={{ flex: 3 }}>{getDeviceName(device)}</Typography>
+              {/* IP Address */}
+              <Badge
+                color="error"
+                variant="dot"
+                // Show the badge if there's a difference from the original IP
+                invisible={device.ipaddress === newIp}
+              >
+                <TextField
+                  label="IP Address"
+                  size="small"
+                  value={newIp}
+                  onChange={(e) => handleIpChange(device.id, e.target.value)}
+                />
+              </Badge>
+              {/* Rows Downloaded */}
+              <Typography sx={{ flex: 1, textAlign: 'right', width: '250px' }}>
+                {isResyncing
+                  ? ''
+                  : (device.changeInEventCount?.toLocaleString() ?? 'N/A')}
+              </Typography>
+              {/* Status */}
+              <Box
+                sx={{
+                  flex: 2,
+                  textAlign: 'center',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {isResyncing ? (
                   <Typography variant="body2" sx={{ ml: 1, display: 'inline' }}>
-                    Download successful
+                    Loading...
                   </Typography>
-                </>
-              ) : (
-                <>
-                  <CloseIcon color="error" />
-                  <Typography variant="body2" sx={{ ml: 1, display: 'inline' }}>
-                    No data downloaded
-                  </Typography>
-                </>
-              )}
+                ) : device?.changeInEventCount &&
+                  device.changeInEventCount > 1 ? (
+                  <>
+                    <CheckIcon color="success" />
+                    <Typography
+                      variant="body2"
+                      sx={{ ml: 1, display: 'inline' }}
+                    >
+                      Download successful
+                    </Typography>
+                  </>
+                ) : (
+                  <>
+                    <CloseIcon color="error" />
+                    <Typography
+                      variant="body2"
+                      sx={{ ml: 1, display: 'inline' }}
+                    >
+                      No data downloaded
+                    </Typography>
+                  </>
+                )}
+              </Box>
             </Box>
-          </Box>
-        ))}
+          )
+        })}
 
         {/* Resync Button */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
@@ -175,6 +199,11 @@ const DevicesWizardPanel = ({
           >
             Re-Sync
           </LoadingButton>
+        </Box>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+          <Button variant="outlined" onClick={() => setShowSyncPanel(false)}>
+            Close
+          </Button>
         </Box>
       </Collapse>
     </>

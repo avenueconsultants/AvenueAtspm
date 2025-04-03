@@ -1,6 +1,5 @@
 import { useLatestVersionOfAllLocations } from '@/features/locations/api'
 import LocationInput from '@/features/locations/components/selectLocation/LocationInput'
-import SelectLocationMap from '@/features/locations/components/selectLocationMap'
 import { Location } from '@/features/locations/types'
 import { Button } from '@mui/material'
 import { memo, useCallback, useMemo, useState } from 'react'
@@ -76,7 +75,7 @@ export function SelectLocation({
       />
       {addLocationBtn && <Button sx={{ ml: 0 }}>Add Location</Button>}
       <br />
-      <SelectLocationMap
+      {/* <SelectLocationMap
         location={location}
         setLocation={setLocation}
         locations={allLocations}
@@ -86,7 +85,7 @@ export function SelectLocation({
         mapHeight={mapHeight}
         filters={filters}
         updateFilters={updateFilters}
-      />
+      /> */}
     </>
   )
 }

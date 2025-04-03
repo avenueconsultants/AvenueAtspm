@@ -4,6 +4,7 @@ import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import { StyledPaper } from '@/components/StyledPaper'
 import { AddButton } from '@/components/addButton'
 import { PageNames, useViewPage } from '@/features/identity/pagesCheck'
+import LocationSetupWizard from '@/features/locations/components/LocationSetupWizard'
 import { sortApproachesByPhaseNumber } from '@/features/locations/components/editApproach/utils/sortApproaches'
 import LocationEditor from '@/features/locations/components/editLocation/EditLocation'
 import NewLocationModal from '@/features/locations/components/editLocation/NewLocationModal'
@@ -32,7 +33,7 @@ const LocationsAdmin = () => {
 
   const pageAccess = useViewPage(PageNames.Location)
   const [isModalOpen, setModalOpen] = useState(false)
-  const [isWizardOpen, setIsWizardOpen] = useState(false)
+  const [isWizardOpen, setIsWizardOpen] = useState(true)
 
   const handleSetLocation = useCallback(
     async (selectedLocation: Location | null) => {
@@ -74,6 +75,12 @@ const LocationsAdmin = () => {
           closeModal={closeModal}
           setLocation={handleSetLocation}
           onCreatedFromTemplate={handleOpenWizard}
+        />
+      )}
+      {isWizardOpen && (
+        <LocationSetupWizard
+          open={isWizardOpen}
+          onClose={() => setIsWizardOpen(false)}
         />
       )}
     </ResponsivePageLayout>

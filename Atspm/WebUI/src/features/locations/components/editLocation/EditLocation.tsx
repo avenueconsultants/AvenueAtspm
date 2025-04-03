@@ -62,14 +62,10 @@ function EditLocation() {
 export default memo(EditLocation)
 
 function ApproachesTab() {
-  const [approachIds, addApproach] = useLocationStore((state) => [
+  const [approachIds] = useLocationStore((state) => [
     state.approaches.map((a) => a.id),
     state.addApproach,
   ])
-
-  const handleAddApproach = useCallback(() => {
-    addApproach()
-  }, [addApproach])
 
   return (
     <Box sx={{ minHeight: '400px' }}>
