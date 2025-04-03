@@ -64,7 +64,7 @@ export default function LocationSetupWizard() {
         p: 2,
         zIndex: 1000,
         // minWidth: '1200px',
-        bgcolor: 'background.default',
+        boxShadow: '0 0 10px rgba(0, 123, 255, 0.5)',
       }}
     >
       {/* Single row for buttons + stepper */}

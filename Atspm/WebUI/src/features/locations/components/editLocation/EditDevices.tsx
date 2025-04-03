@@ -262,6 +262,7 @@ const EditDevices = () => {
             borderRadius: 1,
             p: 2,
             mb: 2,
+            boxShadow: '0 0 15px rgba(0, 123, 255, 0.5)',
           }}
         >
           <DevicesWizardPanel
