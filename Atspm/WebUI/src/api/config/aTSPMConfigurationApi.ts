@@ -22,14 +22,12 @@ import type {
   DeleteLocationSetLocationTodFromKeyParams,
   DetectionType,
   DetectionTypeGroup,
-  DetectionTypes,
   Detector,
   DetectorComment,
   Device,
   DeviceConfiguration,
   DeviceGroup,
   DirectionType,
-  DirectionTypes,
   Faq,
   GetApproachApproachDtoFromIdParams,
   GetApproachCountParams,
@@ -59,6 +57,49 @@ import type {
   GetDetectorDetectorCommentsFromKeyParams,
   GetDetectorFromKeyParams,
   GetDetectorParams,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero,
+  GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeParams,
   GetDeviceActiveDevicesByLocationFromLocationIdParams,
   GetDeviceActiveDevicesCountParams,
   GetDeviceConfigurationCountParams,
@@ -249,6 +290,7 @@ import type {
   RouteDto,
   RouteLocation,
   SearchLocation,
+  TemplateLocationModifiedDto,
   UpsertApproachApproachParams,
   UpsertRouteRouteParams,
   VersionHistory,
@@ -452,7 +494,7 @@ export const useGetApproachDetectorsCountFromKey = <
 
 export const upsertApproachApproach = (
   approachDto: ApproachDto,
-  params: UpsertApproachApproachParams
+  params?: UpsertApproachApproachParams
 ) => {
   return configRequest<void>({
     url: `/UpsertApproach`,
@@ -473,20 +515,20 @@ export const getUpsertApproachApproachMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof upsertApproachApproach>>,
     TError,
-    { data: ApproachDto; params: UpsertApproachApproachParams },
+    { data: ApproachDto; params?: UpsertApproachApproachParams },
     TContext
   >
 }): UseMutationOptions<
   Awaited<ReturnType<typeof upsertApproachApproach>>,
   TError,
-  { data: ApproachDto; params: UpsertApproachApproachParams },
+  { data: ApproachDto; params?: UpsertApproachApproachParams },
   TContext
 > => {
   const { mutation: mutationOptions } = options ?? {}
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof upsertApproachApproach>>,
-    { data: ApproachDto; params: UpsertApproachApproachParams }
+    { data: ApproachDto; params?: UpsertApproachApproachParams }
   > = (props) => {
     const { data, params } = props ?? {}
 
@@ -509,7 +551,7 @@ export const useUpsertApproachApproach = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof upsertApproachApproach>>,
     TError,
-    { data: ApproachDto; params: UpsertApproachApproachParams },
+    { data: ApproachDto; params?: UpsertApproachApproachParams },
     TContext
   >
 }) => {
@@ -520,7 +562,7 @@ export const useUpsertApproachApproach = <
 
 export const getApproachApproachDtoFromId = (
   id: number,
-  params: GetApproachApproachDtoFromIdParams,
+  params?: GetApproachApproachDtoFromIdParams,
   signal?: AbortSignal
 ) => {
   return configRequest<void>({
@@ -533,7 +575,7 @@ export const getApproachApproachDtoFromId = (
 
 export const getGetApproachApproachDtoFromIdQueryKey = (
   id: number,
-  params: GetApproachApproachDtoFromIdParams
+  params?: GetApproachApproachDtoFromIdParams
 ) => {
   return [`/GetApproachDto/${id}`, ...(params ? [params] : [])] as const
 }
@@ -543,7 +585,7 @@ export const getGetApproachApproachDtoFromIdQueryOptions = <
   TError = unknown,
 >(
   id: number,
-  params: GetApproachApproachDtoFromIdParams,
+  params?: GetApproachApproachDtoFromIdParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getApproachApproachDtoFromId>>,
@@ -584,7 +626,7 @@ export const useGetApproachApproachDtoFromId = <
   TError = unknown,
 >(
   id: number,
-  params: GetApproachApproachDtoFromIdParams,
+  params?: GetApproachApproachDtoFromIdParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getApproachApproachDtoFromId>>,
@@ -1813,7 +1855,7 @@ export const useGetAreaCount = <
  * @summary Utah.Udot.Atspm.Data.Models.Detector navigation property action
  */
 export const getDetectionTypeDetectorsFromKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -1826,7 +1868,7 @@ export const getDetectionTypeDetectorsFromKey = (
 }
 
 export const getGetDetectionTypeDetectorsFromKeyQueryKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsFromKeyParams
 ) => {
   return [
@@ -1839,7 +1881,7 @@ export const getGetDetectionTypeDetectorsFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDetectionTypeDetectorsFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -1883,7 +1925,7 @@ export const useGetDetectionTypeDetectorsFromKey = <
   TData = Awaited<ReturnType<typeof getDetectionTypeDetectorsFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -1912,7 +1954,7 @@ export const useGetDetectionTypeDetectorsFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.Detector navigation property action
  */
 export const getDetectionTypeDetectorsCountFromKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsCountFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -1925,7 +1967,7 @@ export const getDetectionTypeDetectorsCountFromKey = (
 }
 
 export const getGetDetectionTypeDetectorsCountFromKeyQueryKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsCountFromKeyParams
 ) => {
   return [
@@ -1938,7 +1980,7 @@ export const getGetDetectionTypeDetectorsCountFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDetectionTypeDetectorsCountFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -1982,7 +2024,7 @@ export const useGetDetectionTypeDetectorsCountFromKey = <
   TData = Awaited<ReturnType<typeof getDetectionTypeDetectorsCountFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeDetectorsCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -2011,7 +2053,7 @@ export const useGetDetectionTypeDetectorsCountFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.MeasureType navigation property action
  */
 export const getDetectionTypeMeasureTypesFromKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -2024,7 +2066,7 @@ export const getDetectionTypeMeasureTypesFromKey = (
 }
 
 export const getGetDetectionTypeMeasureTypesFromKeyQueryKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesFromKeyParams
 ) => {
   return [
@@ -2037,7 +2079,7 @@ export const getGetDetectionTypeMeasureTypesFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDetectionTypeMeasureTypesFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -2081,7 +2123,7 @@ export const useGetDetectionTypeMeasureTypesFromKey = <
   TData = Awaited<ReturnType<typeof getDetectionTypeMeasureTypesFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -2110,7 +2152,7 @@ export const useGetDetectionTypeMeasureTypesFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.MeasureType navigation property action
  */
 export const getDetectionTypeMeasureTypesCountFromKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesCountFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -2123,7 +2165,7 @@ export const getDetectionTypeMeasureTypesCountFromKey = (
 }
 
 export const getGetDetectionTypeMeasureTypesCountFromKeyQueryKey = (
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesCountFromKeyParams
 ) => {
   return [
@@ -2136,7 +2178,7 @@ export const getGetDetectionTypeMeasureTypesCountFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDetectionTypeMeasureTypesCountFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -2181,7 +2223,7 @@ export const useGetDetectionTypeMeasureTypesCountFromKey = <
   TData = Awaited<ReturnType<typeof getDetectionTypeMeasureTypesCountFromKey>>,
   TError = void,
 >(
-  key: number,
+  key: string,
   params?: GetDetectionTypeMeasureTypesCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -2447,7 +2489,7 @@ export const useGetDetectionTypeCount = <
  * @summary object with key from oData query.
  */
 export const getDetectionTypeFromKey = (
-  key: DetectionTypes,
+  key: string,
   params?: GetDetectionTypeFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -2460,7 +2502,7 @@ export const getDetectionTypeFromKey = (
 }
 
 export const getGetDetectionTypeFromKeyQueryKey = (
-  key: DetectionTypes,
+  key: string,
   params?: GetDetectionTypeFromKeyParams
 ) => {
   return [`/DetectionType/${key}`, ...(params ? [params] : [])] as const
@@ -2470,7 +2512,7 @@ export const getGetDetectionTypeFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDetectionTypeFromKey>>,
   TError = void,
 >(
-  key: DetectionTypes,
+  key: string,
   params?: GetDetectionTypeFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -2513,7 +2555,7 @@ export const useGetDetectionTypeFromKey = <
   TData = Awaited<ReturnType<typeof getDetectionTypeFromKey>>,
   TError = void,
 >(
-  key: DetectionTypes,
+  key: string,
   params?: GetDetectionTypeFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -2539,7 +2581,7 @@ export const useGetDetectionTypeFromKey = <
 }
 
 export const putDetectionTypeFromKey = (
-  key: DetectionTypes,
+  key: string,
   detectionType: DetectionType,
   params?: PutDetectionTypeFromKeyParams
 ) => {
@@ -2563,7 +2605,7 @@ export const getPutDetectionTypeFromKeyMutationOptions = <
     Awaited<ReturnType<typeof putDetectionTypeFromKey>>,
     TError,
     {
-      key: DetectionTypes
+      key: string
       data: DetectionType
       params?: PutDetectionTypeFromKeyParams
     },
@@ -2572,22 +2614,14 @@ export const getPutDetectionTypeFromKeyMutationOptions = <
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putDetectionTypeFromKey>>,
   TError,
-  {
-    key: DetectionTypes
-    data: DetectionType
-    params?: PutDetectionTypeFromKeyParams
-  },
+  { key: string; data: DetectionType; params?: PutDetectionTypeFromKeyParams },
   TContext
 > => {
   const { mutation: mutationOptions } = options ?? {}
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putDetectionTypeFromKey>>,
-    {
-      key: DetectionTypes
-      data: DetectionType
-      params?: PutDetectionTypeFromKeyParams
-    }
+    { key: string; data: DetectionType; params?: PutDetectionTypeFromKeyParams }
   > = (props) => {
     const { key, data, params } = props ?? {}
 
@@ -2611,7 +2645,7 @@ export const usePutDetectionTypeFromKey = <
     Awaited<ReturnType<typeof putDetectionTypeFromKey>>,
     TError,
     {
-      key: DetectionTypes
+      key: string
       data: DetectionType
       params?: PutDetectionTypeFromKeyParams
     },
@@ -2627,7 +2661,7 @@ export const usePutDetectionTypeFromKey = <
  * @summary Update object of specified type
  */
 export const patchDetectionTypeFromKey = (
-  key: DetectionTypes,
+  key: string,
   detectionType: DetectionType,
   params?: PatchDetectionTypeFromKeyParams
 ) => {
@@ -2651,7 +2685,7 @@ export const getPatchDetectionTypeFromKeyMutationOptions = <
     Awaited<ReturnType<typeof patchDetectionTypeFromKey>>,
     TError,
     {
-      key: DetectionTypes
+      key: string
       data: DetectionType
       params?: PatchDetectionTypeFromKeyParams
     },
@@ -2661,7 +2695,7 @@ export const getPatchDetectionTypeFromKeyMutationOptions = <
   Awaited<ReturnType<typeof patchDetectionTypeFromKey>>,
   TError,
   {
-    key: DetectionTypes
+    key: string
     data: DetectionType
     params?: PatchDetectionTypeFromKeyParams
   },
@@ -2672,7 +2706,7 @@ export const getPatchDetectionTypeFromKeyMutationOptions = <
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof patchDetectionTypeFromKey>>,
     {
-      key: DetectionTypes
+      key: string
       data: DetectionType
       params?: PatchDetectionTypeFromKeyParams
     }
@@ -2702,7 +2736,7 @@ export const usePatchDetectionTypeFromKey = <
     Awaited<ReturnType<typeof patchDetectionTypeFromKey>>,
     TError,
     {
-      key: DetectionTypes
+      key: string
       data: DetectionType
       params?: PatchDetectionTypeFromKeyParams
     },
@@ -2717,8 +2751,11 @@ export const usePatchDetectionTypeFromKey = <
 /**
  * @summary Delete object of specified type
  */
-export const deleteDetectionTypeFromKey = (key: DetectionTypes) => {
-  return configRequest<void>({ url: `/DetectionType/${key}`, method: 'DELETE' })
+export const deleteDetectionTypeFromKey = (key: string) => {
+  return configRequest<void>({
+    url: `/DetectionType/${key}`,
+    method: 'DELETE',
+  })
 }
 
 export const getDeleteDetectionTypeFromKeyMutationOptions = <
@@ -2728,20 +2765,20 @@ export const getDeleteDetectionTypeFromKeyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteDetectionTypeFromKey>>,
     TError,
-    { key: DetectionTypes },
+    { key: string },
     TContext
   >
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteDetectionTypeFromKey>>,
   TError,
-  { key: DetectionTypes },
+  { key: string },
   TContext
 > => {
   const { mutation: mutationOptions } = options ?? {}
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteDetectionTypeFromKey>>,
-    { key: DetectionTypes }
+    { key: string }
   > = (props) => {
     const { key } = props ?? {}
 
@@ -2767,7 +2804,7 @@ export const useDeleteDetectionTypeFromKey = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteDetectionTypeFromKey>>,
     TError,
-    { key: DetectionTypes },
+    { key: string },
     TContext
   >
 }) => {
@@ -3171,6 +3208,361 @@ export const useGetDetectorDetectionTypesCountFromKey = <
   query.queryKey = queryOptions.queryKey
 
   return query
+}
+
+export const getDetectorRetrieveDetectionIdentifierBasedOnDetectionType = (
+  getDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBody:
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo,
+  params?: GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeParams
+) => {
+  return configRequest<void>({
+    url: `/Detector/retrieveDetctionData`,
+    method: 'POST',
+    data: getDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBody,
+    params,
+  })
+}
+
+export const getGetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeMutationOptions =
+  <TError = unknown, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+      Awaited<
+        ReturnType<
+          typeof getDetectorRetrieveDetectionIdentifierBasedOnDetectionType
+        >
+      >,
+      TError,
+      {
+        data:
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo
+        params?: GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeParams
+      },
+      TContext
+    >
+  }): UseMutationOptions<
+    Awaited<
+      ReturnType<
+        typeof getDetectorRetrieveDetectionIdentifierBasedOnDetectionType
+      >
+    >,
+    TError,
+    {
+      data:
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo
+      params?: GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeParams
+    },
+    TContext
+  > => {
+    const { mutation: mutationOptions } = options ?? {}
+
+    const mutationFn: MutationFunction<
+      Awaited<
+        ReturnType<
+          typeof getDetectorRetrieveDetectionIdentifierBasedOnDetectionType
+        >
+      >,
+      {
+        data:
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone
+          | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo
+        params?: GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeParams
+      }
+    > = (props) => {
+      const { data, params } = props ?? {}
+
+      return getDetectorRetrieveDetectionIdentifierBasedOnDetectionType(
+        data,
+        params
+      )
+    }
+
+    return { mutationFn, ...mutationOptions }
+  }
+
+export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeMutationResult =
+  NonNullable<
+    Awaited<
+      ReturnType<
+        typeof getDetectorRetrieveDetectionIdentifierBasedOnDetectionType
+      >
+    >
+  >
+export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeMutationBody =
+
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone
+    | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo
+export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeMutationError =
+  unknown
+
+export const useGetDetectorRetrieveDetectionIdentifierBasedOnDetectionType = <
+  TError = unknown,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<
+      ReturnType<
+        typeof getDetectorRetrieveDetectionIdentifierBasedOnDetectionType
+      >
+    >,
+    TError,
+    {
+      data:
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone
+        | GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo
+      params?: GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeParams
+    },
+    TContext
+  >
+}) => {
+  const mutationOptions =
+    getGetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeMutationOptions(
+      options
+    )
+
+  return useMutation(mutationOptions)
 }
 
 /**
@@ -5875,7 +6267,7 @@ export const useDeleteDeviceConfigurationFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.Approach navigation property action
  */
 export const getDirectionTypeApproachesFromKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -5888,7 +6280,7 @@ export const getDirectionTypeApproachesFromKey = (
 }
 
 export const getGetDirectionTypeApproachesFromKeyQueryKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesFromKeyParams
 ) => {
   return [
@@ -5901,7 +6293,7 @@ export const getGetDirectionTypeApproachesFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDirectionTypeApproachesFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -5945,7 +6337,7 @@ export const useGetDirectionTypeApproachesFromKey = <
   TData = Awaited<ReturnType<typeof getDirectionTypeApproachesFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -5974,7 +6366,7 @@ export const useGetDirectionTypeApproachesFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.Approach navigation property action
  */
 export const getDirectionTypeApproachesCountFromKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesCountFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -5987,7 +6379,7 @@ export const getDirectionTypeApproachesCountFromKey = (
 }
 
 export const getGetDirectionTypeApproachesCountFromKeyQueryKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesCountFromKeyParams
 ) => {
   return [
@@ -6000,7 +6392,7 @@ export const getGetDirectionTypeApproachesCountFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDirectionTypeApproachesCountFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6045,7 +6437,7 @@ export const useGetDirectionTypeApproachesCountFromKey = <
   TData = Awaited<ReturnType<typeof getDirectionTypeApproachesCountFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeApproachesCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6074,7 +6466,7 @@ export const useGetDirectionTypeApproachesCountFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.RouteLocation navigation property action
  */
 export const getDirectionTypePrimaryDirectionsFromKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -6087,7 +6479,7 @@ export const getDirectionTypePrimaryDirectionsFromKey = (
 }
 
 export const getGetDirectionTypePrimaryDirectionsFromKeyQueryKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsFromKeyParams
 ) => {
   return [
@@ -6100,7 +6492,7 @@ export const getGetDirectionTypePrimaryDirectionsFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDirectionTypePrimaryDirectionsFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6145,7 +6537,7 @@ export const useGetDirectionTypePrimaryDirectionsFromKey = <
   TData = Awaited<ReturnType<typeof getDirectionTypePrimaryDirectionsFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6174,7 +6566,7 @@ export const useGetDirectionTypePrimaryDirectionsFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.RouteLocation navigation property action
  */
 export const getDirectionTypePrimaryDirectionsCountFromKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsCountFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -6187,7 +6579,7 @@ export const getDirectionTypePrimaryDirectionsCountFromKey = (
 }
 
 export const getGetDirectionTypePrimaryDirectionsCountFromKeyQueryKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsCountFromKeyParams
 ) => {
   return [
@@ -6202,7 +6594,7 @@ export const getGetDirectionTypePrimaryDirectionsCountFromKeyQueryOptions = <
   >,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6250,7 +6642,7 @@ export const useGetDirectionTypePrimaryDirectionsCountFromKey = <
   >,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypePrimaryDirectionsCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6280,7 +6672,7 @@ export const useGetDirectionTypePrimaryDirectionsCountFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.RouteLocation navigation property action
  */
 export const getDirectionTypeOpposingDirectionsFromKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -6293,7 +6685,7 @@ export const getDirectionTypeOpposingDirectionsFromKey = (
 }
 
 export const getGetDirectionTypeOpposingDirectionsFromKeyQueryKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsFromKeyParams
 ) => {
   return [
@@ -6306,7 +6698,7 @@ export const getGetDirectionTypeOpposingDirectionsFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDirectionTypeOpposingDirectionsFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6351,7 +6743,7 @@ export const useGetDirectionTypeOpposingDirectionsFromKey = <
   TData = Awaited<ReturnType<typeof getDirectionTypeOpposingDirectionsFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6380,7 +6772,7 @@ export const useGetDirectionTypeOpposingDirectionsFromKey = <
  * @summary Utah.Udot.Atspm.Data.Models.RouteLocation navigation property action
  */
 export const getDirectionTypeOpposingDirectionsCountFromKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsCountFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -6393,7 +6785,7 @@ export const getDirectionTypeOpposingDirectionsCountFromKey = (
 }
 
 export const getGetDirectionTypeOpposingDirectionsCountFromKeyQueryKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsCountFromKeyParams
 ) => {
   return [
@@ -6408,7 +6800,7 @@ export const getGetDirectionTypeOpposingDirectionsCountFromKeyQueryOptions = <
   >,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6458,7 +6850,7 @@ export const useGetDirectionTypeOpposingDirectionsCountFromKey = <
   >,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeOpposingDirectionsCountFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6727,7 +7119,7 @@ export const useGetDirectionTypeCount = <
  * @summary object with key from oData query.
  */
 export const getDirectionTypeFromKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeFromKeyParams,
   signal?: AbortSignal
 ) => {
@@ -6740,7 +7132,7 @@ export const getDirectionTypeFromKey = (
 }
 
 export const getGetDirectionTypeFromKeyQueryKey = (
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeFromKeyParams
 ) => {
   return [`/DirectionType/${key}`, ...(params ? [params] : [])] as const
@@ -6750,7 +7142,7 @@ export const getGetDirectionTypeFromKeyQueryOptions = <
   TData = Awaited<ReturnType<typeof getDirectionTypeFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6793,7 +7185,7 @@ export const useGetDirectionTypeFromKey = <
   TData = Awaited<ReturnType<typeof getDirectionTypeFromKey>>,
   TError = void,
 >(
-  key: DirectionTypes,
+  key: string,
   params?: GetDirectionTypeFromKeyParams,
   options?: {
     query?: UseQueryOptions<
@@ -6819,7 +7211,7 @@ export const useGetDirectionTypeFromKey = <
 }
 
 export const putDirectionTypeFromKey = (
-  key: DirectionTypes,
+  key: string,
   directionType: DirectionType,
   params?: PutDirectionTypeFromKeyParams
 ) => {
@@ -6843,7 +7235,7 @@ export const getPutDirectionTypeFromKeyMutationOptions = <
     Awaited<ReturnType<typeof putDirectionTypeFromKey>>,
     TError,
     {
-      key: DirectionTypes
+      key: string
       data: DirectionType
       params?: PutDirectionTypeFromKeyParams
     },
@@ -6852,22 +7244,14 @@ export const getPutDirectionTypeFromKeyMutationOptions = <
 }): UseMutationOptions<
   Awaited<ReturnType<typeof putDirectionTypeFromKey>>,
   TError,
-  {
-    key: DirectionTypes
-    data: DirectionType
-    params?: PutDirectionTypeFromKeyParams
-  },
+  { key: string; data: DirectionType; params?: PutDirectionTypeFromKeyParams },
   TContext
 > => {
   const { mutation: mutationOptions } = options ?? {}
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof putDirectionTypeFromKey>>,
-    {
-      key: DirectionTypes
-      data: DirectionType
-      params?: PutDirectionTypeFromKeyParams
-    }
+    { key: string; data: DirectionType; params?: PutDirectionTypeFromKeyParams }
   > = (props) => {
     const { key, data, params } = props ?? {}
 
@@ -6891,7 +7275,7 @@ export const usePutDirectionTypeFromKey = <
     Awaited<ReturnType<typeof putDirectionTypeFromKey>>,
     TError,
     {
-      key: DirectionTypes
+      key: string
       data: DirectionType
       params?: PutDirectionTypeFromKeyParams
     },
@@ -6907,7 +7291,7 @@ export const usePutDirectionTypeFromKey = <
  * @summary Update object of specified type
  */
 export const patchDirectionTypeFromKey = (
-  key: DirectionTypes,
+  key: string,
   directionType: DirectionType,
   params?: PatchDirectionTypeFromKeyParams
 ) => {
@@ -6931,7 +7315,7 @@ export const getPatchDirectionTypeFromKeyMutationOptions = <
     Awaited<ReturnType<typeof patchDirectionTypeFromKey>>,
     TError,
     {
-      key: DirectionTypes
+      key: string
       data: DirectionType
       params?: PatchDirectionTypeFromKeyParams
     },
@@ -6941,7 +7325,7 @@ export const getPatchDirectionTypeFromKeyMutationOptions = <
   Awaited<ReturnType<typeof patchDirectionTypeFromKey>>,
   TError,
   {
-    key: DirectionTypes
+    key: string
     data: DirectionType
     params?: PatchDirectionTypeFromKeyParams
   },
@@ -6952,7 +7336,7 @@ export const getPatchDirectionTypeFromKeyMutationOptions = <
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof patchDirectionTypeFromKey>>,
     {
-      key: DirectionTypes
+      key: string
       data: DirectionType
       params?: PatchDirectionTypeFromKeyParams
     }
@@ -6982,7 +7366,7 @@ export const usePatchDirectionTypeFromKey = <
     Awaited<ReturnType<typeof patchDirectionTypeFromKey>>,
     TError,
     {
-      key: DirectionTypes
+      key: string
       data: DirectionType
       params?: PatchDirectionTypeFromKeyParams
     },
@@ -6997,8 +7381,11 @@ export const usePatchDirectionTypeFromKey = <
 /**
  * @summary Delete object of specified type
  */
-export const deleteDirectionTypeFromKey = (key: DirectionTypes) => {
-  return configRequest<void>({ url: `/DirectionType/${key}`, method: 'DELETE' })
+export const deleteDirectionTypeFromKey = (key: string) => {
+  return configRequest<void>({
+    url: `/DirectionType/${key}`,
+    method: 'DELETE',
+  })
 }
 
 export const getDeleteDirectionTypeFromKeyMutationOptions = <
@@ -7008,20 +7395,20 @@ export const getDeleteDirectionTypeFromKeyMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteDirectionTypeFromKey>>,
     TError,
-    { key: DirectionTypes },
+    { key: string },
     TContext
   >
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteDirectionTypeFromKey>>,
   TError,
-  { key: DirectionTypes },
+  { key: string },
   TContext
 > => {
   const { mutation: mutationOptions } = options ?? {}
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteDirectionTypeFromKey>>,
-    { key: DirectionTypes }
+    { key: string }
   > = (props) => {
     const { key } = props ?? {}
 
@@ -7047,7 +7434,7 @@ export const useDeleteDirectionTypeFromKey = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteDirectionTypeFromKey>>,
     TError,
-    { key: DirectionTypes },
+    { key: string },
     TContext
   >
 }) => {
@@ -8933,7 +9320,7 @@ export const getLocationSyncLocationFromKey = (
   key: number,
   params?: GetLocationSyncLocationFromKeyParams
 ) => {
-  return configRequest<Location>({
+  return configRequest<TemplateLocationModifiedDto>({
     url: `/Location/${key}/SyncLocation`,
     method: 'POST',
     params,
@@ -11404,7 +11791,10 @@ export const usePatchMapLayerFromKey = <
  * @summary Delete object of specified type
  */
 export const deleteMapLayerFromKey = (key: number) => {
-  return configRequest<void>({ url: `/MapLayer/${key}`, method: 'DELETE' })
+  return configRequest<void>({
+    url: `/MapLayer/${key}`,
+    method: 'DELETE',
+  })
 }
 
 export const getDeleteMapLayerFromKeyMutationOptions = <
@@ -15691,7 +16081,7 @@ export const useGetRouteRouteLocationsCountFromKey = <
  */
 export const upsertRouteRoute = (
   routeDto: RouteDto,
-  params: UpsertRouteRouteParams
+  params?: UpsertRouteRouteParams
 ) => {
   return configRequest<void>({
     url: `/UpsertRoute`,
@@ -15712,20 +16102,20 @@ export const getUpsertRouteRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof upsertRouteRoute>>,
     TError,
-    { data: RouteDto; params: UpsertRouteRouteParams },
+    { data: RouteDto; params?: UpsertRouteRouteParams },
     TContext
   >
 }): UseMutationOptions<
   Awaited<ReturnType<typeof upsertRouteRoute>>,
   TError,
-  { data: RouteDto; params: UpsertRouteRouteParams },
+  { data: RouteDto; params?: UpsertRouteRouteParams },
   TContext
 > => {
   const { mutation: mutationOptions } = options ?? {}
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof upsertRouteRoute>>,
-    { data: RouteDto; params: UpsertRouteRouteParams }
+    { data: RouteDto; params?: UpsertRouteRouteParams }
   > = (props) => {
     const { data, params } = props ?? {}
 
@@ -15751,7 +16141,7 @@ export const useUpsertRouteRoute = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof upsertRouteRoute>>,
     TError,
-    { data: RouteDto; params: UpsertRouteRouteParams },
+    { data: RouteDto; params?: UpsertRouteRouteParams },
     TContext
   >
 }) => {
@@ -15762,7 +16152,7 @@ export const useUpsertRouteRoute = <
 
 export const getRouteRouteViewFromId = (
   id: number,
-  params: GetRouteRouteViewFromIdParams,
+  params?: GetRouteRouteViewFromIdParams,
   signal?: AbortSignal
 ) => {
   return configRequest<void>({
@@ -15775,7 +16165,7 @@ export const getRouteRouteViewFromId = (
 
 export const getGetRouteRouteViewFromIdQueryKey = (
   id: number,
-  params: GetRouteRouteViewFromIdParams
+  params?: GetRouteRouteViewFromIdParams
 ) => {
   return [`/GetRouteView/${id}`, ...(params ? [params] : [])] as const
 }
@@ -15785,7 +16175,7 @@ export const getGetRouteRouteViewFromIdQueryOptions = <
   TError = unknown,
 >(
   id: number,
-  params: GetRouteRouteViewFromIdParams,
+  params?: GetRouteRouteViewFromIdParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getRouteRouteViewFromId>>,
@@ -15825,7 +16215,7 @@ export const useGetRouteRouteViewFromId = <
   TError = unknown,
 >(
   id: number,
-  params: GetRouteRouteViewFromIdParams,
+  params?: GetRouteRouteViewFromIdParams,
   options?: {
     query?: UseQueryOptions<
       Awaited<ReturnType<typeof getRouteRouteViewFromId>>,
@@ -17535,7 +17925,7 @@ export type GetRouteLocationQueryResult = NonNullable<
 export type GetRouteLocationQueryError = void
 
 /**
- * @summary object with key from oData query.
+ * @summary Collection of objects from oData query.
  */
 export const useGetRouteLocation = <
   TData = Awaited<ReturnType<typeof getRouteLocation>>,
