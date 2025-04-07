@@ -166,7 +166,6 @@ const EditDevices = () => {
           })
       })
 
-      // You might or might not want to reset state here
       setIpChanges({})
     }
   }, [activeStep, ipChanges, updateDevice, refetchDevices, addNotification])
