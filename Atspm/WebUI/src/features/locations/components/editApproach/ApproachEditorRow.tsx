@@ -1,16 +1,16 @@
-import { ApproachForConfig } from '@/features/locations/components/editLocation/editLocationConfigHandler'
 import { Box, ButtonBase, IconButton, Tooltip, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 
+import { ConfigApproach } from '@/features/locations/components/editLocation/editLocationConfigHandler'
 import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import SaveIcon from '@mui/icons-material/Save'
-import WarningIcon from '@mui/icons-material/Warning'
+import WarningRoundedIcon from '@mui/icons-material/WarningRounded'
 
 interface ApproachEditorRowProps {
-  approach: ApproachForConfig
+  approach: ConfigApproach
   open: boolean
   handleApproachClick: () => void
   handleCopyApproach: () => void
@@ -58,7 +58,7 @@ const ApproachEditorRowHeader = ({
       {/* Error Icon for Bad Approaches */}
       {isBadApproach && (
         <Tooltip title="Phase number not found in data">
-          <WarningIcon
+          <WarningRoundedIcon
             sx={{
               position: 'absolute',
               left: '-30px',
