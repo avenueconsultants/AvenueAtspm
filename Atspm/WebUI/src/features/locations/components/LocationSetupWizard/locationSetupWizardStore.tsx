@@ -19,7 +19,7 @@ interface LocationWizardStore {
   // We’ll ignore the “badApproaches” and “badDetectors” details for now
   badApproaches: string[]
   badDetectors: string[]
-  setBadApproaches: (approaches: string[]) => void
+  setBadApproaches: (approaches: number[]) => void
   setBadDetectors: (detectors: string[]) => void
 
   // Resets everything to initial defaults
