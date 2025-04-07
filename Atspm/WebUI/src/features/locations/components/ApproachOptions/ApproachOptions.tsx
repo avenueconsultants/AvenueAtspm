@@ -1,6 +1,7 @@
 import { useGetLocationSyncLocationFromKey } from '@/api/config/aTSPMConfigurationApi'
 import { AddButton } from '@/components/addButton'
 import ApproachesReconcilationReport from '@/features/locations/components/ApproachesReconcilationReport'
+import { ConfigApproach } from '@/features/locations/components/editLocation/editLocationConfigHandler'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import SyncIcon from '@mui/icons-material/Sync'
@@ -8,90 +9,105 @@ import { LoadingButton } from '@mui/lab'
 import { Box } from '@mui/material'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+export interface LocationDiscrepancyReport {
+  foundPhaseNumbers: number[]
+  notFoundApproaches: ConfigApproach[]
+  foundDetectorChannels: number[]
+  notFoundDetectorChannels: string[]
+}
+
 const ApproachOptions = () => {
-  // Pull wizard store items
   const {
-    approachSyncStatus, // 'NOT_STARTED' | 'READY_TO_RUN' | 'DONE'
+    approachSyncStatus,
     setApproachSyncStatus,
     setBadApproaches,
     setBadDetectors,
   } = useLocationWizardStore()
 
-  // Grab approaches and location from your local location store
   const { approaches, location, addApproach } = useLocationStore()
 
-  // API for syncing location → logs/reports
   const { mutateAsync, isLoading } = useGetLocationSyncLocationFromKey()
 
-  // Local state to hold various categories from the sync result
-  const [categories, setCategories] = useState({
-    foundPhases: [] as string[],
-    foundDetectors: [] as string[],
-    notFoundApproaches: [] as string[],
-    notFoundDetectors: [] as string[],
+  const [categories, setCategories] = useState<LocationDiscrepancyReport>({
+    foundPhaseNumbers: [],
+    notFoundApproaches: [],
+    foundDetectorChannels: [],
+    notFoundDetectorChannels: [],
   })
 
-  // For display, gather all phases in the store (already “synced” locally)
-  const syncedPhases = useMemo(
+  const currentPhaseNumbersUsed = useMemo(
     () =>
-      approaches.flatMap((approach) => [
-        approach.protectedPhaseNumber,
-        approach.permissivePhaseNumber,
-        approach.pedestrianPhaseNumber,
-      ]),
+      approaches
+        .flatMap((approach) => [
+          approach.protectedPhaseNumber,
+          approach.permissivePhaseNumber,
+          approach.pedestrianPhaseNumber,
+        ])
+        .filter(
+          (phaseNumber) => phaseNumber !== undefined && phaseNumber !== null
+        ),
     [approaches]
   )
 
-  // For display, gather all detector channels in the store (already “synced” locally)
-  const syncedDetectors = useMemo(
+  const currentDetectorChannelsUsed = useMemo(
     () =>
-      approaches.flatMap((approach) =>
-        approach.detectors.map((det) => det.detectorChannel)
-      ),
+      approaches
+        .flatMap((approach) =>
+          approach.detectors.map((det) => det.detectorChannel)
+        )
+        .filter(
+          (detectorChannel) =>
+            detectorChannel !== undefined && detectorChannel !== null
+        ),
     [approaches]
   )
 
-  /**
-   * Called whenever we explicitly sync from the server.
-   * On success, we store "bad approaches/detectors" in the wizard store
-   * and also capture the found/not-found categories for the UI.
-   */
   const handleSyncLocation = useCallback(async () => {
+    if (!location?.id) {
+      return
+    }
+
     try {
       const response = await mutateAsync({
-        key: parseInt(location.id, 10),
+        key: location.id,
       })
 
-      // Build a list of approach descriptions that got removed
-      const notFoundApproaches = response.removedApproachIds.map(
-        (id: number) => {
-          const approach = approaches.find((a: any) => a.id === id)
-          return approach
-            ? approach.description
-            : `Unknown Approach (ID: ${id})`
-        }
-      )
+      const notFoundApproaches =
+        response?.removedApproachIds
+          ?.map((id) => approaches.find((a) => a.id === id))
+          .filter((id) => id !== undefined && id !== null) || []
 
-      // Store “bad” approach/detector IDs in Zustand
-      setBadApproaches(response.removedApproachIds)
-      setBadDetectors(response.removedDetectors)
+      if (response?.removedApproachIds) {
+        setBadApproaches(response.removedApproachIds)
+      }
+      if (response?.removedDetectors) {
+        setBadDetectors(response.removedDetectors)
+      }
 
-      // For the UI, store categorization
+      const foundPhaseNumbers: number[] = []
+
+      if (response?.loggedButUnusedProtectedOrPermissivePhases) {
+        foundPhaseNumbers.push(
+          ...response.loggedButUnusedProtectedOrPermissivePhases
+        )
+      }
+
+      if (response?.loggedButUnusedOverlapPhases) {
+        foundPhaseNumbers.push(...response.loggedButUnusedOverlapPhases)
+      }
+
       setCategories({
-        foundPhases: [
-          ...response.loggedButUnusedProtectedOrPermissivePhases,
-          ...response.loggedButUnusedOverlapPhases,
-        ],
-        foundDetectors: response.loggedButUnusedDetectorChannels,
+        foundPhaseNumbers,
         notFoundApproaches,
-        notFoundDetectors: response.removedDetectors,
+        foundDetectorChannels: response?.loggedButUnusedDetectorChannels || [],
+        notFoundDetectorChannels: response?.removedDetectors || [],
       })
     } catch (error) {
       console.error(error)
     }
   }, [
     mutateAsync,
-    location.id,
+    location?.id,
     approaches,
     setBadApproaches,
     setBadDetectors,
@@ -111,12 +127,10 @@ const ApproachOptions = () => {
     }
   }, [approachSyncStatus, handleSyncLocation, setApproachSyncStatus])
 
-  // Are we “synced” yet? (used by ApproachesReconcilationReport)
   const approachesSynced = approachSyncStatus === 'DONE'
 
   return (
     <Box>
-      {/* Top bar: "Add Approach" + "Sync" button */}
       <Box
         sx={{
           display: 'flex',
@@ -133,7 +147,6 @@ const ApproachOptions = () => {
           variant="contained"
           color="primary"
           onClick={async () => {
-            // Manual re-sync
             await handleSyncLocation()
             setApproachSyncStatus('DONE')
           }}
@@ -142,15 +155,11 @@ const ApproachOptions = () => {
         </LoadingButton>
       </Box>
 
-      {/* 
-        Show a summary of how approaches/detectors from the server 
-        match up with the store, using the categories we set
-      */}
       <ApproachesReconcilationReport
         synced={approachesSynced}
         categories={categories}
-        syncedPhases={syncedPhases}
-        syncedDetectors={syncedDetectors}
+        syncedPhases={currentPhaseNumbersUsed}
+        syncedDetectors={currentDetectorChannelsUsed}
       />
     </Box>
   )
