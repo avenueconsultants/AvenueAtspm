@@ -237,6 +237,19 @@ const DeviceModal = ({
             <Typography variant="subtitle1" sx={{ mb: 1 }}>
               General
             </Typography>
+            <TextField
+              fullWidth
+              multiline
+              label="Device Identifier"
+              sx={{ mb: 2 }}
+              maxRows={6}
+              error={!!errors.deviceIdentifier}
+              helperText={
+                errors.deviceIdentifier ? 'String(errors.notes.message) ' : ''
+              }
+              {...register('deviceIdentifier')}
+            />
+
             <Controller
               name="productId"
               control={control}
@@ -355,18 +368,6 @@ const DeviceModal = ({
                 {...register('ipaddress')}
               />
             </FormControl>
-
-            <TextField
-              fullWidth
-              multiline
-              label="Device Identifier"
-              sx={{ mb: 2 }}
-              maxRows={6}
-              error={!!errors.notes}
-              helperText={errors.notes ? 'String(errors.notes.message) ' : ''}
-              {...register('deviceIdentifier')}
-            />
-
             <TextField
               fullWidth
               multiline
@@ -377,7 +378,6 @@ const DeviceModal = ({
               helperText={errors.notes ? String(errors.notes.message) : ''}
               {...register('notes')}
             />
-
             {/* Logging */}
             <Controller
               name="loggingEnabled"
