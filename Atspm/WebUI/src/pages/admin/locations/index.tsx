@@ -5,6 +5,7 @@ import { StyledPaper } from '@/components/StyledPaper'
 import { AddButton } from '@/components/addButton'
 import { PageNames, useViewPage } from '@/features/identity/pagesCheck'
 import LocationSetupWizard from '@/features/locations/components/LocationSetupWizard'
+import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { sortApproachesByPhaseNumber } from '@/features/locations/components/editApproach/utils/sortApproaches'
 import LocationEditor from '@/features/locations/components/editLocation/EditLocation'
 import NewLocationModal from '@/features/locations/components/editLocation/NewLocationModal'
@@ -30,6 +31,7 @@ export async function getLocation(locationId: number) {
 const LocationsAdmin = () => {
   const location = useLocationStore((s) => s.location)
   const setLocation = useLocationStore((s) => s.setLocation)
+  const resetStore = useLocationWizardStore((s) => s.resetStore)
 
   const pageAccess = useViewPage(PageNames.Location)
   const [isModalOpen, setModalOpen] = useState(false)
@@ -38,6 +40,8 @@ const LocationsAdmin = () => {
   const handleSetLocation = useCallback(
     async (selectedLocation: Location | null) => {
       if (selectedLocation) {
+        resetStore()
+        // setIsWizardOpen(false)
         setLocation(await getLocation(selectedLocation.id))
       } else {
         setLocation(null)

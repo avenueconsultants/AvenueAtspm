@@ -19,7 +19,7 @@ import {
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { useNotificationStore } from '@/stores/notifications'
 import { Box, Collapse, Paper } from '@mui/material'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 
 interface ApproachAdminProps {
   approach: ConfigApproach
@@ -30,25 +30,23 @@ function EditApproach({ approach }: ApproachAdminProps) {
     (s) => s.location?.locationIdentifier
   )
   const channelMap = useLocationStore((s) => s.channelMap)
-  const errors = useLocationStore((s) => s.errors)
-  const warnings = useLocationStore((s) => s.warnings)
   const setErrors = useLocationStore((s) => s.setErrors)
-  const setWarnings = useLocationStore((s) => s.setWarnings)
-  const clearErrorsAndWarnings = useLocationStore(
-    (s) => s.clearErrorsAndWarnings
-  )
   const updateApproachInStore = useLocationStore((s) => s.updateApproach)
   const copyApproachInStore = useLocationStore((s) => s.copyApproach)
   const deleteApproachInStore = useLocationStore((s) => s.deleteApproach)
   const addDetectorInStore = useLocationStore((s) => s.addDetector)
+  const scrollToApproach = useLocationStore((s) => s.scrollToApproach)
+  const scrollToDetector = useLocationStore((s) => s.scrollToDetector)
+  const setScrollToApproach = useLocationStore((s) => s.setScrollToApproach)
+  const setScrollToDetector = useLocationStore((s) => s.setScrollToDetector)
 
   const [open, setOpen] = useState(false)
   const [openModal, setOpenModal] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { addNotification } = useNotificationStore()
   const { mutate: editApproach } = useEditApproach()
 
-  // Lookups
   const { findEnumByNameOrAbbreviation: findDetectionType } = useConfigEnums(
     ConfigEnum.DetectionTypes
   )
@@ -66,10 +64,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
 
   const handleApproachClick = useCallback(() => {
     setOpen((prev) => !prev)
-  }, [])
-
-  const openDeleteApproachModal = useCallback(() => {
-    setOpenModal(true)
   }, [])
 
   const handleSaveApproach = useCallback(() => {
@@ -104,12 +98,10 @@ function EditApproach({ approach }: ApproachAdminProps) {
     }
     setErrors(null)
 
-    // Create a deep clone so we can safely mutate
     const modifiedApproach = JSON.parse(
       JSON.stringify(approach)
     ) as ConfigApproach
 
-    // If the approach is new, remove the local ID so the server will create one
     if (modifiedApproach.isNew) {
       delete modifiedApproach.id
       modifiedApproach.detectors.forEach((d) => delete d.approachId)
@@ -118,12 +110,10 @@ function EditApproach({ approach }: ApproachAdminProps) {
     delete modifiedApproach.open
     delete modifiedApproach.isNew
 
-    // Convert direction type from name -> numeric enum
     modifiedApproach.directionTypeId =
       findDirectionType(modifiedApproach.directionTypeId)?.value ||
       DirectionTypes.NA
 
-    // Detectors
     modifiedApproach.detectors.forEach((det) => {
       if (det.isNew) {
         delete det.id
@@ -170,7 +160,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
               findLaneType(detector.laneType)?.name || LaneTypes.NA
           })
 
-          // Build final approach object for the store
           const normalizedSaved: ConfigApproach = {
             ...saved,
             isNew: false,
@@ -180,19 +169,10 @@ function EditApproach({ approach }: ApproachAdminProps) {
             detectors: detectorsArray,
           }
 
-          /**
-           * If the approach was new, we must remove the "local" approach
-           * (with its random ID) from the store, then add this saved approach
-           * (with the real server ID) so we don't end up with duplicates.
-           */
           if (approach.isNew) {
-            // 1) remove the old approach from store (no server API call for new approaches)
             deleteApproachInStore(approach)
-
-            // 2) updateApproachInStore() with the newly created approach
             updateApproachInStore(normalizedSaved)
           } else {
-            // If it wasn't new, we can just update existing approach
             updateApproachInStore(normalizedSaved)
           }
 
@@ -261,8 +241,42 @@ function EditApproach({ approach }: ApproachAdminProps) {
     }
   }, [approach, deleteApproachInStore, addNotification])
 
+  useEffect(() => {
+    if (scrollToApproach !== approach.id) return
+
+    containerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+
+    setTimeout(() => {
+      if (!open) setOpen(true)
+    }, 500)
+
+    setScrollToApproach(null)
+  }, [scrollToApproach, approach.id, open, setScrollToApproach])
+
+  useEffect(() => {
+    if (scrollToDetector) {
+      const hasDetector = approach.detectors.some(
+        (det) => det.id.toString() === scrollToDetector.toString()
+      )
+      if (hasDetector) {
+        if (!open) setOpen(true)
+        // Allow time for the collapse to open.
+        setTimeout(() => {
+          const el = document.getElementById(`detector-${scrollToDetector}`)
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+          setScrollToDetector(null)
+        }, 0)
+      }
+    }
+  }, [scrollToDetector, approach.detectors, open, setScrollToDetector])
+
   return (
-    <>
+    <div id={`approach-${approach.id}`} ref={containerRef}>
       <Paper sx={{ mt: 1 }}>
         <ApproachEditorRowHeader
           open={open}
@@ -270,10 +284,9 @@ function EditApproach({ approach }: ApproachAdminProps) {
           handleApproachClick={handleApproachClick}
           handleCopyApproach={() => copyApproachInStore(approach)}
           handleSaveApproach={handleSaveApproach}
-          openDeleteApproachModal={openDeleteApproachModal}
+          openDeleteApproachModal={() => setOpenModal(true)}
         />
       </Paper>
-
       <Collapse in={open} unmountOnExit>
         <Box minHeight="600px">
           <EditApproachGrid approach={approach} />
@@ -288,13 +301,12 @@ function EditApproach({ approach }: ApproachAdminProps) {
           <EditDetectors approach={approach} />
         </Box>
       </Collapse>
-
       <DeleteApproachModal
         openModal={openModal}
         setOpenModal={setOpenModal}
         confirmDeleteApproach={handleDeleteApproach}
       />
-    </>
+    </div>
   )
 }
 

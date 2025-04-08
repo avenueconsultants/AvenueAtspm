@@ -111,7 +111,7 @@ export default function ApproachesReconcilationReport({
     if (!menuItem) return
     const phase = parseInt(menuItem.label, 10)
     try {
-      await addApproach(phase) // Assumes addApproach accepts a phase number
+      addApproach(phase)
       setStatus(menuItem.id, 'added')
     } catch (err) {
       console.error(err)
@@ -122,7 +122,7 @@ export default function ApproachesReconcilationReport({
     if (!menuItem) return
     const channel = parseInt(menuItem.label, 10)
     try {
-      await addDetector(approachId, channel) // Assumes addDetector accepts an approachId and channel
+      await addDetector(approachId, channel)
       setStatus(menuItem.id, 'added')
     } catch (err) {
       console.error(err)
@@ -261,7 +261,7 @@ export default function ApproachesReconcilationReport({
   }
 
   return (
-    <Paper sx={{ p: 2, mb: 2 }}>
+    <Paper sx={{ p: 2, my: 2, boxShadow: '0 0 15px rgba(0, 123, 255, 0.5)' }}>
       <Box
         display="flex"
         justifyContent="space-between"
@@ -269,8 +269,8 @@ export default function ApproachesReconcilationReport({
         sx={{ cursor: 'pointer' }}
         onClick={toggle}
       >
-        <Typography variant="h6" fontWeight="bold">
-          Approaches Reconciliation Report
+        <Typography variant="h5" fontWeight="bold">
+          Approaches Validation Report
         </Typography>
         {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
       </Box>
@@ -296,7 +296,7 @@ export default function ApproachesReconcilationReport({
         onClose={closeMenu}
       >
         {menuItem?.kind === 'FOUND_PHASE' && (
-          <>
+          <Box>
             <MenuItem onClick={() => setStatus(menuItem.id, 'ignored')}>
               <ListItemIcon>
                 <RemoveIcon fontSize="small" />
@@ -309,10 +309,10 @@ export default function ApproachesReconcilationReport({
               </ListItemIcon>
               <ListItemText>Add Approach</ListItemText>
             </MenuItem>
-          </>
+          </Box>
         )}
         {menuItem?.kind === 'FOUND_DET' && (
-          <>
+          <Box>
             <MenuItem onClick={() => setStatus(menuItem.id, 'ignored')}>
               <ListItemIcon>
                 <RemoveIcon fontSize="small" />
@@ -329,10 +329,10 @@ export default function ApproachesReconcilationReport({
                 </ListItemText>
               </MenuItem>
             ))}
-          </>
+          </Box>
         )}
         {menuItem?.kind === 'NOT_FOUND_APP' && (
-          <>
+          <Box>
             <MenuItem onClick={() => setStatus(menuItem.id, 'ignored')}>
               <ListItemIcon>
                 <RemoveIcon fontSize="small" />
@@ -345,10 +345,10 @@ export default function ApproachesReconcilationReport({
               </ListItemIcon>
               <ListItemText>Delete Approach</ListItemText>
             </MenuItem>
-          </>
+          </Box>
         )}
         {menuItem?.kind === 'NOT_FOUND_DET' && (
-          <>
+          <Box>
             <MenuItem onClick={() => setStatus(menuItem.id, 'ignored')}>
               <ListItemIcon>
                 <RemoveIcon fontSize="small" />
@@ -361,7 +361,7 @@ export default function ApproachesReconcilationReport({
               </ListItemIcon>
               <ListItemText>Delete Detector</ListItemText>
             </MenuItem>
-          </>
+          </Box>
         )}
       </Menu>
     </Paper>

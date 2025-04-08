@@ -112,6 +112,7 @@ function EditDetectors({ approach }: { approach: ConfigApproach }) {
             )}
             {approach.detectors.map((det) => (
               <TableRow
+                id={`detector-${det.id}`}
                 key={det.id}
                 sx={{
                   backgroundColor: det.isNew
@@ -169,7 +170,7 @@ function EditDetectors({ approach }: { approach: ConfigApproach }) {
                     updateDetector(det.id, 'dateAdded', val.toISOString())
                   }
                 />
-                <CommentCell detector={det as Detector} />
+                <CommentCell detector={det} />
                 <EditableTableCell
                   value={det.distanceFromStopBar}
                   onUpdate={(val) =>
