@@ -84,7 +84,7 @@ export default function LocationSetupWizard() {
         position: 'fixed',
         bottom: 20,
         right: 20,
-        width: 500,
+        width: 350,
         zIndex: 1300,
         maxHeight: '80vh',
         overflowY: 'auto',
@@ -114,12 +114,8 @@ export default function LocationSetupWizard() {
                     <Button variant="contained" onClick={handleVerifyDevices}>
                       Run Verification
                     </Button>
-                    <Button
-                      variant="text"
-                      onClick={handleNextStep}
-                      sx={{ ml: 'auto' }}
-                    >
-                      Go to Next Step
+                    <Button variant="outlined" onClick={handleNextStep}>
+                      Next
                     </Button>
                   </>
                 )}
@@ -136,9 +132,9 @@ export default function LocationSetupWizard() {
                     <Button variant="outlined" onClick={handlePrevStep}>
                       Back
                     </Button>
-                    <Button onClick={handleFinish} color="success">
+                    {/* <Button onClick={handleFinish} color="success">
                       Finish Setup
-                    </Button>
+                    </Button> */}
                   </>
                 )}
               </Box>
