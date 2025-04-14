@@ -20,6 +20,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Threading.Tasks.Dataflow;
+using Utah.Udot.Atspm.Infrastructure.Workflows;
 using Utah.Udot.ATSPM.Infrastructure.Workflows;
 
 namespace Utah.Udot.Atspm.Infrastructure.Services.HostedServices
@@ -45,14 +46,12 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.HostedServices
         /// <inheritdoc/>
         public override async Task Process(IServiceScope scope, CancellationToken cancellationToken = default)
         {
-            var repo = scope.ServiceProvider.GetService<IDeviceRepository>();
+            var workflow = new ImportEventLogWorkflow(scope.ServiceProvider.GetService<IServiceScopeFactory>(), _options.Value.BatchSize, _options.Value.ParallelProcesses, cancellationToken);
 
-            var workflow = new DeviceEventLogWorkflow(scope.ServiceProvider.GetService<IServiceScopeFactory>(), _options.Value.BatchSize, _options.Value.ParallelProcesses, cancellationToken);
+            Thread.Sleep(100);
 
-            await foreach (var d in repo.GetDevicesForLogging(_options.Value.DeviceEventLoggingQueryOptions))
-            {
-                await workflow.Input.SendAsync(d);
-            }
+            var d = Tuple.Create<Device, FileInfo>(default, new FileInfo(_options.Value.DeviceEventLoggingQueryOptions.IncludedLocations.First()));
+            await workflow.Input.SendAsync(d);
 
             workflow.Input.Complete();
 

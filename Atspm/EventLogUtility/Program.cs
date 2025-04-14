@@ -15,25 +15,25 @@
 // limitations under the License.
 #endregion
 
-using Google.Cloud.Diagnostics.Common;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
-using System.Diagnostics;
-using System.Reflection;
 using Utah.Udot.Atspm.EventLogUtility.Commands;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
+using Utah.Udot.Atspm.Infrastructure.Services.EventLogImporters;
 
 //trick github
 //"830379441974"
 
-if (OperatingSystem.IsWindows())
-{
-    if (!EventLog.SourceExists("Atspm"))
-        EventLog.CreateEventSource(AppDomain.CurrentDomain.FriendlyName, "Atspm");
-}
+//if (OperatingSystem.IsWindows())
+//{
+//    if (!EventLog.SourceExists("Atspm"))
+//        EventLog.CreateEventSource(AppDomain.CurrentDomain.FriendlyName, "Atspm");
+//}
 
 var rootCmd = new EventLogCommands();
 var cmdBuilder = new CommandLineBuilder(rootCmd);
@@ -42,6 +42,10 @@ cmdBuilder.UseHost(a =>
 {
     return Host.CreateDefaultBuilder(a)
     //.UseConsoleLifetime()
+    .ConfigureAppConfiguration((h, c) =>
+    {
+        c.AddUserSecrets<Program>(optional: true);
+    })
     .ApplyVolumeConfiguration()
     .ConfigureLogging((h, l) =>
     {
@@ -72,7 +76,8 @@ cmdBuilder.UseHost(a =>
         s.AddDownloaderClients();
         s.AddDeviceDownloaders(h);
         s.AddEventLogDecoders();
-        s.AddEventLogImporters(h);
+        //s.AddEventLogImporters(h);
+        s.AddScoped<IEventLogImporter, GoogleLogFileImporter>();
     });
 },
 h =>
