@@ -2,36 +2,34 @@ import { Device } from '@/api/config/aTSPMConfigurationApi.schemas'
 import { DeviceEventDownload } from '@/api/data/aTSPMLogDataApi.schemas'
 import CheckIcon from '@mui/icons-material/Check'
 import CloseIcon from '@mui/icons-material/Close'
-import ExpandLessIcon from '@mui/icons-material/ExpandLess'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import SyncIcon from '@mui/icons-material/Sync'
+import LanIcon from '@mui/icons-material/Lan'
 import { LoadingButton } from '@mui/lab'
 import {
   Badge,
   Box,
   Button,
-  Collapse,
-  IconButton,
+  Modal,
+  Paper,
   TextField,
   Typography,
 } from '@mui/material'
-import { useState } from 'react'
 
 type CombinedDeviceEvent = Device &
   DeviceEventDownload & {
     ipModified: boolean
   }
 
-interface DevicesWizardPanelProps {
+interface DevicesWizardModalProps {
+  open: boolean
+  onClose: () => void
+  onSaveAndClose: () => void
   devices: CombinedDeviceEvent[] | undefined
   onResync: () => void
   isResyncing: boolean
-  setShowSyncPanel: (show: boolean) => void
   ipChanges: Record<number, string>
   setIpChanges: React.Dispatch<React.SetStateAction<Record<number, string>>>
 }
 
-// Function to get the device name
 const getDeviceName = (device: Device) => {
   let deviceName = ''
   if (device?.deviceConfiguration?.product) {
@@ -42,95 +40,79 @@ const getDeviceName = (device: Device) => {
       ' '
   }
   deviceName += device?.firmware ? device?.firmware : ''
-
   return deviceName
 }
 
-const DevicesWizardPanel = ({
+const DevicesWizardModal = ({
+  open,
+  onClose,
+  onSaveAndClose,
   devices,
   onResync,
   isResyncing,
-  setShowSyncPanel,
   ipChanges,
   setIpChanges,
-}: DevicesWizardPanelProps) => {
-  const [isExpanded, setIsExpanded] = useState(true)
-
+}: DevicesWizardModalProps) => {
   const handleIpChange = (deviceId: number, newIp: string) => {
     setIpChanges((prev) => ({ ...prev, [deviceId]: newIp }))
   }
 
   return (
-    <>
-      <Box
+    <Modal open={open} onClose={onClose}>
+      <Paper
         sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          cursor: 'pointer',
-          mb: 2,
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90%',
+          maxWidth: 900,
+          maxHeight: '90vh',
+          overflowY: 'auto',
+          p: 4,
+          borderRadius: 2,
         }}
-        onClick={() => setIsExpanded((prev) => !prev)}
       >
-        <Typography variant="h5">Configure Devices</Typography>
-        <IconButton>
-          {isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-        </IconButton>
-      </Box>
-
-      <Collapse in={isExpanded}>
         <Box
           sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            p: 2,
+            display: 'grid',
+            gridTemplateColumns: '3fr 2fr 1fr 2fr',
+            alignItems: 'center',
+            px: 1,
+            pb: 2,
           }}
         >
-          <Typography sx={{ flex: 3 }} variant="subtitle2">
-            Device Name
-          </Typography>
-          <Typography sx={{ flex: 2, width: '200px' }} variant="subtitle2">
-            IP Address
-          </Typography>
-          <Typography
-            sx={{
-              flex: 1,
-              textAlign: 'right',
-              width: '250px',
-              whiteSpace: 'nowrap',
-            }}
-            variant="subtitle2"
-          >
+          <Typography variant="subtitle2">Device Name</Typography>
+          <Typography variant="subtitle2">IP Address</Typography>
+          <Typography variant="subtitle2" sx={{ textAlign: 'right', pr: 1 }}>
             Rows Downloaded
           </Typography>
-          <Typography sx={{ flex: 2, textAlign: 'center' }} variant="subtitle2">
+          <Typography variant="subtitle2" sx={{ textAlign: 'center' }}>
             Status
           </Typography>
         </Box>
 
-        {/* Rows */}
         {devices?.map((device, i) => {
           const newIp = ipChanges[device.id] ?? device.ipaddress
           return (
             <Box
               key={i}
               sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
+                display: 'grid',
+                gridTemplateColumns: '3fr 2fr 1fr 2fr',
                 alignItems: 'center',
-                p: 2,
-                mb: 2,
+                gap: 2,
+                p: 1.5,
                 border: '1px solid #ccc',
                 borderRadius: '4px',
+                mb: 1,
               }}
             >
-              {/* Device Name */}
-              <Typography sx={{ flex: 3 }}>{getDeviceName(device)}</Typography>
-              {/* IP Address */}
+              <Typography>{getDeviceName(device)}</Typography>
+
               <Badge
                 color="error"
                 variant="dot"
-                // Show the badge if there's a difference from the original IP
                 invisible={device.ipaddress === newIp}
               >
                 <TextField
@@ -140,16 +122,15 @@ const DevicesWizardPanel = ({
                   onChange={(e) => handleIpChange(device.id, e.target.value)}
                 />
               </Badge>
-              {/* Rows Downloaded */}
-              <Typography sx={{ flex: 1, textAlign: 'right', width: '250px' }}>
+
+              <Typography sx={{ textAlign: 'right', pr: 1 }}>
                 {isResyncing
                   ? ''
                   : (device.changeInEventCount?.toLocaleString() ?? 'N/A')}
               </Typography>
-              {/* Status */}
+
               <Box
                 sx={{
-                  flex: 2,
                   textAlign: 'center',
                   display: 'flex',
                   alignItems: 'center',
@@ -157,27 +138,21 @@ const DevicesWizardPanel = ({
                 }}
               >
                 {isResyncing ? (
-                  <Typography variant="body2" sx={{ ml: 1, display: 'inline' }}>
+                  <Typography variant="body2" sx={{ ml: 1 }}>
                     Loading...
                   </Typography>
                 ) : device?.changeInEventCount &&
                   device.changeInEventCount > 1 ? (
                   <>
                     <CheckIcon color="success" />
-                    <Typography
-                      variant="body2"
-                      sx={{ ml: 1, display: 'inline' }}
-                    >
+                    <Typography variant="body2" sx={{ ml: 1 }}>
                       Download successful
                     </Typography>
                   </>
                 ) : (
                   <>
                     <CloseIcon color="error" />
-                    <Typography
-                      variant="body2"
-                      sx={{ ml: 1, display: 'inline' }}
-                    >
+                    <Typography variant="body2" sx={{ ml: 1 }}>
                       No data downloaded
                     </Typography>
                   </>
@@ -187,27 +162,39 @@ const DevicesWizardPanel = ({
           )
         })}
 
-        {/* Resync Button */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            mt: 3,
+            gap: 1,
+          }}
+        >
           <LoadingButton
+            startIcon={<LanIcon />}
             loading={isResyncing}
             loadingPosition="start"
-            startIcon={<SyncIcon />}
-            variant="text"
+            variant="contained"
             color="primary"
             onClick={onResync}
           >
-            Re-Sync
+            Verify IP Addresses
           </LoadingButton>
+
+          <Box>
+            <Button onClick={onClose}>Close</Button>
+            <Button
+              variant="contained"
+              onClick={onSaveAndClose}
+              disabled={isResyncing}
+            >
+              Save and Close
+            </Button>
+          </Box>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
-          <Button variant="outlined" onClick={() => setShowSyncPanel(false)}>
-            Close
-          </Button>
-        </Box>
-      </Collapse>
-    </>
+      </Paper>
+    </Modal>
   )
 }
 
-export default DevicesWizardPanel
+export default DevicesWizardModal

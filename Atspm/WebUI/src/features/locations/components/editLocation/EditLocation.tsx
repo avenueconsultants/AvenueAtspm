@@ -6,7 +6,7 @@ import { useLocationStore } from '@/features/locations/components/editLocation/l
 import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { Box, Tab, Typography } from '@mui/material'
-import React, { memo, useCallback, useEffect, useState } from 'react'
+import { memo, SyntheticEvent, useCallback, useEffect, useState } from 'react'
 import EditLocationHeader from './EditLocationHeader'
 import WatchdogEditor from './WatchdogEditor'
 
@@ -16,42 +16,45 @@ function EditLocation() {
   const [currentTab, setCurrentTab] = useState('1')
 
   useEffect(() => {
+    // For a 2-step wizard:
+    //  step 0 => "Devices" => tab "2"
+    //  step 1 => "Approaches" => tab "3"
     if (activeStep === 0) {
-      setCurrentTab('1')
+      setCurrentTab('2') // Devices tab
     } else if (activeStep === 1) {
-      setCurrentTab('2')
-    } else if (activeStep === 2) {
-      setCurrentTab('3')
+      setCurrentTab('3') // Approaches tab
     }
   }, [activeStep])
 
-  const handleTabChange = useCallback(
-    (_: React.SyntheticEvent, newTab: string) => {
-      setCurrentTab(newTab)
-    },
-    []
-  )
+  const handleTabChange = useCallback((_: SyntheticEvent, newTab: string) => {
+    setCurrentTab(newTab)
+  }, [])
 
   if (!location) return null
 
   return (
     <TabContext value={currentTab}>
       <EditLocationHeader />
+
       <TabList onChange={handleTabChange} aria-label="Location Tabs">
         <Tab label="General" value="1" />
         <Tab label="Devices" value="2" />
         <Tab label="Approaches" value="3" />
         <Tab label="Watchdog" value="4" />
       </TabList>
+
       <TabPanel value="1" sx={{ padding: 0 }}>
         <LocationGeneralOptionsEditor />
       </TabPanel>
+
       <TabPanel value="2" sx={{ padding: 0, marginBottom: '100px' }}>
         <EditDevices />
       </TabPanel>
+
       <TabPanel value="3" sx={{ padding: 0, minHeight: '400px' }}>
         <ApproachesTab />
       </TabPanel>
+
       <TabPanel value="4" sx={{ padding: 0 }}>
         <WatchdogEditor />
       </TabPanel>

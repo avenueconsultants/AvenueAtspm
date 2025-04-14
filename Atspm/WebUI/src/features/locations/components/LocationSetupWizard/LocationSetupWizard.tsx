@@ -13,75 +13,77 @@ import * as React from 'react'
 
 const steps = [
   {
-    label: 'Configure Devices',
+    label: 'Verify Devices',
     description:
-      'We’ll automatically sync devices and confirm they are connected and reporting data correctly.',
-    actionLabel: 'Sync Devices',
+      'Confirm device IPs and ensure data is being downloaded successfully.',
   },
   {
-    label: 'Reconcile Approaches and Detectors',
+    label: 'Reconcile Detectors & Approaches',
     description:
-      'We’ll validate detector configuration by comparing setup against live data from the synced devices.',
-    actionLabel: 'Validate Approaches',
+      'Compare discovered data with your current configuration to ensure no missing or extra detectors/approaches.',
   },
 ]
 
 export default function LocationSetupWizard() {
   const { addNotification } = useNotificationStore()
-  const { activeStep, setActiveStep } = useLocationWizardStore()
+  const {
+    activeStep,
+    setActiveStep,
+    setDeviceVerificationStatus,
+    setApproachVerificationStatus,
+  } = useLocationWizardStore()
 
   const [isComplete, setIsComplete] = React.useState(false)
 
-  const handleNext = () => {
-    if (activeStep < steps.length - 1) {
-      setActiveStep(activeStep + 1)
-    } else {
-      // Only complete when last step is done
-      setIsComplete(true)
-      addNotification({
-        title: 'Location setup completed! 🎉',
-        type: 'success',
-      })
-    }
+  const handleFinish = () => {
+    setIsComplete(true)
+    addNotification({
+      title: 'Location setup completed! 🎉',
+      type: 'success',
+    })
   }
 
-  const handleBack = () => {
+  const handleReset = () => {
+    setIsComplete(false)
+    setActiveStep(0)
+    setDeviceVerificationStatus?.('NOT_STARTED')
+    setApproachVerificationStatus?.('NOT_STARTED')
+  }
+
+  const handleNextStep = () => {
+    setActiveStep(activeStep + 1)
+  }
+
+  const handlePrevStep = () => {
     if (activeStep > 0) {
       setActiveStep(activeStep - 1)
     }
   }
 
-  const handleReset = () => {
-    setActiveStep(0)
-    setIsComplete(false)
+  /**
+   * STEP 0: "Verify Devices"
+   * - Sets wizard step 0 (which triggers the Devices tab in <EditLocation>)
+   * - Tells <EditDevices> "READY_TO_RUN" so it opens/runs the IP Checker
+   */
+  const handleVerifyDevices = () => {
+    if (activeStep !== 0) {
+      setActiveStep(0)
+    }
+    // Tells EditDevices to open the IP checker
+    setDeviceVerificationStatus?.('READY_TO_RUN')
   }
 
-  if (isComplete) {
-    return (
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 20,
-          right: 20,
-          width: 360,
-          zIndex: 1300,
-          bgcolor: 'background.paper',
-          p: 2,
-          borderRadius: 2,
-          boxShadow: 3,
-        }}
-      >
-        <Typography variant="h6" gutterBottom>
-          🎉 Setup Complete!
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          You’ve finished setting up this location.
-        </Typography>
-        <Button onClick={handleReset} sx={{ mt: 2 }}>
-          Restart Setup
-        </Button>
-      </Box>
-    )
+  /**
+   * STEP 1: "Reconcile Detectors & Approaches"
+   * - Sets wizard step 1 (which triggers the Approaches tab)
+   * - Tells <Approaches> or <EditApproach> "READY_TO_RUN" if you manage a modal for that
+   */
+  const handleReconcileApproaches = () => {
+    if (activeStep !== 1) {
+      setActiveStep(1)
+    }
+    // Tells the Approaches code to open any "reconcile" process
+    setApproachVerificationStatus?.('READY_TO_RUN')
   }
 
   return (
@@ -90,7 +92,7 @@ export default function LocationSetupWizard() {
         position: 'fixed',
         bottom: 20,
         right: 20,
-        width: 360,
+        width: 420,
         zIndex: 1300,
         maxHeight: '80vh',
         overflowY: 'auto',
@@ -106,24 +108,61 @@ export default function LocationSetupWizard() {
 
       <Stepper activeStep={activeStep} orientation="vertical">
         {steps.map((step, index) => (
-          <Step key={step.label}>
+          <Step key={step.label} completed={activeStep > index}>
             <StepLabel>{step.label}</StepLabel>
             <StepContent>
               <Typography variant="body2" color="text.secondary">
                 {step.description}
               </Typography>
-              <Box sx={{ mt: 2 }}>
-                <Button variant="contained" onClick={handleNext} sx={{ mr: 1 }}>
-                  {step.actionLabel}
-                </Button>
-                <Button disabled={index === 0} onClick={handleBack}>
-                  Back
-                </Button>
+
+              <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                {index === 0 && (
+                  <>
+                    <Button variant="contained" onClick={handleVerifyDevices}>
+                      Run Verification
+                    </Button>
+                    <Button
+                      variant="text"
+                      onClick={handleNextStep}
+                      sx={{ ml: 'auto' }}
+                    >
+                      Go to Next Step
+                    </Button>
+                  </>
+                )}
+
+                {index === 1 && (
+                  <>
+                    <Button
+                      variant="contained"
+                      onClick={handleReconcileApproaches}
+                    >
+                      Start
+                    </Button>
+                    <Button variant="outlined" onClick={handlePrevStep}>
+                      Back
+                    </Button>
+                    <Button onClick={handleFinish} color="success">
+                      Finish Setup
+                    </Button>
+                  </>
+                )}
               </Box>
             </StepContent>
           </Step>
         ))}
       </Stepper>
+
+      {isComplete && (
+        <Box mt={2}>
+          <Typography variant="body2" color="success.main">
+            All steps completed!
+          </Typography>
+          <Button onClick={handleReset} sx={{ mt: 1 }} size="small">
+            Reset Wizard
+          </Button>
+        </Box>
+      )}
     </Box>
   )
 }

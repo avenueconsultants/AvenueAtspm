@@ -1,28 +1,27 @@
 import { create } from 'zustand'
 
-/** A simple enum-like type to represent each step's status. */
 type Status = 'NOT_STARTED' | 'READY_TO_RUN' | 'DONE'
 
 interface LocationWizardStore {
-  // Which step is currently active in the wizard
+  // Current step in the wizard (0 = placeholder, 1 = verify devices, 2 = verify approaches)
   activeStep: number
   setActiveStep: (step: number) => void
 
-  // Device-related “download” step status
-  deviceDownloadStatus: Status
-  setDeviceDownloadStatus: (status: Status) => void
+  // Step 1 - Device verification status
+  deviceVerificationStatus: Status
+  setDeviceVerificationStatus: (status: Status) => void
 
-  // Approach-related “sync” step status
-  approachSyncStatus: Status
-  setApproachSyncStatus: (status: Status) => void
+  // Step 2 - Approach verification status
+  approachVerificationStatus: Status
+  setApproachVerificationStatus: (status: Status) => void
 
-  // We’ll ignore the “badApproaches” and “badDetectors” details for now
+  // Optional details we may use later
   badApproaches: string[]
   badDetectors: string[]
   setBadApproaches: (approaches: number[]) => void
   setBadDetectors: (detectors: string[]) => void
 
-  // Resets everything to initial defaults
+  // Reset to defaults
   resetStore: () => void
 }
 
@@ -30,9 +29,8 @@ export const useLocationWizardStore = create<LocationWizardStore>(
   (set, get) => ({
     activeStep: 0,
 
-    // Start both statuses at 'NOT_STARTED' until the user reaches those steps
-    deviceDownloadStatus: 'NOT_STARTED',
-    approachSyncStatus: 'NOT_STARTED',
+    deviceVerificationStatus: 'NOT_STARTED',
+    approachVerificationStatus: 'NOT_STARTED',
 
     badApproaches: [],
     badDetectors: [],
@@ -40,33 +38,32 @@ export const useLocationWizardStore = create<LocationWizardStore>(
     setActiveStep: (step) => {
       set({ activeStep: step })
 
-      const { deviceDownloadStatus, approachSyncStatus } = get()
+      const { deviceVerificationStatus, approachVerificationStatus } = get()
 
-      // If your device download logic is triggered at step 1
-      if (step === 1 && deviceDownloadStatus === 'NOT_STARTED') {
-        set({ deviceDownloadStatus: 'READY_TO_RUN' })
+      if (step === 1 && deviceVerificationStatus === 'NOT_STARTED') {
+        set({ deviceVerificationStatus: 'READY_TO_RUN' })
       }
 
-      // If your approach sync logic is triggered at step 2
-      if (step === 2 && approachSyncStatus === 'NOT_STARTED') {
-        set({ approachSyncStatus: 'READY_TO_RUN' })
+      if (step === 2 && approachVerificationStatus === 'NOT_STARTED') {
+        set({ approachVerificationStatus: 'READY_TO_RUN' })
       }
     },
 
-    setDeviceDownloadStatus: (status) => set({ deviceDownloadStatus: status }),
-    setApproachSyncStatus: (status) => set({ approachSyncStatus: status }),
+    setDeviceVerificationStatus: (status) =>
+      set({ deviceVerificationStatus: status }),
+    setApproachVerificationStatus: (status) =>
+      set({ approachVerificationStatus: status }),
 
     setBadApproaches: (approaches) => set({ badApproaches: approaches }),
     setBadDetectors: (detectors) => set({ badDetectors: detectors }),
 
-    resetStore: () => {
+    resetStore: () =>
       set({
         activeStep: 0,
-        deviceDownloadStatus: 'NOT_STARTED',
-        approachSyncStatus: 'NOT_STARTED',
+        deviceVerificationStatus: 'NOT_STARTED',
+        approachVerificationStatus: 'NOT_STARTED',
         badApproaches: [],
         badDetectors: [],
-      })
-    },
+      }),
   })
 )

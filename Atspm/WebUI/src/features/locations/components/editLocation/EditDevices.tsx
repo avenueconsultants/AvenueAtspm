@@ -1,18 +1,3 @@
-import AddIcon from '@mui/icons-material/Add'
-import SyncIcon from '@mui/icons-material/Sync'
-import { LoadingButton } from '@mui/lab'
-import {
-  Avatar,
-  Box,
-  Button,
-  Collapse,
-  Modal,
-  Paper,
-  Typography,
-  useTheme,
-} from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
-
 import {
   useGetLocationDevicesFromKey,
   usePatchDeviceFromKey,
@@ -24,9 +9,13 @@ import { useDeleteDevice } from '@/features/devices/api/devices'
 import DeviceCard from '@/features/locations/components/editLocation/DeviceCard'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import DeviceModal from '@/features/locations/components/editLocation/NewDeviceModal'
-import DevicesWizardPanel from '@/features/locations/components/LocationSetupWizard/DevicesWizardPanel.tsx/DevicesWizardPanel'
+import DevicesWizardModal from '@/features/locations/components/LocationSetupWizard/DevicesWizardPanel.tsx/DevicesWizardPanel'
 import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { useNotificationStore } from '@/stores/notifications'
+import AddIcon from '@mui/icons-material/Add'
+import LanIcon from '@mui/icons-material/Lan'
+import { Avatar, Box, Button, Modal, Typography, useTheme } from '@mui/material'
+import { useEffect, useMemo, useState } from 'react'
 
 const deviceEventResultsMock = [
   {
@@ -34,7 +23,7 @@ const deviceEventResultsMock = [
     ipaddress: '10.210.14.39',
     deviceType: 1,
     beforeWorkflowEventCount: 610165,
-    afterWorkflowEventCount: 610165,
+    afterWorkflowEventCount: 610365, // +200
     changeInEventCount: 200,
     ipModified: false,
   },
@@ -43,7 +32,7 @@ const deviceEventResultsMock = [
     ipaddress: '127.0.0.1',
     deviceType: 1,
     beforeWorkflowEventCount: 720111,
-    afterWorkflowEventCount: 720111,
+    afterWorkflowEventCount: 720321, // +210
     changeInEventCount: 210,
     ipModified: false,
   },
@@ -56,35 +45,39 @@ interface CombinedDevice extends Device {
 
 const EditDevices = () => {
   const theme = useTheme()
-
-  const { activeStep, deviceDownloadStatus, setDeviceDownloadStatus } =
-    useLocationWizardStore()
+  const { location } = useLocationStore()
   const { addNotification } = useNotificationStore()
 
-  const { location } = useLocationStore()
+  const { deviceVerificationStatus, setDeviceVerificationStatus } =
+    useLocationWizardStore()
 
   const [isModalOpen, setModalOpen] = useState(false)
   const [currentDevice, setCurrentDevice] = useState<Device | null>(null)
   const [openDeleteModal, setOpenDeleteModal] = useState(false)
   const [deleteDeviceId, setDeleteDeviceId] = useState<string | null>(null)
 
-  const [showSyncPanel, setShowSyncPanel] = useState(false)
+  const [showSyncModal, setShowSyncModal] = useState(false)
+
+  const [ipChanges, setIpChanges] = useState<Record<number, string>>({})
+
+  const [mockEventData, setMockEventData] = useState<
+    typeof deviceEventResultsMock | []
+  >([])
+  const [isFetchingEvents, setIsFetchingEvents] = useState(false)
 
   const {
     data: devicesData,
     refetch: refetchDevices,
-    isFetching: isResyncing,
+    isFetching: isRefetchingDevices,
   } = useGetLocationDevicesFromKey(location?.id as number, {
     expand: 'DeviceConfiguration',
   })
+
   const devices = useMemo(() => devicesData?.value || [], [devicesData])
-
-  const { mutateAsync: updateDevice } = usePatchDeviceFromKey()
-
-  const [ipChanges, setIpChanges] = useState<Record<number, string>>({})
 
   const { data: deviceConfigurationsData } = useGetDeviceConfigurations()
   const { mutate: deleteDevice } = useDeleteDevice()
+  const { mutateAsync: updateDevice } = usePatchDeviceFromKey()
 
   const deviceIdsString = devices.map((d) => d.id).join(',')
   const {
@@ -93,210 +86,154 @@ const EditDevices = () => {
     isFetching: isEventDataLoading,
   } = useGetLoggingSyncNewLocationEvents(
     { deviceIds: deviceIdsString },
-    {
-      query: {
-        enabled: !!deviceIdsString,
-      },
-    }
+    { query: { enabled: false } }
   )
 
-  const [mockEventData, setMockEventData] = useState<
-    typeof deviceEventResultsMock | []
-  >([])
-
-  const [isOverrideLoading, setIsOverrideLoading] = useState(false)
-
+  // ------------------------------------------------
+  // 1) If the wizard says "READY_TO_RUN", open modal & run check
+  // ------------------------------------------------
   useEffect(() => {
-    if (deviceDownloadStatus === 'READY_TO_RUN' && deviceIdsString) {
-      setIsOverrideLoading(true)
-      fetchDeviceEventResults()
-        .then(() => {
-          // Wait 2s, then set the mock data
-          return new Promise<void>((resolve) => {
-            setTimeout(() => {
-              setMockEventData(deviceEventResultsMock)
-              resolve()
-            }, 2000)
-          })
-        })
-        .then(() => {
-          setDeviceDownloadStatus('DONE')
-          setIsOverrideLoading(false)
-        })
-        .catch((err) => {
-          console.error('Failed to fetch device event data: ', err)
-          setIsOverrideLoading(false)
-        })
+    if (deviceVerificationStatus === 'READY_TO_RUN') {
+      setShowSyncModal(true)
+      handleResync()
     }
-  }, [
-    deviceDownloadStatus,
-    deviceIdsString,
-    fetchDeviceEventResults,
-    setDeviceDownloadStatus,
-  ])
+  }, [deviceVerificationStatus, setDeviceVerificationStatus])
 
-  useEffect(() => {
-    if (activeStep === 1) {
-      setShowSyncPanel(true)
-    }
-  }, [activeStep, setDeviceDownloadStatus])
+  const handleResync = async () => {
+    try {
+      setIsFetchingEvents(true)
+      setMockEventData([])
 
-  useEffect(() => {
-    // the moment activeStep becomes 2, we’ve “clicked Next”
-    // from the wizard perspective
-    console.log('activeStep', activeStep)
-    if (activeStep === 2) {
-      console.log('Updating device IPs: ', ipChanges)
-      Object.entries(ipChanges).forEach(([devIdStr, newIp]) => {
-        console.log('Updating device IP: ', devIdStr, newIp)
-        const devId = Number(devIdStr)
-        if (!devId || !newIp) return
-        // call your “update” device mutation
-        updateDevice({ key: devId, data: { ipaddress: newIp } })
-          .then(() => {
-            // refetch the devices after updating
-            refetchDevices()
-            addNotification({
-              title: `Device ${devId} updated successfully`,
-              type: 'success',
-            })
-          })
-          .catch((err) => {
-            console.error('Failed to update device IP: ', err)
-          })
+      await fetchDeviceEventResults()
+
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          setMockEventData(deviceEventResultsMock)
+          resolve()
+        }, 1500)
       })
-
-      setIpChanges({})
+    } catch (err) {
+      console.error('Failed to fetch device event data: ', err)
+    } finally {
+      setIsFetchingEvents(false)
     }
-  }, [activeStep, ipChanges, updateDevice, refetchDevices, addNotification])
+  }
 
+  // ------------------------------------------------
+  // 3) Combine device + event results
+  // ------------------------------------------------
   const combinedDevices: CombinedDevice[] = useMemo(() => {
     if (!devices.length) return []
-
     const finalEventData = mockEventData.length
       ? mockEventData
       : deviceEventResults?.value || []
-
     const allConfigs = deviceConfigurationsData?.value || []
 
     return devices.map((dev) => {
       const matchedEvents = finalEventData.find((e) => e.deviceId === dev.id)
-
       const matchedConfig = allConfigs.find(
         (cfg) => cfg.id === dev.deviceConfigurationId
       )
-
       return {
         ...dev,
         changeInEventCount: matchedEvents?.changeInEventCount,
         ipModified: matchedEvents?.ipModified,
-
         deviceConfiguration: matchedConfig,
       }
     })
   }, [devices, deviceEventResults, mockEventData, deviceConfigurationsData])
 
+  const handleSaveAndClose = async () => {
+    const entries = Object.entries(ipChanges)
+    for (const [devIdStr, newIp] of entries) {
+      const devId = Number(devIdStr)
+      if (!devId || !newIp) continue
+
+      try {
+        await updateDevice({ key: devId, data: { ipaddress: newIp } })
+        addNotification({
+          title: `Device ${devId} updated successfully`,
+          type: 'success',
+        })
+      } catch (err) {
+        console.error('Failed to update device IP:', err)
+      }
+    }
+
+    await refetchDevices()
+    setIpChanges({})
+
+    setShowSyncModal(false)
+    setDeviceVerificationStatus('DONE')
+  }
+
+  const handleModalClose = () => {
+    setShowSyncModal(false)
+  }
+
   if (!deviceConfigurationsData?.value || !devicesData?.value) {
     return <Typography variant="h6">Loading...</Typography>
   }
 
-  const handleAddClick = () => {
-    setCurrentDevice(null)
-    setModalOpen(true)
-  }
-
-  const handleEditClick = (device: Device) => {
-    setCurrentDevice(device)
-    setModalOpen(true)
-  }
-
-  const handleDelete = (deviceId: string) => {
-    setDeleteDeviceId(deviceId)
-    setOpenDeleteModal(true)
-  }
-
-  const confirmDeleteDevice = () => {
-    if (deleteDeviceId) {
-      deleteDevice(deleteDeviceId, { onSuccess: refetchDevices })
-    }
-    setOpenDeleteModal(false)
-  }
-
-  const handlePageSync = () => {
-    setShowSyncPanel((prev) => !prev)
-    handleResync()
-  }
-
-  const handleResync = () => {
-    setDeviceDownloadStatus('NOT_STARTED')
-    setMockEventData([])
-    setTimeout(() => {
-      setDeviceDownloadStatus('READY_TO_RUN')
-    }, 0)
-  }
-
-  const isLoadingCombined =
-    isEventDataLoading || isResyncing || isOverrideLoading
-
   return (
     <>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <LoadingButton
-          startIcon={<SyncIcon />}
-          loading={isLoadingCombined}
-          loadingPosition="start"
+        <Button
+          startIcon={<LanIcon />}
           variant="contained"
           color="primary"
-          onClick={handlePageSync}
-        >
-          Sync
-        </LoadingButton>
-      </Box>
-
-      {/* “Wizard” / sync panel */}
-      <Collapse in={showSyncPanel} timeout="auto" unmountOnExit>
-        <Paper
-          sx={{
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: 1,
-            p: 2,
-            mb: 2,
-            boxShadow: '0 0 15px rgba(0, 123, 255, 0.5)',
+          onClick={() => {
+            setShowSyncModal(true)
+            handleResync()
           }}
         >
-          <DevicesWizardPanel
-            devices={combinedDevices}
-            onResync={handleResync}
-            isResyncing={isLoadingCombined}
-            setShowSyncPanel={setShowSyncPanel}
-            ipChanges={ipChanges}
-            setIpChanges={setIpChanges}
-          />
-        </Paper>
-      </Collapse>
+          Verify IP Addresses
+        </Button>
+      </Box>
 
-      {/* Device Cards */}
+      <DevicesWizardModal
+        open={showSyncModal}
+        onClose={handleModalClose}
+        onSaveAndClose={handleSaveAndClose}
+        devices={combinedDevices}
+        onResync={handleResync}
+        isResyncing={
+          isEventDataLoading || isRefetchingDevices || isFetchingEvents
+        }
+        ipChanges={ipChanges}
+        setIpChanges={setIpChanges}
+      />
+
       <Box
         sx={{
           display: 'flex',
           overflowX: 'auto',
           flexWrap: 'nowrap',
           gap: '30px',
-          marginTop: '10px',
+          mt: '10px',
         }}
       >
         {devices.map((device) => (
           <DeviceCard
             key={device.id}
             device={device}
-            onEdit={handleEditClick}
-            onDelete={() => handleDelete(device.id)}
+            onEdit={(dev) => {
+              setCurrentDevice(dev)
+              setModalOpen(true)
+            }}
+            onDelete={() => {
+              setDeleteDeviceId(device.id)
+              setOpenDeleteModal(true)
+            }}
           />
         ))}
 
-        {/* Add New Device Button */}
+        {/* Add Device card */}
         <Button
-          onClick={handleAddClick}
+          onClick={() => {
+            setCurrentDevice(null)
+            setModalOpen(true)
+          }}
           sx={{
             padding: 2,
             mb: 1.95,
@@ -312,13 +249,13 @@ const EditDevices = () => {
           <Avatar sx={{ bgcolor: theme.palette.primary.main, mb: 1 }}>
             <AddIcon />
           </Avatar>
-          <Typography variant="h6" sx={{ marginTop: 2 }} component="p">
+          <Typography variant="h6" sx={{ mt: 2 }}>
             Add New Device
           </Typography>
         </Button>
       </Box>
 
-      {/* Device Edit Modal */}
+      {/* Add/Edit Device Modal */}
       {isModalOpen && (
         <DeviceModal
           onClose={() => setModalOpen(false)}
@@ -328,7 +265,7 @@ const EditDevices = () => {
         />
       )}
 
-      {/* Device Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       <Modal
         open={openDeleteModal}
         onClose={() => setOpenDeleteModal(false)}
@@ -358,7 +295,12 @@ const EditDevices = () => {
               Cancel
             </Button>
             <Button
-              onClick={confirmDeleteDevice}
+              onClick={() => {
+                if (deleteDeviceId) {
+                  deleteDevice(deleteDeviceId, { onSuccess: refetchDevices })
+                }
+                setOpenDeleteModal(false)
+              }}
               color="error"
               variant="contained"
             >
