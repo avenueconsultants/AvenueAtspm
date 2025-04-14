@@ -1,13 +1,10 @@
 import { LocationDiscrepancyReport } from '@/features/locations/components/ApproachOptions/ApproachOptions'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import AddCircleIcon from '@mui/icons-material/AddCircle'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import HighlightOffIcon from '@mui/icons-material/HighlightOff'
 import RemoveIcon from '@mui/icons-material/Remove'
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline'
 import {
   Box,
   Button,
@@ -19,6 +16,7 @@ import {
   MenuItem,
   Paper,
   Stack,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material'
@@ -31,7 +29,8 @@ interface ApproachesReconcilationReportProps {
   syncedDetectors: number[]
 }
 
-type ItemStatus = 'pending' | 'ignored' | 'added' | 'deleted'
+// Note: We've added a new status "unsaved" to distinguish items that are added but still new.
+type ItemStatus = 'pending' | 'ignored' | 'added' | 'deleted' | 'unsaved'
 type ItemKind = 'FOUND_PHASE' | 'FOUND_DET' | 'NOT_FOUND_APP' | 'NOT_FOUND_DET'
 
 interface DiscrepancyItem {
@@ -59,7 +58,10 @@ export default function ApproachesReconcilationReport({
     addDetector,
   } = useLocationStore()
 
-  // Listen to store changes and mark items as deleted if they're missing
+  // ---------------------------
+  // For items configured but not found:
+  // If an approach/detector is missing manually, mark it as deleted.
+  // ---------------------------
   useEffect(() => {
     categories.notFoundApproaches.forEach((approach) => {
       const key = `notfound_app_${approach.id}`
@@ -82,6 +84,56 @@ export default function ApproachesReconcilationReport({
       }
     })
   }, [approaches, categories.notFoundDetectorChannels, itemStatuses])
+
+  // ---------------------------
+  // For items found in data (but missing from configuration):
+  // If a matching item exists in the store, check for the isNew property.
+  // For approaches, we compare the protectedPhaseNumber.
+  // For detectors, we compare the detectorChannel.
+  //
+  // If a matching item is present and does NOT have isNew, mark it as "added"
+  // (thus removing it from the report). If it is marked as isNew, set status to "unsaved"
+  // so it remains but is visually highlighted.
+  // ---------------------------
+  useEffect(() => {
+    categories.foundPhaseNumbers.forEach((phase) => {
+      const key = `found_phase_${phase}`
+      const matchingApproaches = approaches.filter(
+        (a) => a.protectedPhaseNumber == phase
+      )
+      if (matchingApproaches.length > 0) {
+        const existsNonNew = matchingApproaches.some((a) => !a.isNew)
+        if (existsNonNew && (itemStatuses[key] || 'pending') === 'pending') {
+          setItemStatuses((prev) => ({ ...prev, [key]: 'added' }))
+        } else if (
+          !existsNonNew &&
+          (itemStatuses[key] || 'pending') === 'pending'
+        ) {
+          setItemStatuses((prev) => ({ ...prev, [key]: 'unsaved' }))
+        }
+      }
+    })
+  }, [approaches, categories.foundPhaseNumbers, itemStatuses])
+
+  useEffect(() => {
+    categories.foundDetectorChannels.forEach((det) => {
+      const key = `found_det_${det}`
+      const matchingDetectors = approaches
+        .flatMap((a) => a.detectors)
+        .filter((d) => d.detectorChannel == det)
+      if (matchingDetectors.length > 0) {
+        const existsNonNew = matchingDetectors.some((d) => !d.isNew)
+        if (existsNonNew && (itemStatuses[key] || 'pending') === 'pending') {
+          setItemStatuses((prev) => ({ ...prev, [key]: 'added' }))
+        } else if (
+          !existsNonNew &&
+          (itemStatuses[key] || 'pending') === 'pending'
+        ) {
+          setItemStatuses((prev) => ({ ...prev, [key]: 'unsaved' }))
+        }
+      }
+    })
+  }, [approaches, categories.foundDetectorChannels, itemStatuses])
 
   if (!synced) return null
 
@@ -113,6 +165,7 @@ export default function ApproachesReconcilationReport({
     const phase = parseInt(menuItem.label, 10)
     try {
       addApproach(phase)
+      // The effect above will check for isNew and update status accordingly.
       setStatus(menuItem.id, 'added')
     } catch (err) {
       console.error(err)
@@ -130,54 +183,44 @@ export default function ApproachesReconcilationReport({
     }
   }
 
+  // ---------------------------
+  // renderButton: For items with status "unsaved", wrap the button in a tooltip
+  // and style it with a contained, green button. For pending items, render the
+  // normal outlined button.
+  // ---------------------------
   function renderButton(item: DiscrepancyItem) {
     const status = itemStatuses[item.id] || 'pending'
-    const color =
-      status === 'ignored'
-        ? 'inherit'
-        : status === 'added'
-          ? 'success'
-          : status === 'deleted'
-            ? 'error'
-            : 'primary'
-    const icon =
-      status === 'ignored' ? (
-        <RemoveCircleOutlineIcon fontSize="small" />
-      ) : status === 'added' ? (
-        <CheckCircleOutlineIcon fontSize="small" />
-      ) : status === 'deleted' ? (
-        <HighlightOffIcon fontSize="small" />
-      ) : null
-
-    if (status === 'pending') {
+    if (status === 'unsaved') {
       return (
-        <Button
+        <Tooltip
           key={item.id}
-          variant="outlined"
-          endIcon={icon}
-          onClick={(e) => openMenu(e, item)}
-          size="small"
-          sx={{
-            margin: 1,
-            color: theme.palette.grey[700],
-            borderColor: theme.palette.grey[700],
-          }}
-          disableElevation
+          title="Detected but unsaved. We see it, but it is not yet finalized."
         >
-          {item.label}
-        </Button>
+          <Button
+            variant="contained"
+            color="success"
+            onClick={(e) => openMenu(e, item)}
+            size="small"
+            sx={{ margin: 1 }}
+            disableElevation
+          >
+            {item.label}
+          </Button>
+        </Tooltip>
       )
     }
-
+    // For pending items, render the default outlined button.
     return (
       <Button
         key={item.id}
-        variant="contained"
-        color={color}
-        endIcon={icon}
+        variant="outlined"
         onClick={(e) => openMenu(e, item)}
         size="small"
-        sx={{ margin: 1 }}
+        sx={{
+          margin: 1,
+          color: theme.palette.grey[700],
+          borderColor: theme.palette.grey[700],
+        }}
         disableElevation
       >
         {item.label}
@@ -185,8 +228,16 @@ export default function ApproachesReconcilationReport({
     )
   }
 
+  // ---------------------------
+  // row: Only show items with status pending or unsaved.
+  // If no items remain, show an "In Sync" message.
+  // ---------------------------
   function row(title: string, items: DiscrepancyItem[]) {
-    if (!items.length) {
+    const displayItems = items.filter((item) => {
+      const status = itemStatuses[item.id] || 'pending'
+      return status === 'pending' || status === 'unsaved'
+    })
+    if (!displayItems.length) {
       return (
         <Box mb={1}>
           <Typography variant="subtitle2">{title}</Typography>
@@ -200,7 +251,7 @@ export default function ApproachesReconcilationReport({
       <Box mb={1}>
         <Typography variant="subtitle2">{title}</Typography>
         <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" rowGap={1}>
-          {items.map((i) => renderButton(i))}
+          {displayItems.map(renderButton)}
         </Stack>
       </Box>
     )
@@ -304,7 +355,6 @@ export default function ApproachesReconcilationReport({
           </Typography>
           {row('Configured Approaches with No Data', notFoundApproaches)}
           <Divider sx={{ my: 2 }} />
-
           {row('Configured Detectors with No Data', notFoundDetectors)}
         </Paper>
       </Collapse>
