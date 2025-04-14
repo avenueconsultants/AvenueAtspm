@@ -60,29 +60,21 @@ export default function LocationSetupWizard() {
     }
   }
 
-  /**
-   * STEP 0: "Verify Devices"
-   * - Sets wizard step 0 (which triggers the Devices tab in <EditLocation>)
-   * - Tells <EditDevices> "READY_TO_RUN" so it opens/runs the IP Checker
-   */
+  // STEP 0: "Verify Devices"
   const handleVerifyDevices = () => {
     if (activeStep !== 0) {
       setActiveStep(0)
     }
-    // Tells EditDevices to open the IP checker
+    // Tells <EditDevices> to open the IP checker modal
     setDeviceVerificationStatus?.('READY_TO_RUN')
   }
 
-  /**
-   * STEP 1: "Reconcile Detectors & Approaches"
-   * - Sets wizard step 1 (which triggers the Approaches tab)
-   * - Tells <Approaches> or <EditApproach> "READY_TO_RUN" if you manage a modal for that
-   */
+  // STEP 1: "Reconcile Detectors & Approaches"
   const handleReconcileApproaches = () => {
     if (activeStep !== 1) {
       setActiveStep(1)
     }
-    // Tells the Approaches code to open any "reconcile" process
+    // Tells <ApproachOptions> to run the reconciliation
     setApproachVerificationStatus?.('READY_TO_RUN')
   }
 
@@ -92,7 +84,7 @@ export default function LocationSetupWizard() {
         position: 'fixed',
         bottom: 20,
         right: 20,
-        width: 420,
+        width: 500,
         zIndex: 1300,
         maxHeight: '80vh',
         overflowY: 'auto',
@@ -116,6 +108,7 @@ export default function LocationSetupWizard() {
               </Typography>
 
               <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                {/* Step 0 => Verify Devices */}
                 {index === 0 && (
                   <>
                     <Button variant="contained" onClick={handleVerifyDevices}>
@@ -131,13 +124,14 @@ export default function LocationSetupWizard() {
                   </>
                 )}
 
+                {/* Step 1 => Reconcile Detectors & Approaches */}
                 {index === 1 && (
                   <>
                     <Button
                       variant="contained"
                       onClick={handleReconcileApproaches}
                     >
-                      Start
+                      Run Reconciliation
                     </Button>
                     <Button variant="outlined" onClick={handlePrevStep}>
                       Back

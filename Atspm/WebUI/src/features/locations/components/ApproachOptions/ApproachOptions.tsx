@@ -17,15 +17,15 @@ export interface LocationDiscrepancyReport {
 }
 
 const ApproachOptions = () => {
+  // Pull approachVerificationStatus from store
   const {
-    approachSyncStatus,
-    setApproachSyncStatus,
+    approachVerificationStatus,
+    setApproachVerificationStatus,
     setBadApproaches,
     setBadDetectors,
   } = useLocationWizardStore()
 
   const { approaches, location, addApproach } = useLocationStore()
-
   const { mutateAsync, isLoading } = useGetLocationSyncLocationFromKey()
 
   const [categories, setCategories] = useState<LocationDiscrepancyReport>({
@@ -43,9 +43,7 @@ const ApproachOptions = () => {
           approach.permissivePhaseNumber,
           approach.pedestrianPhaseNumber,
         ])
-        .filter(
-          (phaseNumber) => phaseNumber !== undefined && phaseNumber !== null
-        ),
+        .filter((phase) => phase != null),
     [approaches]
   )
 
@@ -55,27 +53,22 @@ const ApproachOptions = () => {
         .flatMap((approach) =>
           approach.detectors.map((det) => det.detectorChannel)
         )
-        .filter(
-          (detectorChannel) =>
-            detectorChannel !== undefined && detectorChannel !== null
-        ),
+        .filter((chan) => chan != null),
     [approaches]
   )
 
+  // The actual reconciliation logic
   const handleSyncLocation = useCallback(async () => {
-    if (!location?.id) {
-      return
-    }
+    if (!location?.id) return
 
     try {
-      const response = await mutateAsync({
-        key: location.id,
-      })
+      const response = await mutateAsync({ key: location.id })
 
+      // Identify removed approaches
       const notFoundApproaches =
         response?.removedApproachIds
           ?.map((id) => approaches.find((a) => a.id === id))
-          .filter((id) => id !== undefined && id !== null) || []
+          .filter(Boolean) || []
 
       if (response?.removedApproachIds) {
         setBadApproaches(response.removedApproachIds)
@@ -91,7 +84,6 @@ const ApproachOptions = () => {
           ...response.loggedButUnusedProtectedOrPermissivePhases
         )
       }
-
       if (response?.loggedButUnusedOverlapPhases) {
         foundPhaseNumbers.push(...response.loggedButUnusedOverlapPhases)
       }
@@ -105,32 +97,31 @@ const ApproachOptions = () => {
     } catch (error) {
       console.error(error)
     }
-  }, [
-    mutateAsync,
-    location?.id,
-    approaches,
-    setBadApproaches,
-    setBadDetectors,
-    setCategories,
-  ])
+  }, [mutateAsync, location?.id, approaches, setBadApproaches, setBadDetectors])
 
   /**
-   * If the wizard store sets approachSyncStatus = "READY_TO_RUN",
-   * we auto-run the sync once, then mark approachSyncStatus = "DONE".
+   * If the wizard sets approachVerificationStatus = "READY_TO_RUN",
+   * we auto-run the sync once, then mark approachVerificationStatus = "DONE".
    */
   useEffect(() => {
-    if (approachSyncStatus === 'READY_TO_RUN') {
+    if (approachVerificationStatus === 'READY_TO_RUN') {
       ;(async () => {
         await handleSyncLocation()
-        setApproachSyncStatus('DONE')
+        setApproachVerificationStatus('DONE')
       })()
     }
-  }, [approachSyncStatus, handleSyncLocation, setApproachSyncStatus])
+  }, [
+    approachVerificationStatus,
+    handleSyncLocation,
+    setApproachVerificationStatus,
+  ])
 
-  const approachesSynced = approachSyncStatus === 'DONE'
+  // If approachVerificationStatus === 'DONE', we've already run reconciliation
+  const approachesSynced = approachVerificationStatus === 'DONE'
 
   return (
     <Box>
+      {/* This "Sync" button is a manual way for user to re-run reconciliation */}
       <Box
         sx={{
           display: 'flex',
@@ -140,6 +131,7 @@ const ApproachOptions = () => {
         }}
       >
         <AddButton label="New Approach" onClick={addApproach} sx={{ mr: 1 }} />
+
         <LoadingButton
           startIcon={<SyncIcon />}
           loading={isLoading}
@@ -148,13 +140,14 @@ const ApproachOptions = () => {
           color="primary"
           onClick={async () => {
             await handleSyncLocation()
-            setApproachSyncStatus('DONE')
+            setApproachVerificationStatus('DONE')
           }}
         >
-          Sync
+          Reconcile Approaches
         </LoadingButton>
       </Box>
 
+      {/* Show some reconciliation results */}
       <ApproachesReconcilationReport
         synced={approachesSynced}
         categories={categories}
