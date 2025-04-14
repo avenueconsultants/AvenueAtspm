@@ -12,6 +12,7 @@ import {
   Box,
   Button,
   Collapse,
+  Divider,
   ListItemIcon,
   ListItemText,
   Menu,
@@ -261,7 +262,7 @@ export default function ApproachesReconcilationReport({
   }
 
   return (
-    <Paper sx={{ p: 2, my: 2, boxShadow: '0 0 15px rgba(0, 123, 255, 0.5)' }}>
+    <Paper sx={{ p: 2, my: 2 }}>
       <Box
         display="flex"
         justifyContent="space-between"
@@ -275,20 +276,37 @@ export default function ApproachesReconcilationReport({
         {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
       </Box>
       <Collapse in={open}>
-        <Box mt={2}>
-          <Typography variant="subtitle1" fontWeight="bold">
-            Found
+        <Paper
+          variant="outlined"
+          sx={{
+            mt: 2,
+            p: 2,
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+            Found in Data, Missing from Configuration
           </Typography>
-          {row('Phases (Missing Approach)', foundPhases)}
-          {row('Detector Channels (Missing Detector)', foundDetectors)}
-        </Box>
-        <Box mt={2}>
-          <Typography variant="subtitle1" fontWeight="bold">
-            Not Found
+          {row('Phases Without Approaches', foundPhases)}
+          <Divider sx={{ my: 2 }} />
+          {row('Detector Channels Without Detectors', foundDetectors)}
+        </Paper>
+        <Paper
+          variant="outlined"
+          sx={{
+            mt: 2,
+            p: 2,
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+            Configured, Missing in Data
           </Typography>
-          {row('Approaches (No Data)', notFoundApproaches)}
-          {row('Detectors (No Data)', notFoundDetectors)}
-        </Box>
+          {row('Configured Approaches with No Data', notFoundApproaches)}
+          <Divider sx={{ my: 2 }} />
+
+          {row('Configured Detectors with No Data', notFoundDetectors)}
+        </Paper>
       </Collapse>
       <Menu
         anchorEl={menuAnchor}
