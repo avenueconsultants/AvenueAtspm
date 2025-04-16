@@ -29,7 +29,6 @@ const ApproachEditorRowHeader = ({
   const { badApproaches } = useLocationWizardStore()
   const [isBadApproach, setIsBadApproach] = useState(false)
 
-  // Recalculate bad approach status when `badApproaches` changes
   useEffect(() => {
     setIsBadApproach(badApproaches.includes(approach.id))
   }, [badApproaches, approach.id])

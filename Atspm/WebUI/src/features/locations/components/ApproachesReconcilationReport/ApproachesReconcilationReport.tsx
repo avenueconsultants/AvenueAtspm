@@ -1,6 +1,7 @@
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { LocationDiscrepancyReport } from '@/features/locations/components/ApproachOptions/ApproachOptions'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
+import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { useNotificationStore } from '@/stores/notifications'
 import ExpandLessIcon from '@mui/icons-material/ExpandLess'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -39,17 +40,17 @@ export default function ApproachesReconcilationReport({
     addDetector,
   } = useLocationStore()
 
-  // Use the custom hook to compute statuses and expose updateStatus.
+  const { badApproaches, badDetectors, setBadApproaches, setBadDetectors } =
+    useLocationWizardStore()
+
   const { itemStatuses, updateStatus } = useDiscrepancyStatuses(
     categories,
     approaches
   )
 
-  // State for our context menu (shown on individual items)
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null)
   const [menuItem, setMenuItem] = useState<DiscrepancyItem | null>(null)
 
-  // State for delete confirmation modal.
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [deleteModalMode, setDeleteModalMode] = useState<'single' | 'all'>(
     'single'
@@ -57,7 +58,6 @@ export default function ApproachesReconcilationReport({
   const [pendingDeleteItem, setPendingDeleteItem] =
     useState<DiscrepancyItem | null>(null)
 
-  // Toggle open/closed state for the report.
   const [open, setOpen] = useState(true)
 
   if (!synced) return null
@@ -82,7 +82,7 @@ export default function ApproachesReconcilationReport({
     const phase = parseInt(item.label.toString(), 10)
     try {
       addApproach(phase)
-      updateStatus(item.id.toString(), 'added')
+      updateStatus(item.id.toString(), 'unsaved')
     } catch (err) {
       console.error(err)
     }
@@ -92,7 +92,7 @@ export default function ApproachesReconcilationReport({
     const channel = parseInt(item.label.toString(), 10)
     try {
       addDetector(approachId, channel)
-      updateStatus(item.id.toString(), 'added')
+      updateStatus(item.id.toString(), 'unsaved')
     } catch (err) {
       console.error(err)
     }
@@ -100,6 +100,13 @@ export default function ApproachesReconcilationReport({
 
   const handleIgnore = (item: DiscrepancyItem) => {
     updateStatus(item.id.toString(), 'ignored')
+    if (item.kind === 'NOT_FOUND_APP') {
+      setBadApproaches(badApproaches.filter((a) => a !== item.id))
+    } else if (item.kind === 'NOT_FOUND_DET') {
+      setBadDetectors(
+        badDetectors.filter((d) => d.detectorChannel !== item.label)
+      )
+    }
   }
 
   const handleDelete = (item: DiscrepancyItem) => {
@@ -115,25 +122,33 @@ export default function ApproachesReconcilationReport({
 
   const confirmDelete = async () => {
     if (deleteModalMode === 'all') {
-      // Bulk deletion for unmatched items.
-      categories.notFoundApproaches.forEach((approach) => {
-        deleteApproach(approach)
-      })
-      categories.notFoundDetectorChannels.forEach((det) => {
-        const storeDetectors = approaches.flatMap((a) => a.detectors)
-        const target = storeDetectors.find(
-          (d) => d.detectorChannel?.toString() === det.toString()
-        )
-        if (target) {
-          deleteDetector(target.id)
-        }
-      })
-      addNotification({
-        title: 'Deleted all unmatched configured items',
-        type: 'success',
-      })
+      try {
+        categories.notFoundApproaches.forEach((approach) => {
+          deleteApproach(approach)
+          updateStatus(approach.id.toString(), 'deleted')
+        })
+        categories.notFoundDetectorChannels.forEach((det) => {
+          const storeDetectors = approaches.flatMap((a) => a.detectors)
+          const target = storeDetectors.find(
+            (d) => d.detectorChannel?.toString() === det.toString()
+          )
+          if (target) {
+            deleteDetector(target.id)
+            updateStatus(target.id.toString(), 'deleted')
+          }
+        })
+        addNotification({
+          title: 'Deleted all discrepancy items',
+          type: 'success',
+        })
+      } catch (err) {
+        console.error(err)
+        addNotification({
+          title: 'Error deleting discrepancy items',
+          type: 'error',
+        })
+      }
     } else if (pendingDeleteItem) {
-      // Single deletion: check the kind of item and delete accordingly.
       if (pendingDeleteItem.kind === 'NOT_FOUND_APP') {
         const approachId = parseInt(
           pendingDeleteItem.id.toString().replace('notfound_app_', ''),
@@ -142,10 +157,18 @@ export default function ApproachesReconcilationReport({
         const target = approaches.find((a) => a.id === approachId)
         if (target) {
           try {
-            await deleteApproach(target)
+            deleteApproach(target)
             updateStatus(pendingDeleteItem.id.toString(), 'deleted')
+            addNotification({
+              title: `Deleted approach ${target.description}`,
+              type: 'success',
+            })
           } catch (err) {
             console.error(err)
+            addNotification({
+              title: `Error deleting approach ${target.description}`,
+              type: 'error',
+            })
           }
         }
       } else if (pendingDeleteItem.kind === 'NOT_FOUND_DET') {
@@ -156,18 +179,24 @@ export default function ApproachesReconcilationReport({
         )
         if (target) {
           try {
-            await deleteDetector(target.id)
+            deleteDetector(target.id)
             updateStatus(pendingDeleteItem.id.toString(), 'deleted')
+            addNotification({
+              title: `Deleted detector ${target.detectorChannel}`,
+              type: 'success',
+            })
           } catch (err) {
             console.error(err)
+            addNotification({
+              title: `Error deleting detector ${target.detectorChannel}`,
+              type: 'error',
+            })
           }
         }
       }
     }
     setDeleteModalOpen(false)
   }
-
-  // --- Build Items for Each Section ---
 
   const foundPhases: DiscrepancyItem[] = categories.foundPhaseNumbers.map(
     (phase) => ({
@@ -198,10 +227,8 @@ export default function ApproachesReconcilationReport({
       label: det,
     }))
 
-  // --- Rendering ---
   return (
     <Paper sx={{ p: 2, my: 2 }}>
-      {/* Report Title */}
       <Box
         display="flex"
         justifyContent="space-between"
@@ -209,38 +236,25 @@ export default function ApproachesReconcilationReport({
         sx={{ cursor: 'pointer' }}
         onClick={toggle}
       >
-        <Typography variant="h5" fontWeight="bold">
-          Approaches Reconciliation Report
-        </Typography>
+        <Typography variant="h4">Approaches Reconciliation Report</Typography>
         {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
       </Box>
 
       <Collapse in={open}>
+        <Divider sx={{ my: 2 }} />
+        <Typography variant="h4" sx={{ mb: 1 }} fontWeight="bold">
+          Found
+        </Typography>
+        <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+          Data was found for the following unconfigured items:
+        </Typography>
         <Paper
           variant="outlined"
-          sx={{
-            mt: 2,
-            p: 2,
-            backgroundColor: theme.palette.background.default,
-          }}
+          sx={{ p: 2, mb: 2, backgroundColor: theme.palette.grey[50] }}
         >
-          <Typography variant="subtitle1" fontWeight="bold">
-            Items Present in the Logs but not Configured
-          </Typography>
-          <Typography variant="caption">
-            These items are present in the logs but not configured. You can
-            ignore them or add them.
-          </Typography>
           <DiscrepancyRow
-            title="Phases Without Approaches"
+            title="Phases"
             items={foundPhases}
-            itemStatuses={itemStatuses}
-            onButtonClick={(item, e) => openMenu(e, item)}
-          />
-          <Divider sx={{ my: 2 }} />
-          <DiscrepancyRow
-            title="Detector Channels Without Detectors"
-            items={foundDetectors}
             itemStatuses={itemStatuses}
             onButtonClick={(item, e) => openMenu(e, item)}
           />
@@ -248,35 +262,54 @@ export default function ApproachesReconcilationReport({
 
         <Paper
           variant="outlined"
-          sx={{
-            mt: 2,
-            p: 2,
-            backgroundColor: theme.palette.background.default,
-          }}
+          sx={{ p: 2, backgroundColor: theme.palette.grey[50] }}
         >
-          <Box display="flex" justifyContent="space-between" mb={2}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-              Items Configured but not Present in the Logs
-            </Typography>
-            <Button
-              variant="outlined"
-              color="error"
-              size="small"
-              onClick={() => openDeleteDialog('all')}
-              sx={{ height: 32 }}
-            >
-              Delete All
-            </Button>
-          </Box>
+          {/* <Divider sx={{ my: 2 }} /> */}
           <DiscrepancyRow
-            title="Configured Approaches with No Data"
+            title="Detector Channels"
+            items={foundDetectors}
+            itemStatuses={itemStatuses}
+            onButtonClick={(item, e) => openMenu(e, item)}
+          />
+        </Paper>
+        <Divider sx={{ my: 2 }} />
+
+        <Box display={'flex'} justifyContent={'space-between'}>
+          <Box>
+            <Typography variant="h4" sx={{ mb: 1 }} fontWeight="bold">
+              Not Found
+            </Typography>
+            <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+              No data was found for the following configured items:
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            color="error"
+            size="small"
+            onClick={() => openDeleteDialog('all')}
+            sx={{ height: 32 }}
+          >
+            Delete All
+          </Button>
+        </Box>
+        <Paper
+          variant="outlined"
+          sx={{ p: 2, mb: 2, backgroundColor: theme.palette.grey[50] }}
+        >
+          <DiscrepancyRow
+            title="Approaches/Phases"
             items={notFoundApproaches}
             itemStatuses={itemStatuses}
             onButtonClick={(item, e) => openMenu(e, item)}
           />
-          <Divider sx={{ my: 2 }} />
+        </Paper>
+        <Paper
+          variant="outlined"
+          sx={{ p: 2, backgroundColor: theme.palette.grey[50] }}
+        >
           <DiscrepancyRow
-            title="Configured Detectors with No Data"
+            title="Detectors"
             items={notFoundDetectors}
             itemStatuses={itemStatuses}
             onButtonClick={(item, e) => openMenu(e, item)}

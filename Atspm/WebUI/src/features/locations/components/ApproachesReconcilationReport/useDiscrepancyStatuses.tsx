@@ -35,7 +35,7 @@ const useDiscrepancyStatuses = (
 
   useEffect(() => {
     categories.notFoundApproaches.forEach((approach) => {
-      const key = `notfound_app_${approach.id}`
+      const key = approach.id
       const exists = approaches.some((a) => a.id === approach.id)
       if (!exists && itemStatuses[key] !== 'deleted') {
         setItemStatuses((prev) => ({ ...prev, [key]: 'deleted' }))
@@ -62,7 +62,7 @@ const useDiscrepancyStatuses = (
   // Update statuses for found phase numbers.
   useEffect(() => {
     categories.foundPhaseNumbers.forEach((phase) => {
-      const key = `found_phase_${phase}`
+      const key = phase
       const matchingApproaches = approaches.filter(
         (a) => a.protectedPhaseNumber === phase
       )
@@ -84,7 +84,7 @@ const useDiscrepancyStatuses = (
   // Update statuses for found detector channels.
   useEffect(() => {
     categories.foundDetectorChannels.forEach((det) => {
-      const key = `found_det_${det}`
+      const key = det
       const matchingDetectors = approaches
         .flatMap((a) => a.detectors)
         .filter((d) => d.detectorChannel?.toString() === det.toString())
@@ -102,6 +102,8 @@ const useDiscrepancyStatuses = (
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [approaches, categories.foundDetectorChannels])
+
+  console.log('Item statuses:', itemStatuses)
 
   return { itemStatuses, updateStatus }
 }

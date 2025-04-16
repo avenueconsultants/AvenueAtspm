@@ -16,13 +16,13 @@ const DiscrepancyButton = ({
   const theme = useTheme()
   if (status === 'unsaved') {
     return (
-      <Tooltip title="Detected but unsaved. We see it, but it is not yet finalized.">
+      <Tooltip title="Added but unsaved.">
         <Button
           variant="contained"
-          color="success"
           onClick={onClick}
           size="small"
-          sx={{ margin: 1 }}
+          // color="success"
+          sx={{ margin: 1, backgroundColor: '#59b259' }}
           disableElevation
         >
           {item.label}

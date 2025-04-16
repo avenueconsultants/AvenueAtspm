@@ -38,7 +38,7 @@ const DiscrepancyRow = ({
     return (
       <Box mb={1}>
         <Box display="flex" alignItems="center">
-          <Typography variant="subtitle2">{title}</Typography>
+          <Typography variant="subtitle1">{title}</Typography>
           <Tooltip title="Looks good!" arrow placement="top">
             <CheckCircleIcon
               fontSize="small"
@@ -52,7 +52,7 @@ const DiscrepancyRow = ({
 
   return (
     <Box mb={1}>
-      <Typography variant="subtitle2">{title}</Typography>
+      <Typography variant="subtitle1">{title}</Typography>
       <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" rowGap={1}>
         {displayItems.map((item) => (
           <DiscrepancyButton

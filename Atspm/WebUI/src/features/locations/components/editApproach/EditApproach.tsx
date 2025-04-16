@@ -143,6 +143,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
 
     editApproach(modifiedApproach, {
       onSuccess: (saved) => {
+        console.log('Saving approach:', saved)
         try {
           const detectorsArray = saved.detectors?.$values || []
           detectorsArray.forEach((detector) => {

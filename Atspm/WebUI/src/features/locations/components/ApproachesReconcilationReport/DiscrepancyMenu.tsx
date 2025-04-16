@@ -27,17 +27,28 @@ const DiscrepancyMenu = ({
   approaches,
 }: DiscrepancyMenuProps) => {
   if (!menuItem) return null
+
   return (
     <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={onClose}>
       {menuItem.kind === 'FOUND_PHASE' && (
         <Box>
-          <MenuItem onClick={() => onIgnore(menuItem)}>
+          <MenuItem
+            onClick={() => {
+              onIgnore(menuItem)
+              onClose()
+            }}
+          >
             <ListItemIcon>
               <RemoveIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Ignore</ListItemText>
           </MenuItem>
-          <MenuItem onClick={() => onAddApproach(menuItem)}>
+          <MenuItem
+            onClick={() => {
+              onAddApproach(menuItem)
+              onClose()
+            }}
+          >
             <ListItemIcon>
               <AddCircleIcon fontSize="small" />
             </ListItemIcon>
@@ -47,14 +58,25 @@ const DiscrepancyMenu = ({
       )}
       {menuItem.kind === 'FOUND_DET' && (
         <Box>
-          <MenuItem onClick={() => onIgnore(menuItem)}>
+          <MenuItem
+            onClick={() => {
+              onIgnore(menuItem)
+              onClose()
+            }}
+          >
             <ListItemIcon>
               <RemoveIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Ignore</ListItemText>
           </MenuItem>
           {approaches.map((a) => (
-            <MenuItem key={a.id} onClick={() => onAddDetector(a.id, menuItem)}>
+            <MenuItem
+              key={a.id}
+              onClick={() => {
+                onAddDetector(a.id, menuItem)
+                onClose()
+              }}
+            >
               <ListItemIcon>
                 <AddCircleIcon fontSize="small" />
               </ListItemIcon>
@@ -67,13 +89,23 @@ const DiscrepancyMenu = ({
       )}
       {menuItem.kind === 'NOT_FOUND_APP' && (
         <Box>
-          <MenuItem onClick={() => onIgnore(menuItem)}>
+          <MenuItem
+            onClick={() => {
+              onIgnore(menuItem)
+              onClose()
+            }}
+          >
             <ListItemIcon>
               <RemoveIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Ignore</ListItemText>
           </MenuItem>
-          <MenuItem onClick={() => onDelete(menuItem)}>
+          <MenuItem
+            onClick={() => {
+              onDelete(menuItem)
+              onClose()
+            }}
+          >
             <ListItemIcon>
               <DeleteIcon fontSize="small" />
             </ListItemIcon>
@@ -83,13 +115,23 @@ const DiscrepancyMenu = ({
       )}
       {menuItem.kind === 'NOT_FOUND_DET' && (
         <Box>
-          <MenuItem onClick={() => onIgnore(menuItem)}>
+          <MenuItem
+            onClick={() => {
+              onIgnore(menuItem)
+              onClose()
+            }}
+          >
             <ListItemIcon>
               <RemoveIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>Ignore</ListItemText>
           </MenuItem>
-          <MenuItem onClick={() => onDelete(menuItem)}>
+          <MenuItem
+            onClick={() => {
+              onDelete(menuItem)
+              onClose()
+            }}
+          >
             <ListItemIcon>
               <DeleteIcon fontSize="small" />
             </ListItemIcon>
