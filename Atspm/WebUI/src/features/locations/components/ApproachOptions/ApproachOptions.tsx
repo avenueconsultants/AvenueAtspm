@@ -1,6 +1,6 @@
 import { useGetLocationSyncLocationFromKey } from '@/api/config/aTSPMConfigurationApi'
 import { AddButton } from '@/components/addButton'
-import ApproachesReconcilationReport from '@/features/locations/components/ApproachesReconcilationReport'
+import ApproachesReconcilationReport from '@/features/locations/components/ApproachesReconcilationReport/ApproachesReconcilationReport'
 import { ConfigApproach } from '@/features/locations/components/editLocation/editLocationConfigHandler'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
@@ -130,7 +130,11 @@ const ApproachOptions = () => {
           mb: 1,
         }}
       >
-        <AddButton label="New Approach" onClick={addApproach} sx={{ mr: 1 }} />
+        <AddButton
+          label="New Approach"
+          onClick={() => addApproach()}
+          sx={{ mr: 1 }}
+        />
 
         <LoadingButton
           startIcon={<SyncIcon />}
