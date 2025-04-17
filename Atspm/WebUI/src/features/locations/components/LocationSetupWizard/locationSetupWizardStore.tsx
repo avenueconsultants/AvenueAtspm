@@ -3,6 +3,9 @@ import { create } from 'zustand'
 type Status = 'NOT_STARTED' | 'READY_TO_RUN' | 'DONE'
 
 interface LocationWizardStore {
+  // Whether to show the wizard or not
+  useWizard: boolean
+  setUseWizard: (useWizard: boolean) => void
   // Current step in the wizard (0 = placeholder, 1 = verify devices, 2 = verify approaches)
   activeStep: number
   setActiveStep: (step: number) => void
@@ -27,6 +30,7 @@ interface LocationWizardStore {
 
 export const useLocationWizardStore = create<LocationWizardStore>(
   (set, get) => ({
+    useWizard: false,
     activeStep: 0,
 
     deviceVerificationStatus: 'NOT_STARTED',
@@ -34,6 +38,8 @@ export const useLocationWizardStore = create<LocationWizardStore>(
 
     badApproaches: [],
     badDetectors: [],
+
+    setUseWizard: (useWizard) => set({ useWizard }),
 
     setActiveStep: (step) => {
       set({ activeStep: step })

@@ -15,7 +15,7 @@ import { useNotificationStore } from '@/stores/notifications'
 import AddIcon from '@mui/icons-material/Add'
 import LanIcon from '@mui/icons-material/Lan'
 import { Avatar, Box, Button, Modal, Typography, useTheme } from '@mui/material'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const deviceEventResultsMock = [
   {
@@ -89,39 +89,40 @@ const EditDevices = () => {
     { query: { enabled: false } }
   )
 
+  const handleResync = useCallback(
+    () => async () => {
+      try {
+        setIsFetchingEvents(true)
+        setMockEventData([])
+
+        await fetchDeviceEventResults()
+
+        await new Promise<void>((resolve) => {
+          setTimeout(() => {
+            setMockEventData(deviceEventResultsMock)
+            resolve()
+          }, 1500)
+        })
+      } catch (err) {
+        console.error('Failed to fetch device event data: ', err)
+      } finally {
+        setIsFetchingEvents(false)
+      }
+    },
+    [fetchDeviceEventResults]
+  )
+
   // ------------------------------------------------
   // 1) If the wizard says "READY_TO_RUN", open modal & run check
   // ------------------------------------------------
   useEffect(() => {
-    if (deviceVerificationStatus === 'READY_TO_RUN') {
-      setShowSyncModal(true)
-      handleResync()
-    }
-  }, [deviceVerificationStatus, setDeviceVerificationStatus])
+    if (deviceVerificationStatus !== 'READY_TO_RUN') return
 
-  const handleResync = async () => {
-    try {
-      setIsFetchingEvents(true)
-      setMockEventData([])
+    setShowSyncModal(true)
+    handleResync()
+    setDeviceVerificationStatus('DONE')
+  }, [deviceVerificationStatus, setDeviceVerificationStatus, handleResync])
 
-      await fetchDeviceEventResults()
-
-      await new Promise<void>((resolve) => {
-        setTimeout(() => {
-          setMockEventData(deviceEventResultsMock)
-          resolve()
-        }, 1500)
-      })
-    } catch (err) {
-      console.error('Failed to fetch device event data: ', err)
-    } finally {
-      setIsFetchingEvents(false)
-    }
-  }
-
-  // ------------------------------------------------
-  // 3) Combine device + event results
-  // ------------------------------------------------
   const combinedDevices: CombinedDevice[] = useMemo(() => {
     if (!devices.length) return []
     const finalEventData = mockEventData.length

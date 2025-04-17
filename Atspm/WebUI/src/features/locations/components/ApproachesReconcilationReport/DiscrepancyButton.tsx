@@ -21,8 +21,15 @@ const DiscrepancyButton = ({
           variant="contained"
           onClick={onClick}
           size="small"
-          // color="success"
-          sx={{ margin: 1, backgroundColor: '#59b259' }}
+          // on hover make background darker green
+          sx={{
+            margin: 1,
+            backgroundColor: '#d0f1d0',
+            color: 'black',
+            '&:hover': {
+              backgroundColor: '#b0e0b0',
+            },
+          }}
           disableElevation
         >
           {item.label}

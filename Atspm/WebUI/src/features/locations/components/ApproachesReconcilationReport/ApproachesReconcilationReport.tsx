@@ -20,14 +20,10 @@ import DiscrepancyRow, { DiscrepancyItem } from './DiscrepancyRow'
 import useDiscrepancyStatuses from './useDiscrepancyStatuses'
 
 interface ApproachesReconcilationReportProps {
-  synced: boolean
   categories: LocationDiscrepancyReport
-  syncedPhases: number[]
-  syncedDetectors: number[]
 }
 
 export default function ApproachesReconcilationReport({
-  synced,
   categories,
 }: ApproachesReconcilationReportProps) {
   const theme = useTheme()
@@ -59,8 +55,6 @@ export default function ApproachesReconcilationReport({
     useState<DiscrepancyItem | null>(null)
 
   const [open, setOpen] = useState(true)
-
-  if (!synced) return null
 
   const toggle = () => setOpen(!open)
 
@@ -226,6 +220,13 @@ export default function ApproachesReconcilationReport({
       id: det,
       label: det,
     }))
+
+  const pendingNotFoundIds = Object.keys(itemStatuses).filter(
+    (id) =>
+      (categories.notFoundApproaches.some((a) => a.id == id) ||
+        categories.notFoundDetectorChannels.includes(id)) &&
+      itemStatuses[id] === 'pending'
+  )
 
   return (
     <Paper sx={{ p: 2, my: 2 }}>

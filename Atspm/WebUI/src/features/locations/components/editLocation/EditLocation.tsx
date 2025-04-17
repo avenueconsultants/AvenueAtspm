@@ -11,20 +11,22 @@ import EditLocationHeader from './EditLocationHeader'
 import WatchdogEditor from './WatchdogEditor'
 
 function EditLocation() {
-  const { activeStep } = useLocationWizardStore()
+  const { useWizard, deviceVerificationStatus, approachVerificationStatus } =
+    useLocationWizardStore()
   const location = useLocationStore((state) => state.location)
   const [currentTab, setCurrentTab] = useState('1')
 
   useEffect(() => {
+    if (!useWizard) return // Don't run if not using wizard
     // For a 2-step wizard:
-    //  step 0 => "Devices" => tab "2"
-    //  step 1 => "Approaches" => tab "3"
-    if (activeStep === 0) {
+    //  step 1 => "Devices" => tab "2"
+    //  step 2 => "Approaches" => tab "3"
+    if (deviceVerificationStatus === 'READY_TO_RUN') {
       setCurrentTab('2') // Devices tab
-    } else if (activeStep === 1) {
+    } else if (approachVerificationStatus === 'READY_TO_RUN') {
       setCurrentTab('3') // Approaches tab
     }
-  }, [activeStep])
+  }, [useWizard, deviceVerificationStatus, approachVerificationStatus])
 
   const handleTabChange = useCallback((_: SyntheticEvent, newTab: string) => {
     setCurrentTab(newTab)

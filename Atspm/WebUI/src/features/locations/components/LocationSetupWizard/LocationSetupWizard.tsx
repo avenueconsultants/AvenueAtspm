@@ -36,25 +36,22 @@ export default function LocationSetupWizard() {
     setActiveStep,
     setDeviceVerificationStatus,
     setApproachVerificationStatus,
+    resetStore,
+    setUseWizard,
   } = useLocationWizardStore()
 
-  const [isComplete, setIsComplete] = React.useState(false)
   const [isMinimized, setIsMinimized] = React.useState(false)
   const [isClosed, setIsClosed] = React.useState(false)
 
   const handleFinish = () => {
-    setIsComplete(true)
+    setUseWizard(false)
+    setIsClosed(true)
+
     addNotification({
       title: 'Location setup completed! 🎉',
       type: 'success',
     })
-  }
-
-  const handleReset = () => {
-    setIsComplete(false)
-    setActiveStep(0)
-    setDeviceVerificationStatus?.('NOT_STARTED')
-    setApproachVerificationStatus?.('NOT_STARTED')
+    resetStore()
   }
 
   const handleNextStep = () => {
@@ -69,19 +66,13 @@ export default function LocationSetupWizard() {
 
   // STEP 0: "Verify Devices"
   const handleVerifyDevices = () => {
-    if (activeStep !== 0) {
-      setActiveStep(0)
-    }
-    // Tells <EditDevices> to open the IP checker modal
+    setActiveStep(0)
     setDeviceVerificationStatus?.('READY_TO_RUN')
   }
 
   // STEP 1: "Reconcile Detectors & Approaches"
   const handleReconcileApproaches = () => {
-    if (activeStep !== 1) {
-      setActiveStep(1)
-    }
-    // Tells <ApproachOptions> to run the reconciliation
+    setActiveStep(1)
     setApproachVerificationStatus?.('READY_TO_RUN')
   }
 
@@ -94,7 +85,7 @@ export default function LocationSetupWizard() {
         position: 'fixed',
         bottom: 20,
         right: 20,
-        width: 350,
+        width: 370,
         zIndex: 1300,
         maxHeight: '80vh',
         overflowY: 'auto',
@@ -104,7 +95,6 @@ export default function LocationSetupWizard() {
         boxShadow: 3,
       }}
     >
-      {/* Header with Title and Action Buttons */}
       <Box
         sx={{
           display: 'flex',
@@ -136,66 +126,85 @@ export default function LocationSetupWizard() {
       </Box>
 
       {!isMinimized && (
-        <>
-          <Stepper activeStep={activeStep} orientation="vertical">
-            {steps.map((step, index) => (
-              <Step key={step.label} completed={activeStep > index}>
-                <StepLabel>{step.label}</StepLabel>
-                <StepContent>
-                  <Typography variant="body2" color="text.secondary">
-                    {step.description}
-                  </Typography>
+        <Stepper activeStep={activeStep} orientation="vertical">
+          {steps.map((step, index) => (
+            <Step key={step.label} completed={activeStep > index}>
+              <StepLabel>{step.label}</StepLabel>
+              <StepContent>
+                <Typography
+                  variant="body2"
+                  sx={{ fontSize: '.85rem' }}
+                  color="text.secondary"
+                >
+                  {step.description}
+                </Typography>
 
-                  <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                    {/* Step 0 => Verify Devices */}
-                    {index === 0 && (
-                      <>
-                        <Button
-                          variant="contained"
-                          onClick={handleVerifyDevices}
-                        >
-                          Run Verification
-                        </Button>
-                        <Button variant="outlined" onClick={handleNextStep}>
-                          Next
-                        </Button>
-                      </>
-                    )}
+                <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
+                  {/* Step 0 => Verify Devices */}
+                  {index === 0 && (
+                    <>
+                      <Button
+                        variant="contained"
+                        onClick={handleVerifyDevices}
+                        sx={{
+                          textTransform: 'none',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Run Verification
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={handleNextStep}
+                        sx={{
+                          textTransform: 'none',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Next
+                      </Button>
+                    </>
+                  )}
 
-                    {index === 1 && (
-                      <>
-                        <Button
-                          variant="contained"
-                          onClick={handleReconcileApproaches}
-                        >
-                          Run Reconciliation
-                        </Button>
-                        <Button variant="outlined" onClick={handlePrevStep}>
-                          Back
-                        </Button>
-                        {/* Uncomment and use when needed */}
-                        {/* <Button onClick={handleFinish} color="success">
-                          Finish Setup
-                        </Button> */}
-                      </>
-                    )}
-                  </Box>
-                </StepContent>
-              </Step>
-            ))}
-          </Stepper>
-
-          {isComplete && (
-            <Box mt={2}>
-              <Typography variant="body2" color="success.main">
-                All steps completed!
-              </Typography>
-              <Button onClick={handleReset} sx={{ mt: 1 }} size="small">
-                Reset Wizard
-              </Button>
-            </Box>
-          )}
-        </>
+                  {index === 1 && (
+                    <>
+                      <Button
+                        variant="outlined"
+                        onClick={handlePrevStep}
+                        sx={{
+                          textTransform: 'none',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Back
+                      </Button>
+                      <Button
+                        variant="contained"
+                        onClick={handleReconcileApproaches}
+                        sx={{
+                          textTransform: 'none',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Run Reconciliation
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={handleFinish}
+                        sx={{
+                          textTransform: 'none',
+                          fontSize: '0.8rem',
+                        }}
+                      >
+                        Finish
+                      </Button>
+                    </>
+                  )}
+                </Box>
+              </StepContent>
+            </Step>
+          ))}
+        </Stepper>
       )}
     </Box>
   )

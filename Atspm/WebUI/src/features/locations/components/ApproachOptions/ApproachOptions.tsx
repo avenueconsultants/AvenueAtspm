@@ -17,7 +17,6 @@ export interface LocationDiscrepancyReport {
 }
 
 const ApproachOptions = () => {
-  // Pull approachVerificationStatus from store
   const {
     approachVerificationStatus,
     setApproachVerificationStatus,
@@ -57,7 +56,6 @@ const ApproachOptions = () => {
     [approaches]
   )
 
-  // The actual reconciliation logic
   const handleSyncLocation = useCallback(async () => {
     if (!location?.id) return
 
@@ -97,31 +95,34 @@ const ApproachOptions = () => {
     } catch (error) {
       console.error(error)
     }
-  }, [mutateAsync, location?.id, approaches, setBadApproaches, setBadDetectors])
+    setApproachVerificationStatus('DONE')
+  }, [
+    mutateAsync,
+    location?.id,
+    approaches,
+    setBadApproaches,
+    setBadDetectors,
+    setApproachVerificationStatus,
+  ])
 
-  /**
-   * If the wizard sets approachVerificationStatus = "READY_TO_RUN",
-   * we auto-run the sync once, then mark approachVerificationStatus = "DONE".
-   */
   useEffect(() => {
-    if (approachVerificationStatus === 'READY_TO_RUN') {
-      ;(async () => {
+    async function handleSyncLocationOnMount() {
+      if (approachVerificationStatus === 'READY_TO_RUN') {
         await handleSyncLocation()
         setApproachVerificationStatus('DONE')
-      })()
+      }
     }
+    handleSyncLocationOnMount()
   }, [
     approachVerificationStatus,
     handleSyncLocation,
     setApproachVerificationStatus,
   ])
 
-  // If approachVerificationStatus === 'DONE', we've already run reconciliation
   const approachesSynced = approachVerificationStatus === 'DONE'
 
   return (
     <Box>
-      {/* This "Sync" button is a manual way for user to re-run reconciliation */}
       <Box
         sx={{
           display: 'flex',
@@ -142,22 +143,15 @@ const ApproachOptions = () => {
           loadingPosition="start"
           variant="contained"
           color="primary"
-          onClick={async () => {
-            await handleSyncLocation()
-            setApproachVerificationStatus('DONE')
-          }}
+          onClick={handleSyncLocation}
         >
           Reconcile Approaches
         </LoadingButton>
       </Box>
 
-      {/* Show some reconciliation results */}
-      <ApproachesReconcilationReport
-        synced={approachesSynced}
-        categories={categories}
-        syncedPhases={currentPhaseNumbersUsed}
-        syncedDetectors={currentDetectorChannelsUsed}
-      />
+      {approachesSynced && (
+        <ApproachesReconcilationReport categories={categories} />
+      )}
     </Box>
   )
 }

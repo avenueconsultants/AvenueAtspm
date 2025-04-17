@@ -29,9 +29,36 @@ const useDiscrepancyStatuses = (
   )
 
   const updateStatus = (id: string, status: ItemStatus) => {
-    console.log(`Updating status for ${id} to ${status}`)
     setItemStatuses((prev) => ({ ...prev, [id]: status }))
   }
+
+  useEffect(() => {
+    // set initial status to pending for everything
+    categories.notFoundApproaches.forEach((approach) => {
+      const key = approach.id
+      if (!itemStatuses[key]) {
+        setItemStatuses((prev) => ({ ...prev, [key]: 'pending' }))
+      }
+    })
+    categories.notFoundDetectorChannels.forEach((det) => {
+      const key = det
+      if (!itemStatuses[key]) {
+        setItemStatuses((prev) => ({ ...prev, [key]: 'pending' }))
+      }
+    })
+    categories.foundPhaseNumbers.forEach((phase) => {
+      const key = phase
+      if (!itemStatuses[key]) {
+        setItemStatuses((prev) => ({ ...prev, [key]: 'pending' }))
+      }
+    })
+    categories.foundDetectorChannels.forEach((det) => {
+      const key = det
+      if (!itemStatuses[key]) {
+        setItemStatuses((prev) => ({ ...prev, [key]: 'pending' }))
+      }
+    })
+  }, [categories, itemStatuses])
 
   useEffect(() => {
     categories.notFoundApproaches.forEach((approach) => {
@@ -50,7 +77,7 @@ const useDiscrepancyStatuses = (
       a.detectors.map((d) => d.detectorChannel?.toString())
     )
     categories.notFoundDetectorChannels.forEach((det) => {
-      const key = `notfound_det_${det}`
+      const key = det
       const exists = storeDetectorChannels.includes(det)
       if (!exists && itemStatuses[key] !== 'deleted') {
         setItemStatuses((prev) => ({ ...prev, [key]: 'deleted' }))
@@ -102,8 +129,6 @@ const useDiscrepancyStatuses = (
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [approaches, categories.foundDetectorChannels])
-
-  console.log('Item statuses:', itemStatuses)
 
   return { itemStatuses, updateStatus }
 }

@@ -11,6 +11,7 @@ import LocationEditor from '@/features/locations/components/editLocation/EditLoc
 import NewLocationModal from '@/features/locations/components/editLocation/NewLocationModal'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import SelectLocation from '@/features/locations/components/selectLocation/SelectLocation'
+import { Button } from '@mui/material'
 import { useCallback, useState } from 'react'
 
 export async function getLocation(locationId: number) {
@@ -32,10 +33,12 @@ const LocationsAdmin = () => {
   const location = useLocationStore((s) => s.location)
   const setLocation = useLocationStore((s) => s.setLocation)
   const resetStore = useLocationWizardStore((s) => s.resetStore)
+  const setUseWizard = useLocationWizardStore((s) => s.setUseWizard)
+  const useWizard = useLocationWizardStore((s) => s.useWizard)
 
   const pageAccess = useViewPage(PageNames.Location)
   const [isModalOpen, setModalOpen] = useState(false)
-  const [isWizardOpen, setIsWizardOpen] = useState(true)
+  const [isWizardOpen, setIsWizardOpen] = useState(false)
 
   const handleSetLocation = useCallback(
     async (selectedLocation: Location | null) => {
@@ -51,7 +54,7 @@ const LocationsAdmin = () => {
   )
 
   const handleOpenWizard = () => {
-    setIsWizardOpen(true)
+    setUseWizard(true)
   }
 
   const openNewLocationModal = useCallback(() => setModalOpen(true), [])
@@ -73,6 +76,7 @@ const LocationsAdmin = () => {
           mapHeight={400}
         />
       </StyledPaper>
+      <Button onClick={handleOpenWizard}>Use Wizard</Button>
       {location && <LocationEditor />}
       {isModalOpen && (
         <NewLocationModal
@@ -81,7 +85,7 @@ const LocationsAdmin = () => {
           onCreatedFromTemplate={handleOpenWizard}
         />
       )}
-      {isWizardOpen && (
+      {useWizard && (
         <LocationSetupWizard
           open={isWizardOpen}
           onClose={() => setIsWizardOpen(false)}
