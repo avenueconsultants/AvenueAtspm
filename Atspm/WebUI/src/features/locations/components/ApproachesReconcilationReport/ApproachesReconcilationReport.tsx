@@ -246,7 +246,7 @@ export default function ApproachesReconcilationReport({
           Found
         </Typography>
         <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-          Data was found for the following unconfigured items:
+          Data was found for the following unconfigured items
         </Typography>
         <Paper
           variant="outlined"
@@ -274,24 +274,28 @@ export default function ApproachesReconcilationReport({
         </Paper>
         <Divider sx={{ my: 2 }} />
 
-        <Box display={'flex'} justifyContent={'space-between'}>
+        <Box display={'flex'}>
           <Box>
-            <Typography variant="h4" sx={{ mb: 1 }} fontWeight="bold">
-              Not Found
-            </Typography>
+            <Box display="flex" alignItems="center" sx={{ mb: 1 }}>
+              <Typography variant="h4" fontWeight="bold">
+                Not Found
+              </Typography>
+              {notFoundApproaches.length > 0 || notFoundDetectors.length > 0 ? (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  size="small"
+                  onClick={() => openDeleteDialog('all')}
+                  sx={{ height: 24, ml: 1 }}
+                >
+                  Delete All
+                </Button>
+              ) : null}
+            </Box>
             <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-              No data was found for the following configured items:
+              No data was found for the following configured items
             </Typography>
           </Box>
-          <Button
-            variant="outlined"
-            color="error"
-            size="small"
-            onClick={() => openDeleteDialog('all')}
-            sx={{ height: 32 }}
-          >
-            Delete All
-          </Button>
         </Box>
         <Paper
           variant="outlined"
@@ -338,7 +342,7 @@ export default function ApproachesReconcilationReport({
         }
         name={
           deleteModalMode === 'all'
-            ? 'All Unmatched Items'
+            ? 'All Discrepancy Items'
             : pendingDeleteItem?.label.toString() || ''
         }
         objectType={
@@ -353,7 +357,7 @@ export default function ApproachesReconcilationReport({
         onConfirm={confirmDelete}
         selectedRow={
           deleteModalMode === 'all'
-            ? { id: 0, name: 'All Unmatched Items' }
+            ? { id: 0, name: 'All Discrepancy Items' }
             : pendingDeleteItem
         }
         associatedObjects={

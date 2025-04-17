@@ -36,23 +36,23 @@ const DiscrepancyRow = ({
 
   if (!displayItems.length) {
     return (
-      <Box mb={1}>
-        <Box display="flex" alignItems="center">
-          <Typography variant="subtitle1">{title}</Typography>
-          <Tooltip title="Looks good!" arrow placement="top">
-            <CheckCircleIcon
-              fontSize="small"
-              sx={{ ml: 1, color: theme.palette.success.main }}
-            />
-          </Tooltip>
-        </Box>
+      <Box display="flex" alignItems="center">
+        <Typography variant="subtitle1">{title}</Typography>
+        <Tooltip title="No discrepancies found" arrow placement="top">
+          <CheckCircleIcon
+            fontSize="small"
+            sx={{ ml: 1, color: theme.palette.success.main }}
+          />
+        </Tooltip>
       </Box>
     )
   }
 
   return (
-    <Box mb={1}>
-      <Typography variant="subtitle1">{title}</Typography>
+    <>
+      <Typography variant="subtitle1" sx={{ margin: 'auto' }}>
+        {title}
+      </Typography>
       <Stack direction="row" spacing={1} mt={1} flexWrap="wrap" rowGap={1}>
         {displayItems.map((item) => (
           <DiscrepancyButton
@@ -63,7 +63,7 @@ const DiscrepancyRow = ({
           />
         ))}
       </Stack>
-    </Box>
+    </>
   )
 }
 
