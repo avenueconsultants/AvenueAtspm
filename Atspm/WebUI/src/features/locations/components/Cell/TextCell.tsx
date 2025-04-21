@@ -2,6 +2,7 @@ import { useCellNavigation } from '@/features/locations/components/Cell/CellNavi
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import {
+  alpha,
   Box,
   Input,
   InputAdornment,
@@ -108,94 +109,105 @@ export const TextCell: React.FC<TextCellProps> = ({
   )
 
   const outlineColor = theme.palette.primary.main
+  const innerColor = alpha(outlineColor, 0.15)
 
   return (
-    <Tooltip title={error ?? warning ?? ''}>
-      <TableCell
-        ref={cellRef}
-        role="gridcell"
-        aria-rowindex={row + 1}
-        aria-colindex={col + 1}
-        aria-selected={isFocused}
-        tabIndex={tabIndex}
-        onFocusCapture={onFocus}
-        onKeyDown={handleCellKeyDown}
-        data-row={row}
-        data-col={col}
-        sx={{
-          height: 48,
-          boxSizing: 'border-box',
-          p: 0,
-          position: 'relative',
-          outline: 'none',
-          '&:focus, &:focus-visible': { outline: 'none' },
-        }}
-      >
-        {(isEditing || isFocused) && (
-          <Box
-            sx={{
-              pointerEvents: 'none',
-              position: 'absolute',
-              inset: 0,
-              border: `2px solid ${outlineColor}`,
-              borderRadius: 1,
-              zIndex: 1,
-            }}
-          />
-        )}
-        <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-          {isEditing ? (
-            <Input
-              inputRef={inputRef}
-              disableUnderline
-              fullWidth
-              value={value}
-              onChange={(e) => onUpdate(e.target.value)}
-              onKeyDown={handleInputKeyDown}
-              onBlur={handleInputBlur}
-              error={!!error}
+    <TableCell
+      ref={cellRef}
+      role="gridcell"
+      aria-rowindex={row + 1}
+      aria-colindex={col + 1}
+      aria-selected={isFocused}
+      tabIndex={tabIndex}
+      onFocusCapture={onFocus}
+      onKeyDown={handleCellKeyDown}
+      data-row={row}
+      data-col={col}
+      sx={{
+        height: 48,
+        width: 140,
+        boxSizing: 'border-box',
+        borderRight: '0.5px solid lightgrey',
+
+        p: 0,
+        position: 'relative',
+        outline: 'none',
+        caretColor: isEditing ? theme.palette.text.primary : 'transparent',
+        '&:focus, &:focus-visible': { outline: 'none' },
+        ...(isEditing && { bgcolor: innerColor }),
+      }}
+    >
+      <Tooltip title={error ?? warning ?? ''}>
+        <>
+          {(isEditing || isFocused) && (
+            <Box
               sx={{
-                height: '100%',
-                py: 0,
-                px: 1,
-                boxSizing: 'border-box',
-                '& .MuiInput-input': {
-                  height: '100%',
-                  padding: 0,
-                  lineHeight: '44px',
-                  outline: 'none',
-                },
+                pointerEvents: 'none',
+                position: 'absolute',
+                inset: 0,
+                border: `2px solid ${outlineColor}`,
+                borderRadius: 1,
+                zIndex: 1,
               }}
-              endAdornment={
-                error ? (
-                  <InputAdornment position="end">
-                    <ErrorOutlineIcon role="img" aria-label={error} />
-                  </InputAdornment>
-                ) : warning ? (
-                  <InputAdornment position="end">
-                    <WarningAmberOutlinedIcon role="img" aria-label={warning} />
-                  </InputAdornment>
-                ) : (
-                  <InputAdornment position="end" sx={{ width: 24 }} />
-                )
-              }
             />
-          ) : (
-            <Typography
-              onDoubleClick={openEditor}
-              noWrap
-              sx={{
-                height: '100%',
-                lineHeight: '44px',
-                px: 1,
-                cursor: 'text',
-              }}
-            >
-              {value}
-            </Typography>
           )}
-        </Box>
-      </TableCell>
-    </Tooltip>
+          <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+            {isEditing ? (
+              <Input
+                inputRef={inputRef}
+                disableUnderline
+                fullWidth
+                value={value}
+                onChange={(e) => onUpdate(e.target.value)}
+                onKeyDown={handleInputKeyDown}
+                onBlur={handleInputBlur}
+                error={!!error}
+                sx={{
+                  height: '100%',
+                  py: 0,
+                  px: 1,
+                  boxSizing: 'border-box',
+                  '& .MuiInput-input': {
+                    height: '100%',
+                    padding: 0,
+                    lineHeight: '44px',
+                    outline: 'none',
+                  },
+                }}
+                endAdornment={
+                  error ? (
+                    <InputAdornment position="end">
+                      <ErrorOutlineIcon role="img" aria-label={error} />
+                    </InputAdornment>
+                  ) : warning ? (
+                    <InputAdornment position="end">
+                      <WarningAmberOutlinedIcon
+                        role="img"
+                        aria-label={warning}
+                      />
+                    </InputAdornment>
+                  ) : (
+                    <InputAdornment position="end" sx={{ width: 24 }} />
+                  )
+                }
+              />
+            ) : (
+              <Typography
+                onDoubleClick={openEditor}
+                noWrap
+                sx={{
+                  height: '100%',
+                  lineHeight: '44px',
+                  px: 1,
+                  cursor: 'text',
+                }}
+              >
+                {value}
+              </Typography>
+            )}
+          </Box>
+        </>
+      </Tooltip>
+    </TableCell>
   )
 }
