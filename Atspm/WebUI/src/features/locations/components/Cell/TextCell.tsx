@@ -1,0 +1,201 @@
+import { useCellNavigation } from '@/features/locations/components/Cell/CellNavigation'
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
+import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
+import {
+  Box,
+  Input,
+  InputAdornment,
+  TableCell,
+  Tooltip,
+  Typography,
+  useTheme,
+} from '@mui/material'
+import React, { useCallback, useEffect, useRef } from 'react'
+
+interface TextCellProps {
+  row: number
+  col: number
+  rowCount: number
+  colCount: number
+  value: string
+  onUpdate: (v: string) => void
+  error?: string
+  warning?: string
+}
+
+export const TextCell: React.FC<TextCellProps> = ({
+  row,
+  col,
+  rowCount,
+  colCount,
+  value,
+  onUpdate,
+  error,
+  warning,
+}) => {
+  const theme = useTheme()
+  const {
+    tabIndex,
+    onFocus,
+    onKeyDown: navKeyDown,
+    isEditing,
+    openEditor,
+    closeEditor,
+  } = useCellNavigation(row, col, rowCount, colCount)
+  const cellRef = useRef<HTMLElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const isFocused = tabIndex === 0 && !isEditing
+
+  useEffect(() => {
+    if (isFocused) {
+      cellRef.current?.focus()
+    }
+  }, [isFocused])
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      const inp = inputRef.current
+      inp.focus()
+      const len = inp.value.length
+      inp.setSelectionRange(len, len)
+    }
+  }, [isEditing])
+
+  const handleCellKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLElement>) => {
+      if (
+        !isEditing &&
+        e.key.length === 1 &&
+        !e.ctrlKey &&
+        !e.metaKey &&
+        !e.key.startsWith('Arrow')
+      ) {
+        e.preventDefault()
+        openEditor()
+        onUpdate(value + e.key)
+        return
+      }
+      navKeyDown(e)
+    },
+    [isEditing, navKeyDown, openEditor, onUpdate, value]
+  )
+
+  const handleInputKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        closeEditor()
+        setTimeout(() => cellRef.current?.focus())
+      } else if (e.key.startsWith('Arrow')) {
+        e.preventDefault()
+        closeEditor()
+        navKeyDown(e)
+      }
+    },
+    [closeEditor, navKeyDown]
+  )
+
+  const handleInputBlur = useCallback(
+    (e: React.FocusEvent<HTMLInputElement>) => {
+      const to = e.relatedTarget as HTMLElement | null
+      if (to?.hasAttribute('data-row') && to.hasAttribute('data-col')) {
+        return
+      }
+      closeEditor()
+      setTimeout(() => cellRef.current?.focus())
+    },
+    [closeEditor]
+  )
+
+  const outlineColor = theme.palette.primary.main
+
+  return (
+    <Tooltip title={error ?? warning ?? ''}>
+      <TableCell
+        ref={cellRef}
+        role="gridcell"
+        aria-rowindex={row + 1}
+        aria-colindex={col + 1}
+        aria-selected={isFocused}
+        tabIndex={tabIndex}
+        onFocusCapture={onFocus}
+        onKeyDown={handleCellKeyDown}
+        data-row={row}
+        data-col={col}
+        sx={{
+          height: 48,
+          boxSizing: 'border-box',
+          p: 0,
+          position: 'relative',
+          outline: 'none',
+          '&:focus, &:focus-visible': { outline: 'none' },
+        }}
+      >
+        {(isEditing || isFocused) && (
+          <Box
+            sx={{
+              pointerEvents: 'none',
+              position: 'absolute',
+              inset: 0,
+              border: `2px solid ${outlineColor}`,
+              borderRadius: 1,
+              zIndex: 1,
+            }}
+          />
+        )}
+        <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
+          {isEditing ? (
+            <Input
+              inputRef={inputRef}
+              disableUnderline
+              fullWidth
+              value={value}
+              onChange={(e) => onUpdate(e.target.value)}
+              onKeyDown={handleInputKeyDown}
+              onBlur={handleInputBlur}
+              error={!!error}
+              sx={{
+                height: '100%',
+                py: 0,
+                px: 1,
+                boxSizing: 'border-box',
+                '& .MuiInput-input': {
+                  height: '100%',
+                  padding: 0,
+                  lineHeight: '44px',
+                  outline: 'none',
+                },
+              }}
+              endAdornment={
+                error ? (
+                  <InputAdornment position="end">
+                    <ErrorOutlineIcon role="img" aria-label={error} />
+                  </InputAdornment>
+                ) : warning ? (
+                  <InputAdornment position="end">
+                    <WarningAmberOutlinedIcon role="img" aria-label={warning} />
+                  </InputAdornment>
+                ) : (
+                  <InputAdornment position="end" sx={{ width: 24 }} />
+                )
+              }
+            />
+          ) : (
+            <Typography
+              onDoubleClick={openEditor}
+              noWrap
+              sx={{
+                height: '100%',
+                lineHeight: '44px',
+                px: 1,
+                cursor: 'text',
+              }}
+            >
+              {value}
+            </Typography>
+          )}
+        </Box>
+      </TableCell>
+    </Tooltip>
+  )
+}
