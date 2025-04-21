@@ -133,7 +133,7 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices
                 var additionalInfo = GetAdditionalInfo(rampDetectors);
 
                 // Check for DetectorChannel matches and log errors
-                LogChannelMatches(location, options, componentType, issueType, issueDescription, errors, currentVolume, rampDetectors, checkMissing);
+                LogChannelMatches(location, options, componentType, issueType, issueDescription, errors, currentVolume, rampDetectors, eventCodes, checkMissing);
 
                 // Original check based on event presence/missing
                 if ((checkMissing && !currentVolume.Any()) || (!checkMissing && currentVolume.Any()))
@@ -167,10 +167,10 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices
             ConcurrentBag<WatchDogLogEvent> errors,
             IEnumerable<IndianaEvent> currentVolume,
             List<Detector> detectors,
+            IEnumerable<short> eventCodes,
             bool checkMissing)
         {
-            var detectorChannels = detectors
-                .Select(d => d.DetectorChannel).Distinct().ToList();
+            var detectorChannels = currentVolume.Where(e => eventCodes.Contains(e.EventCode)).Select(e => e.EventParam).Distinct().ToList();
 
             // Only keep events that match detector channels
             var matchingEvents = currentVolume

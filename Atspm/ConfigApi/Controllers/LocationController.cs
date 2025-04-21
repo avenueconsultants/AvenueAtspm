@@ -244,6 +244,7 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         public IActionResult GetLocationsForSearch([FromQuery] int? areaId, [FromQuery] int? regionId, [FromQuery] int? jurisdictionId, [FromQuery] int? metricTypeId)
         {
             var basicCharts = new List<int> { 1, 2, 3, 4, 14, 15, 17, 31 };
+            var rampCharts = new List<int> { 37 };
             var result = _repository.GetList()
                 .FromSpecification(new ActiveLocationSpecification())
                 .Where(w => (jurisdictionId != null) ? w.JurisdictionId == jurisdictionId : true)
@@ -277,7 +278,7 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
                     location.Charts = location.Charts.Concat(basicCharts).Order();
                     if (location.LocationTypeId == ((int)LocationTypes.RM))
                     {
-                        location.Charts = location.Charts.Append(37).Order();
+                        location.Charts = rampCharts;
                     }
                 }
             }
