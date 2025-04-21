@@ -117,15 +117,25 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices
             {
                 var (start, end) = CalculateStartAndEndTime(options, startHour, endHour);
 
-                var currentVolume = locationEvents.Where(e => e.Timestamp >= start && e.Timestamp <= end && eventCodes.Contains(e.EventCode));
+                var currentVolume = locationEvents
+                    .Where(e => e.Timestamp >= start && e.Timestamp <= end && eventCodes.Contains(e.EventCode))
+                    .ToList();
+
                 var rampDetectors = location.GetDetectorsForLocation()
-                    .Where(d => d.DetectionTypes.Any(dt => dt.Id == DetectionTypes.IQ || dt.Id == DetectionTypes.EQ));
+                    .Where(d => d.DetectionTypes.Any(dt =>
+                        dt.Id == DetectionTypes.IQ ||
+                        dt.Id == DetectionTypes.EQ ||
+                        dt.Id == DetectionTypes.P ||
+                        dt.Id == DetectionTypes.D))
+                    .ToList();
 
-                bool hasIQ = rampDetectors.Any(d => d.DetectionTypes.Any(dt => dt.Id == DetectionTypes.IQ));
-                bool hasEQ = rampDetectors.Any(d => d.DetectionTypes.Any(dt => dt.Id == DetectionTypes.EQ));
+                // Build additional info string
+                var additionalInfo = GetAdditionalInfo(rampDetectors);
 
-                var additionalInfo = GetAdditionalInfo(hasIQ, hasEQ);
+                // Check for DetectorChannel matches and log errors
+                LogChannelMatches(location, options, componentType, issueType, issueDescription, errors, currentVolume, rampDetectors, checkMissing);
 
+                // Original check based on event presence/missing
                 if ((checkMissing && !currentVolume.Any()) || (!checkMissing && currentVolume.Any()))
                 {
                     var error = new WatchDogLogEvent(
@@ -148,6 +158,46 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices
             }
         }
 
+        private void LogChannelMatches(
+            Location location,
+            WatchdogLoggingOptions options,
+            WatchDogComponentTypes componentType,
+            WatchDogIssueTypes issueType,
+            string issueDescription,
+            ConcurrentBag<WatchDogLogEvent> errors,
+            IEnumerable<IndianaEvent> currentVolume,
+            List<Detector> detectors,
+            bool checkMissing)
+        {
+            var detectorChannels = detectors
+                .Select(d => d.DetectorChannel).Distinct().ToList();
+
+            // Only keep events that match detector channels
+            var matchingEvents = currentVolume
+                .Where(e => detectorChannels.Contains(e.EventParam))
+                .ToList();
+
+            // Apply the checkMissing logic here
+            if ((checkMissing && !matchingEvents.Any()) || (!checkMissing && matchingEvents.Any()))
+            {
+                foreach (var match in matchingEvents)
+                {
+                    var error = new WatchDogLogEvent(
+                        location.Id,
+                        location.LocationIdentifier,
+                        options.ScanDate,
+                        componentType,
+                        location.Id,
+                        issueType,
+                        $"{issueDescription} - DetectorChannel matched: {match.EventParam}",
+                        match.EventParam);
+
+                    if (!errors.Contains(error))
+                        errors.Add(error);
+                }
+            }
+        }
+
         private (DateTime start, DateTime end) CalculateStartAndEndTime(WatchdogLoggingOptions options, int startHour, int endHour)
         {
             var scanDate = options.ScanDate;
@@ -155,6 +205,22 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices
             var end = scanDate.Date.AddHours(endHour);
 
             return (start, end);
+        }
+
+        private string GetAdditionalInfo(List<Detector> rampDetectors)
+        {
+            bool hasIQ = rampDetectors.Any(d => d.DetectionTypes.Any(dt => dt.Id == DetectionTypes.IQ));
+            bool hasEQ = rampDetectors.Any(d => d.DetectionTypes.Any(dt => dt.Id == DetectionTypes.EQ));
+            bool hasPassage = rampDetectors.Any(d => d.DetectionTypes.Any(dt => dt.Id == DetectionTypes.P));
+            bool hasDemand = rampDetectors.Any(d => d.DetectionTypes.Any(dt => dt.Id == DetectionTypes.D));
+
+            var infoParts = new List<string>();
+            if (hasIQ) infoParts.Add("Intermediate Queue");
+            if (hasEQ) infoParts.Add("Excessive Queue");
+            if (hasPassage) infoParts.Add("Passage");
+            if (hasDemand) infoParts.Add("Demand");
+
+            return infoParts.Any() ? $" [{string.Join(", ", infoParts)}]" : "";
         }
 
         private string GetAdditionalInfo(bool hasIQ, bool hasEQ)
