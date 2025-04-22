@@ -3,6 +3,7 @@ import {
   useGetLocationType,
 } from '@/api/config/aTSPMConfigurationApi'
 import { NavigationProvider } from '@/features/locations/components/Cell/CellNavigation'
+import CommentCell from '@/features/locations/components/Cell/CommentCell'
 import { MultiSelectCell } from '@/features/locations/components/Cell/MultiSelectCell'
 import SelectCell from '@/features/locations/components/Cell/SelectCell'
 import { TextCell } from '@/features/locations/components/Cell/TextCell'
@@ -154,7 +155,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={0}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.detectorChannel)}
+                  value={det.detectorChannel}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'detectorChannel', val)
                   }
@@ -215,7 +216,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   rowCount={rowCount}
                   colCount={colCount}
                   options={hardwareTypeOptions}
-                  value={String(det.detectionHardware)}
+                  value={det.detectionHardware}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'detectionHardware', val)
                   }
@@ -225,7 +226,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={3}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.latencyCorrection)}
+                  value={det.latencyCorrection}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'latencyCorrection', val)
                   }
@@ -235,7 +236,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={4}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.laneNumber)}
+                  value={det.laneNumber}
                   onUpdate={(val) => updateDetector(det.id, 'laneNumber', val)}
                 />
                 <SelectCell
@@ -244,7 +245,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   rowCount={rowCount}
                   colCount={colCount}
                   options={movementTypeOptions}
-                  value={String(det.movementType)}
+                  value={det.movementType}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'movementType', val)
                   }
@@ -255,7 +256,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   rowCount={rowCount}
                   colCount={colCount}
                   options={laneTypeOptions}
-                  value={String(det.laneType)}
+                  value={det.laneType}
                   onUpdate={(val) => updateDetector(det.id, 'laneType', val)}
                 />
                 <TextCell
@@ -263,23 +264,22 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={7}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.dateAdded)}
+                  value={det.dateAdded}
                   onUpdate={(val) => updateDetector(det.id, 'dateAdded', val)}
                 />
-                <TextCell
+                <CommentCell
+                  detector={det}
                   row={rowIdx}
                   col={8}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.comments)}
-                  onUpdate={(val) => updateDetector(det.id, 'comments', val)}
                 />
                 <TextCell
                   row={rowIdx}
                   col={9}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.distanceToStopBar)}
+                  value={det.distanceToStopBar}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'distanceToStopBar', val)
                   }
@@ -289,7 +289,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={10}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.decisionPoint)}
+                  value={det.decisionPoint}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'decisionPoint', val)
                   }
@@ -299,7 +299,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={11}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.minimumSpeedFilter)}
+                  value={det.minimumSpeedFilter}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'minimumSpeedFilter', val)
                   }
@@ -309,7 +309,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={12}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.movementDelay)}
+                  value={det.movementDelay}
                   onUpdate={(val) =>
                     updateDetector(det.id, 'movementDelay', val)
                   }
@@ -319,7 +319,7 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   col={13}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={String(det.actions)}
+                  value={det.actions}
                   onUpdate={(val) => updateDetector(det.id, 'actions', val)}
                 />
               </TableRow>
