@@ -11,7 +11,14 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, {
+  FocusEvent,
+  KeyboardEvent,
+  KeyboardEventHandler,
+  useCallback,
+  useEffect,
+  useRef,
+} from 'react'
 
 interface TextCellProps {
   row: number
@@ -62,27 +69,30 @@ export const TextCell: React.FC<TextCellProps> = ({
     }
   }, [isEditing])
 
-  const handleCellKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLElement>) => {
-      if (
-        !isEditing &&
-        e.key.length === 1 &&
-        !e.ctrlKey &&
-        !e.metaKey &&
-        !e.key.startsWith('Arrow')
-      ) {
-        e.preventDefault()
-        openEditor()
-        onUpdate(value + e.key)
-        return
-      }
-      navKeyDown(e)
-    },
-    [isEditing, navKeyDown, openEditor, onUpdate, value]
-  )
+  const handleCellKeyDown: KeyboardEventHandler<HTMLElement> = (e) => {
+    if (!isEditing && e.key === 'Backspace') {
+      e.preventDefault()
+      openEditor()
+      onUpdate('')
+      return
+    }
+    if (
+      !isEditing &&
+      e.key.length === 1 &&
+      !e.ctrlKey &&
+      !e.metaKey &&
+      !e.key.startsWith('Arrow')
+    ) {
+      e.preventDefault()
+      openEditor()
+      onUpdate(value + e.key)
+      return
+    }
+    navKeyDown(e)
+  }
 
   const handleInputKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         e.preventDefault()
         closeEditor()
@@ -97,7 +107,7 @@ export const TextCell: React.FC<TextCellProps> = ({
   )
 
   const handleInputBlur = useCallback(
-    (e: React.FocusEvent<HTMLInputElement>) => {
+    (e: FocusEvent<HTMLInputElement>) => {
       const to = e.relatedTarget as HTMLElement | null
       if (to?.hasAttribute('data-row') && to.hasAttribute('data-col')) {
         return
