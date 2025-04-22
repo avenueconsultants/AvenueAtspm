@@ -1,13 +1,10 @@
 import { useCellNavigation } from '@/features/locations/components/Cell/CellNavigation'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined'
 import {
   alpha,
   Box,
   MenuItem,
   TableCell,
   Tooltip,
-  Typography,
   useTheme,
 } from '@mui/material'
 import Select from '@mui/material/Select'
@@ -138,76 +135,50 @@ const SelectCell = ({
             />
           )}
           <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
-            {isEditing ? (
-              <Select
-                open={isEditing}
-                onClose={() => {
-                  closeEditor()
-                  setTimeout(() => cellRef.current?.focus())
-                }}
-                value={value}
-                onChange={(e) => {
-                  onUpdate(e.target.value)
-                  closeEditor()
-                  setTimeout(() => cellRef.current?.focus())
-                }}
-                onKeyDown={handleSelectKeyDown}
-                variant="standard"
-                disableUnderline
-                sx={{
-                  height: '100%',
-                  width: '100%',
-                  px: 1,
-                  boxSizing: 'border-box',
-                  '& .MuiSelect-select': {
-                    display: 'flex',
-                    alignItems: 'center',
-                    height: '100%',
-                    lineHeight: '44px',
-                    padding: 0,
-                  },
-                }}
-                IconComponent={() =>
-                  error ? (
-                    <ErrorOutlineIcon role="img" aria-label={error} />
-                  ) : warning ? (
-                    <WarningAmberOutlinedIcon role="img" aria-label={warning} />
-                  ) : null
-                }
-              >
-                {options.map((opt) => (
-                  <MenuItem
-                    key={opt.value}
-                    value={opt.value}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                    }}
-                  >
-                    {opt.icon}
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            ) : (
-              <Typography
-                onDoubleClick={openEditor}
-                noWrap
-                sx={{
+            <Select
+              open={isEditing}
+              onClose={() => {
+                closeEditor()
+                setTimeout(() => cellRef.current?.focus())
+              }}
+              value={value}
+              onChange={(e) => {
+                onUpdate(e.target.value)
+                closeEditor()
+                setTimeout(() => cellRef.current?.focus())
+              }}
+              onKeyDown={handleSelectKeyDown}
+              variant="standard"
+              disableUnderline
+              sx={{
+                height: '100%',
+                width: '100%',
+                px: 1,
+                boxSizing: 'border-box',
+                '& .MuiSelect-select': {
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 1,
                   height: '100%',
                   lineHeight: '44px',
-                  px: 1,
-                  cursor: 'pointer',
-                }}
-              >
-                {options.find((opt) => opt.value === value)?.icon}
-                {options.find((opt) => opt.value === value)?.label ?? value}
-              </Typography>
-            )}
+                  padding: 0,
+                },
+              }}
+            >
+              {options.map((opt) => (
+                <MenuItem
+                  key={opt.value}
+                  value={opt.value}
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
+                >
+                  {opt.icon}
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
           </Box>
         </>
       </Tooltip>

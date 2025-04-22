@@ -61,12 +61,40 @@ export function useCellNavigation(
 
   const onKeyDown: React.KeyboardEventHandler<HTMLElement> = useCallback(
     (e) => {
+      if (!isEditing && e.key === 'Tab') {
+        e.preventDefault()
+        e.stopPropagation()
+        let r = row,
+          c = col
+        if (e.shiftKey) {
+          // backwards
+          if (c === 0) {
+            c = colCount - 1
+            r = r === 0 ? rowCount - 1 : r - 1
+          } else {
+            c--
+          }
+        } else {
+          // forwards
+          if (c === colCount - 1) {
+            c = 0
+            r = r === rowCount - 1 ? 0 : r + 1
+          } else {
+            c++
+          }
+        }
+        setFocused({ row: r, col: c })
+        return
+      }
+
+      // ENTER to start editing
       if (!isEditing && e.key === 'Enter') {
         e.preventDefault()
         e.stopPropagation()
         openEditor()
         return
       }
+
       if (
         !isEditing &&
         e.key.length === 1 &&
@@ -79,11 +107,12 @@ export function useCellNavigation(
         openEditor()
         return
       }
+
       if (e.key.startsWith('Arrow')) {
         e.preventDefault()
         e.stopPropagation()
-        let r = row
-        let c = col
+        let r = row,
+          c = col
         switch (e.key) {
           case 'ArrowRight':
             if (c === colCount - 1) {

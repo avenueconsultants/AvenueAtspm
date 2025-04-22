@@ -11,10 +11,9 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import React, {
+import {
   FocusEvent,
   KeyboardEvent,
-  KeyboardEventHandler,
   useCallback,
   useEffect,
   useRef,
@@ -25,13 +24,13 @@ interface TextCellProps {
   col: number
   rowCount: number
   colCount: number
-  value: string
+  value: string | number
   onUpdate: (v: string) => void
   error?: string
   warning?: string
 }
 
-export const TextCell: React.FC<TextCellProps> = ({
+export const TextCell = ({
   row,
   col,
   rowCount,
@@ -40,7 +39,7 @@ export const TextCell: React.FC<TextCellProps> = ({
   onUpdate,
   error,
   warning,
-}) => {
+}: TextCellProps) => {
   const theme = useTheme()
   const {
     tabIndex,
@@ -69,7 +68,7 @@ export const TextCell: React.FC<TextCellProps> = ({
     }
   }, [isEditing])
 
-  const handleCellKeyDown: KeyboardEventHandler<HTMLElement> = (e) => {
+  const handleCellKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (!isEditing && e.key === 'Backspace') {
       e.preventDefault()
       openEditor()
@@ -138,7 +137,6 @@ export const TextCell: React.FC<TextCellProps> = ({
         width: 140,
         boxSizing: 'border-box',
         borderRight: '0.5px solid lightgrey',
-
         p: 0,
         position: 'relative',
         outline: 'none',
