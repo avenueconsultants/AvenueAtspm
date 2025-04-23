@@ -155,12 +155,6 @@ export default memo(EditLocation)
 function ApproachesTab() {
   const location = useLocationStore((state) => state.location)
   const approaches = useLocationStore((state) => state.approaches)
-  const sortedApproaches = approaches.map((approach) => {
-    const sortedDetectors = approach.detectors.sort((a, b) => {
-      return a.detectorChannel - b.detectorChannel
-    })
-    return { ...approach, detectors: sortedDetectors }
-  })
 
   const addApproach = useLocationStore((state) => state.addApproach)
 
@@ -170,7 +164,7 @@ function ApproachesTab() {
     addApproach()
   }, [addApproach])
 
-  const combinedLocation = { ...location, approaches: sortedApproaches }
+  const combinedLocation = { ...location, approaches }
 
   return (
     <Box sx={{ minHeight: '400px' }}>
