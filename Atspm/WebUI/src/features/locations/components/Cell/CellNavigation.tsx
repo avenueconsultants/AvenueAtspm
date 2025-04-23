@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  ReactNode,
   useCallback,
   useContext,
   useEffect,
@@ -7,7 +8,7 @@ import React, {
   useState,
 } from 'react'
 
-type Focus = { row: number; col: number }
+type Focus = { approachId: number; row: number; col: number }
 
 interface NavContext {
   focused: Focus
@@ -16,10 +17,13 @@ interface NavContext {
 
 const NavigationContext = createContext<NavContext | null>(null)
 
-export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
-  const [focused, setFocused] = useState<Focus>({ row: 0, col: 0 })
+export const NavigationProvider = ({ children }: { children: ReactNode }) => {
+  const [focused, setFocused] = useState<Focus>({
+    approachId: -1,
+    row: -1,
+    col: -1,
+  })
+
   const value = useMemo(() => ({ focused, setFocused }), [focused, setFocused])
   return (
     <NavigationContext.Provider value={value}>
@@ -29,6 +33,7 @@ export const NavigationProvider: React.FC<{ children: React.ReactNode }> = ({
 }
 
 export function useCellNavigation(
+  approachId: number,
   row: number,
   col: number,
   rowCount: number,
@@ -39,11 +44,17 @@ export function useCellNavigation(
   const { focused, setFocused } = ctx
   const [isEditing, setIsEditing] = useState(false)
 
+  // clear edit if focus moves to a different table or cell
   useEffect(() => {
-    if (!(focused.row === row && focused.col === col) && isEditing) {
+    if (
+      (focused.approachId !== approachId ||
+        focused.row !== row ||
+        focused.col !== col) &&
+      isEditing
+    ) {
       setIsEditing(false)
     }
-  }, [focused.row, focused.col, row, col, isEditing])
+  }, [focused, approachId, row, col, isEditing])
 
   const openEditor = useCallback(() => {
     setIsEditing(true)
@@ -53,11 +64,16 @@ export function useCellNavigation(
     setIsEditing(false)
   }, [])
 
-  const tabIndex = focused.row === row && focused.col === col ? 0 : -1
+  const tabIndex =
+    focused.approachId === approachId &&
+    focused.row === row &&
+    focused.col === col
+      ? 0
+      : -1
 
   const onFocus = useCallback(() => {
-    setFocused({ row, col })
-  }, [row, col, setFocused])
+    setFocused({ approachId, row, col })
+  }, [approachId, row, col, setFocused])
 
   const onKeyDown: React.KeyboardEventHandler<HTMLElement> = useCallback(
     (e) => {
@@ -83,7 +99,8 @@ export function useCellNavigation(
             c++
           }
         }
-        setFocused({ row: r, col: c })
+        console.log('Tab', { approachId, row: r, col: c })
+        setFocused({ approachId, row: r, col: c })
         return
       }
 
@@ -137,11 +154,19 @@ export function useCellNavigation(
             r = r === 0 ? rowCount - 1 : r - 1
             break
         }
-        setFocused({ row: r, col: c })
+        setFocused({ approachId, row: r, col: c })
       }
     },
-    [isEditing, openEditor, row, col, rowCount, colCount, setFocused]
+    [
+      isEditing,
+      openEditor,
+      row,
+      col,
+      rowCount,
+      colCount,
+      setFocused,
+      approachId,
+    ]
   )
-
   return { tabIndex, onFocus, onKeyDown, isEditing, openEditor, closeEditor }
 }

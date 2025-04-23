@@ -1,16 +1,23 @@
-import { Box, TableCell, Tooltip, alpha, useTheme } from '@mui/material'
-import Checkbox from '@mui/material/Checkbox'
-import MenuItem from '@mui/material/MenuItem'
-import Select from '@mui/material/Select'
+import {
+  Box,
+  Checkbox,
+  MenuItem,
+  Select,
+  TableCell,
+  Tooltip,
+  alpha,
+  useTheme,
+} from '@mui/material'
 import React, { KeyboardEvent, useEffect, useRef } from 'react'
 import { useCellNavigation } from './CellNavigation'
 
 interface MultiSelectCellProps<T> {
+  approachId: number
   row: number
   col: number
   rowCount: number
   colCount: number
-  value: T[] // the array of selected values
+  value: T[]
   onUpdate: (newVals: T[]) => void
   options: { value: T; label: string }[]
   renderValue: (selected: T[]) => React.ReactNode
@@ -19,6 +26,7 @@ interface MultiSelectCellProps<T> {
 }
 
 export function MultiSelectCell<T>({
+  approachId,
   row,
   col,
   rowCount,
@@ -38,57 +46,48 @@ export function MultiSelectCell<T>({
     isEditing,
     openEditor,
     closeEditor,
-  } = useCellNavigation(row, col, rowCount, colCount)
+  } = useCellNavigation(approachId, row, col, rowCount, colCount)
 
   const cellRef = useRef<HTMLElement>(null)
-  const selectRef = useRef<HTMLDivElement>(null)
-  const isFocused = tabIndex === 0 && !isEditing
 
-  // when we navigate to the cell, focus it
   useEffect(() => {
-    if (isFocused) cellRef.current?.focus()
-  }, [isFocused])
+    if (tabIndex === 0 && !isEditing) {
+      cellRef.current?.focus()
+    }
+  }, [tabIndex, isEditing])
 
-  // click or initial keypress opens the editor
-  const handleCellClick = () => !isEditing && openEditor()
+  const handleCellClick = () => {
+    if (!isEditing) openEditor()
+  }
 
   const handleCellKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (isEditing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.stopPropagation()
-      e.preventDefault()
-      return
-    }
-    if (isEditing) return
-    if (e.key === 'Backspace') {
+    if (!isEditing && e.key === 'Enter') {
       e.preventDefault()
       openEditor()
-      onUpdate([])
       return
     }
-    if (
-      e.key.length === 1 &&
-      !e.ctrlKey &&
-      !e.metaKey &&
-      !e.key.startsWith('Arrow')
-    ) {
+    if (!isEditing && e.key.startsWith('Arrow')) {
       e.preventDefault()
-      openEditor()
-      onUpdate([...value, e.key as any])
+      navKeyDown(e)
       return
     }
-    navKeyDown(e)
   }
 
   const handleSelectKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Escape' || e.key === 'Enter') {
       e.preventDefault()
       closeEditor()
       setTimeout(() => cellRef.current?.focus())
     }
   }
 
+  const handleChange = (e: React.ChangeEvent<{ value: unknown }>) => {
+    onUpdate(e.target.value as T[])
+  }
+
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
+  const isFocused = tabIndex === 0 && !isEditing
 
   return (
     <TableCell
@@ -101,15 +100,17 @@ export function MultiSelectCell<T>({
       onFocusCapture={onFocus}
       onKeyDown={handleCellKeyDown}
       onClick={handleCellClick}
+      data-row={row}
+      data-col={col}
       sx={{
         height: 48,
         width: 140,
         p: 0,
-        bgcolor: isEditing ? innerColor : 'inherit',
         position: 'relative',
         outline: 'none',
-        borderRight: '0.5px solid lightgrey',
         caretColor: isEditing ? theme.palette.text.primary : 'transparent',
+        bgcolor: isEditing ? innerColor : 'inherit',
+        borderRight: '0.5px solid lightgrey',
         '&:focus-visible': { outline: 'none' },
       }}
     >
@@ -128,59 +129,36 @@ export function MultiSelectCell<T>({
             />
           )}
           <Box sx={{ width: '100%', height: '100%' }}>
-            {isEditing ? (
-              <Select
-                ref={selectRef}
-                multiple
-                open
-                value={value}
-                onChange={(e) => {
-                  const newVals = e.target.value as T[]
-                  onUpdate(newVals)
-                  closeEditor()
-                  setTimeout(() => cellRef.current?.focus())
-                }}
-                onClose={() => closeEditor()}
-                onKeyDown={handleSelectKeyDown}
-                variant="standard"
-                disableUnderline
-                renderValue={renderValue}
-                sx={{
-                  height: '100%',
-                  width: '100%',
-                  px: 1,
-                  boxSizing: 'border-box',
-                  '& .MuiSelect-select': {
-                    display: 'flex',
-                    alignItems: 'center',
-                    height: '100%',
-                    lineHeight: '44px',
-                    p: 0,
-                  },
-                }}
-              >
-                {options.map((opt) => (
-                  <MenuItem key={opt.value as any} value={opt.value}>
-                    <Checkbox checked={value.includes(opt.value)} />
-                    {opt.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            ) : (
-              <Box
-                onDoubleClick={openEditor}
-                sx={{
+            <Select
+              multiple
+              open={isEditing}
+              value={value}
+              onChange={handleChange}
+              onClose={closeEditor}
+              onKeyDown={handleSelectKeyDown}
+              variant="standard"
+              disableUnderline
+              renderValue={renderValue}
+              sx={{
+                height: '100%',
+                width: '100%',
+                px: 1,
+                boxSizing: 'border-box',
+                '& .MuiSelect-select': {
                   display: 'flex',
                   alignItems: 'center',
                   height: '100%',
-                  lineHeight: '44px',
-                  px: 1,
-                  cursor: 'pointer',
-                }}
-              >
-                {renderValue(value as T[])}
-              </Box>
-            )}
+                  p: 0,
+                },
+              }}
+            >
+              {options.map((opt) => (
+                <MenuItem key={opt.value as any} value={opt.value}>
+                  <Checkbox checked={value.includes(opt.value)} tabIndex={-1} />
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
           </Box>
         </>
       </Tooltip>

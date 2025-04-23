@@ -10,6 +10,7 @@ import React, {
 } from 'react'
 
 interface CalendarCellProps {
+  approachId: number
   row: number
   col: number
   rowCount: number
@@ -19,6 +20,7 @@ interface CalendarCellProps {
 }
 
 const CalendarCell: React.FC<CalendarCellProps> = ({
+  approachId,
   row,
   col,
   rowCount,
@@ -34,7 +36,7 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
     isEditing: cellIsActive,
     openEditor: activateCell,
     closeEditor: deactivateCell,
-  } = useCellNavigation(row, col, rowCount, colCount)
+  } = useCellNavigation(approachId, row, col, rowCount, colCount)
 
   const cellRef = useRef<HTMLElement>(null)
   const [pickerOpen, setPickerOpen] = useState(false)

@@ -11,6 +11,7 @@ import Select from '@mui/material/Select'
 import { KeyboardEvent, ReactElement, useEffect, useRef } from 'react'
 
 interface SelectCellProps {
+  approachId: number
   row: number
   col: number
   rowCount: number
@@ -23,6 +24,7 @@ interface SelectCellProps {
 }
 
 const SelectCell = ({
+  approachId,
   row,
   col,
   rowCount,
@@ -41,7 +43,7 @@ const SelectCell = ({
     isEditing,
     openEditor,
     closeEditor,
-  } = useCellNavigation(row, col, rowCount, colCount)
+  } = useCellNavigation(approachId, row, col, rowCount, colCount)
 
   const cellRef = useRef<HTMLElement>(null)
   const isFocused = tabIndex === 0 && !isEditing

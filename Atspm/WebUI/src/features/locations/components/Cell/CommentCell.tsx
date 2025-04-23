@@ -37,6 +37,7 @@ import React, {
 } from 'react'
 
 interface CommentCellProps {
+  approachId: number
   detector: ConfigDetector
   row: number
   col: number
@@ -45,6 +46,7 @@ interface CommentCellProps {
 }
 
 const CommentCell = ({
+  approachId,
   detector,
   row,
   col,
@@ -59,7 +61,7 @@ const CommentCell = ({
     isEditing,
     openEditor,
     closeEditor,
-  } = useCellNavigation(row, col, rowCount, colCount)
+  } = useCellNavigation(approachId, row, col, rowCount, colCount)
 
   const cellRef = useRef<HTMLElement>(null)
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)

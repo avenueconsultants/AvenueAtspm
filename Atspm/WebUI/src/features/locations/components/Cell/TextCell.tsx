@@ -20,6 +20,7 @@ import {
 } from 'react'
 
 interface TextCellProps {
+  approachId: number
   row: number
   col: number
   rowCount: number
@@ -31,6 +32,7 @@ interface TextCellProps {
 }
 
 export const TextCell = ({
+  approachId,
   row,
   col,
   rowCount,
@@ -48,7 +50,7 @@ export const TextCell = ({
     isEditing,
     openEditor,
     closeEditor,
-  } = useCellNavigation(row, col, rowCount, colCount)
+  } = useCellNavigation(approachId, row, col, rowCount, colCount)
   const cellRef = useRef<HTMLElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const isFocused = tabIndex === 0 && !isEditing
