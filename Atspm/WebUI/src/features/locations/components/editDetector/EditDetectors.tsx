@@ -2,6 +2,7 @@ import {
   useGetDetectionType,
   useGetLocationType,
 } from '@/api/config/aTSPMConfigurationApi'
+import CalendarCell from '@/features/locations/components/Cell/CalendarCell'
 import { NavigationProvider } from '@/features/locations/components/Cell/CellNavigation'
 import CommentCell from '@/features/locations/components/Cell/CommentCell'
 import { MultiSelectCell } from '@/features/locations/components/Cell/MultiSelectCell'
@@ -247,7 +248,7 @@ const EditDetectors = ({ approach }: EditDetectorsProps) => {
                   value={det.laneType}
                   onUpdate={(val) => updateDetector(det.id, 'laneType', val)}
                 />
-                <TextCell
+                <CalendarCell
                   row={rowIdx}
                   col={7}
                   rowCount={rowCount}
@@ -267,9 +268,9 @@ const EditDetectors = ({ approach }: EditDetectorsProps) => {
                   col={9}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={det.distanceToStopBar}
+                  value={det.distanceFromStopBar}
                   onUpdate={(val) =>
-                    updateDetector(det.id, 'distanceToStopBar', val)
+                    updateDetector(det.id, 'distanceFromStopBar', val)
                   }
                 />
                 <TextCell
@@ -287,9 +288,9 @@ const EditDetectors = ({ approach }: EditDetectorsProps) => {
                   col={11}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={det.minimumSpeedFilter}
+                  value={det.minSpeedFilter}
                   onUpdate={(val) =>
-                    updateDetector(det.id, 'minimumSpeedFilter', val)
+                    updateDetector(det.id, 'minSpeedFilter', val)
                   }
                 />
                 <TextCell

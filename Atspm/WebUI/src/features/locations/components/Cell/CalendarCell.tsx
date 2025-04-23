@@ -32,7 +32,6 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
 
   const cellRef = useRef<HTMLElement>(null)
   const [selectedDate, setSelectedDate] = useState(new Date(value))
-  const [pickerOpen, setPickerOpen] = useState(false)
 
   useEffect(() => {
     if (tabIndex === 0 && !isEditing) {
@@ -40,17 +39,17 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
     }
   }, [tabIndex, isEditing])
 
-  useEffect(() => {
-    setPickerOpen(isEditing)
-  }, [isEditing])
-
   const handleCellKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (!isEditing && e.key === 'Enter') {
+    if (isEditing) {
+      // picker open → let it handle everything
+      return
+    }
+    if (e.key === 'Enter') {
       e.preventDefault()
       openEditor()
       return
     }
-    if (!isEditing && e.key.startsWith('Arrow')) {
+    if (e.key.startsWith('Arrow')) {
       e.preventDefault()
       navKeyDown(e)
       return
@@ -58,16 +57,15 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
     navKeyDown(e)
   }
 
-  const handleClose = () => {
-    closeEditor()
-    setPickerOpen(false)
-    setTimeout(() => cellRef.current?.focus())
-  }
-
   const handleChange = (newVal: Date | null) => {
     if (!newVal) return
     setSelectedDate(newVal)
     onUpdate(newVal)
+  }
+
+  const handleClose = () => {
+    closeEditor()
+    setTimeout(() => cellRef.current?.focus())
   }
 
   const outlineColor = theme.palette.primary.main
@@ -84,6 +82,7 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
       tabIndex={tabIndex}
       onFocusCapture={onFocus}
       onKeyDown={handleCellKeyDown}
+      onClick={() => !isEditing && openEditor()}
       data-row={row}
       data-col={col}
       sx={{
@@ -109,16 +108,12 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
           }}
         />
       )}
+
       <DatePicker
-        open={pickerOpen}
+        open={isEditing}
         onClose={handleClose}
         value={selectedDate}
         onChange={handleChange}
-        slotProps={{
-          textField: {
-            inputProps: { 'aria-label': 'date-added' },
-          },
-        }}
         sx={{
           '& fieldset': { border: 'none' },
         }}
