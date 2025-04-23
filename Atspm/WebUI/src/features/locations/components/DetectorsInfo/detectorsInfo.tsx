@@ -96,7 +96,7 @@ const detectorsHeaders: GridColDef[] = [
     ...defaults,
     field: 'detectionTypes',
     headerName: 'Detection Types',
-    minWidth: 320,
+    minWidth: 200,
     renderCell: (params) => {
       if (!params.value) return null
       return <DetectionTypesCell detector={params.row} readonly />
