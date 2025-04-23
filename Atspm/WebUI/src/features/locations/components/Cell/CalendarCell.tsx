@@ -1,7 +1,13 @@
 import { useCellNavigation } from '@/features/locations/components/Cell/CellNavigation'
 import { Box, TableCell, alpha, useTheme } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import React, { KeyboardEvent, useEffect, useRef, useState } from 'react'
+import React, {
+  FocusEvent,
+  KeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 interface CalendarCellProps {
   row: number
@@ -25,28 +31,27 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
     tabIndex,
     onFocus,
     onKeyDown: navKeyDown,
-    isEditing,
-    openEditor,
-    closeEditor,
+    isEditing: cellIsActive,
+    openEditor: activateCell,
+    closeEditor: deactivateCell,
   } = useCellNavigation(row, col, rowCount, colCount)
 
   const cellRef = useRef<HTMLElement>(null)
-  const [selectedDate, setSelectedDate] = useState(new Date(value))
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [typedDate, setTypedDate] = useState(value)
 
   useEffect(() => {
-    if (tabIndex === 0 && !isEditing) {
+    if (tabIndex === 0 && !pickerOpen) {
       cellRef.current?.focus()
     }
-  }, [tabIndex, isEditing])
+  }, [tabIndex, pickerOpen])
 
   const handleCellKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (isEditing) {
-      // picker open → let it handle everything
-      return
-    }
+    if (pickerOpen) return
     if (e.key === 'Enter') {
       e.preventDefault()
-      openEditor()
+      activateCell()
+      setPickerOpen(true)
       return
     }
     if (e.key.startsWith('Arrow')) {
@@ -57,20 +62,22 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
     navKeyDown(e)
   }
 
-  const handleChange = (newVal: Date | null) => {
-    if (!newVal) return
-    setSelectedDate(newVal)
-    onUpdate(newVal)
+  const handlePickerClose = () => {
+    setPickerOpen(false)
+    deactivateCell()
+    setTimeout(() => cellRef.current?.focus())
   }
 
-  const handleClose = () => {
-    closeEditor()
-    setTimeout(() => cellRef.current?.focus())
+  const handleDateChange = (d: Date | null) => {
+    if (!d) return
+    onUpdate(d)
+    setTypedDate(d.toISOString().slice(0, 10))
   }
 
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
-  const isFocused = tabIndex === 0 && !isEditing
+  const isFocused = tabIndex === 0 && !pickerOpen
+  const showBorder = isFocused || pickerOpen
 
   return (
     <TableCell
@@ -82,7 +89,6 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
       tabIndex={tabIndex}
       onFocusCapture={onFocus}
       onKeyDown={handleCellKeyDown}
-      onClick={() => !isEditing && openEditor()}
       data-row={row}
       data-col={col}
       sx={{
@@ -91,12 +97,12 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
         p: 0,
         position: 'relative',
         outline: 'none',
-        bgcolor: isEditing ? innerColor : 'inherit',
-        caretColor: isEditing ? theme.palette.text.primary : 'transparent',
+        bgcolor: cellIsActive ? innerColor : 'inherit',
+        caretColor: 'transparent',
         borderRight: `1px solid ${theme.palette.divider}`,
       }}
     >
-      {(isEditing || isFocused) && (
+      {showBorder && (
         <Box
           sx={{
             pointerEvents: 'none',
@@ -110,13 +116,31 @@ const CalendarCell: React.FC<CalendarCellProps> = ({
       )}
 
       <DatePicker
-        open={isEditing}
-        onClose={handleClose}
-        value={selectedDate}
-        onChange={handleChange}
-        sx={{
-          '& fieldset': { border: 'none' },
+        open={pickerOpen}
+        onClose={handlePickerClose}
+        value={new Date(typedDate)}
+        onChange={handleDateChange}
+        slotProps={{
+          textField: {
+            inputProps: { 'aria-label': 'date-added' },
+            onFocus: (e: FocusEvent<HTMLInputElement>) => {
+              e.stopPropagation()
+              activateCell()
+            },
+            onPointerDown: (e) => {
+              /* allow text editing without opening picker */
+              e.stopPropagation()
+            },
+          },
+          openPickerButton: {
+            onClick: (e) => {
+              e.stopPropagation()
+              activateCell()
+              setPickerOpen(true)
+            },
+          },
         }}
+        sx={{ '& fieldset': { border: 'none' } }}
       />
     </TableCell>
   )
