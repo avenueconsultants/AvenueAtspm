@@ -15,7 +15,7 @@ interface SelectCellProps {
   col: number
   rowCount: number
   colCount: number
-  value: string
+  value: string | number | null | undefined
   onUpdate: (v: string) => void
   options: { value: string; label: string; icon?: ReactElement }[]
   error?: string

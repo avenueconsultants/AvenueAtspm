@@ -24,7 +24,7 @@ interface TextCellProps {
   col: number
   rowCount: number
   colCount: number
-  value: string | number
+  value: string | number | null | undefined
   onUpdate: (v: string) => void
   error?: string
   warning?: string
@@ -54,9 +54,7 @@ export const TextCell = ({
   const isFocused = tabIndex === 0 && !isEditing
 
   useEffect(() => {
-    if (isFocused) {
-      cellRef.current?.focus()
-    }
+    if (isFocused) cellRef.current?.focus()
   }, [isFocused])
 
   useEffect(() => {
@@ -84,7 +82,7 @@ export const TextCell = ({
     ) {
       e.preventDefault()
       openEditor()
-      onUpdate(value + e.key)
+      onUpdate(e.key)
       return
     }
     navKeyDown(e)
@@ -108,9 +106,7 @@ export const TextCell = ({
   const handleInputBlur = useCallback(
     (e: FocusEvent<HTMLInputElement>) => {
       const to = e.relatedTarget as HTMLElement | null
-      if (to?.hasAttribute('data-row') && to.hasAttribute('data-col')) {
-        return
-      }
+      if (to?.hasAttribute('data-row') && to.hasAttribute('data-col')) return
       closeEditor()
       setTimeout(() => cellRef.current?.focus())
     },
