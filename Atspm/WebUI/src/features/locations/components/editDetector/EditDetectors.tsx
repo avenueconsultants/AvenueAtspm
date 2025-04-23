@@ -31,13 +31,13 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import React, { useMemo } from 'react'
+import { useMemo } from 'react'
 
 interface EditDetectorsProps {
   approach: ConfigApproach
 }
 
-const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
+const EditDetectors = ({ approach }: EditDetectorsProps) => {
   const location = useLocationStore((s) => s.location)
   const updateDetector = useLocationStore((s) => s.updateDetector)
   const { data: dtData } = useGetDetectionType()
@@ -70,15 +70,9 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
     [detectionTypes, locationType]
   )
 
-  const sortedDetectors = useMemo(
-    () =>
-      [...approach.detectors].sort((a, b) =>
-        a.detectorChannel < b.detectorChannel ? -1 : 1
-      ),
-    [approach.detectors]
-  )
+  const detectors = [...approach.detectors]
 
-  const rowCount = sortedDetectors.length
+  const rowCount = detectors.length
   const colCount = 13
 
   return (
@@ -98,7 +92,6 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   Advanced Speed Only
                 </Typography>
               </TableCell>
-              <TableCell />
             </TableRow>
             <TableRow>
               <TableCell sx={{ paddingY: 1, paddingLeft: 1, fontSize: '12px' }}>
@@ -140,15 +133,10 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
               <TableCell sx={{ paddingY: 1, fontSize: '12px' }}>
                 Movement Delay
               </TableCell>
-              <TableCell
-                sx={{ paddingY: 1, paddingRight: 1, fontSize: '12px' }}
-              >
-                Actions
-              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {sortedDetectors.map((det, rowIdx) => (
+            {detectors.map((det, rowIdx) => (
               <TableRow key={det.id}>
                 <TextCell
                   row={rowIdx}
@@ -313,14 +301,6 @@ const EditDetectors: React.FC<EditDetectorsProps> = ({ approach }) => {
                   onUpdate={(val) =>
                     updateDetector(det.id, 'movementDelay', val)
                   }
-                />
-                <TextCell
-                  row={rowIdx}
-                  col={13}
-                  rowCount={rowCount}
-                  colCount={colCount}
-                  value={det.actions}
-                  onUpdate={(val) => updateDetector(det.id, 'actions', val)}
                 />
               </TableRow>
             ))}
