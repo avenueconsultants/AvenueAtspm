@@ -6,7 +6,7 @@ import {
 } from '@/features/locations/api/detector'
 import { useCellNavigation } from '@/features/locations/components/Cell/CellNavigation'
 import DeleteConfirmationModal from '@/features/locations/components/editDetector/DeleteCommentConfirmationModal'
-import { Detector } from '@/features/locations/types'
+import { ConfigDetector } from '@/features/locations/components/editLocation/locationStore'
 import ChatBubbleIcon from '@mui/icons-material/ChatBubble'
 import DeleteIcon from '@mui/icons-material/Delete'
 import EditIcon from '@mui/icons-material/Edit'
@@ -37,7 +37,7 @@ import React, {
 } from 'react'
 
 interface CommentCellProps {
-  detector: Detector
+  detector: ConfigDetector
   row: number
   col: number
   rowCount: number
