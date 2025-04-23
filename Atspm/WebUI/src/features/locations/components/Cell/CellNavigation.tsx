@@ -1,3 +1,4 @@
+// NavigationContext.tsx
 import React, {
   createContext,
   ReactNode,
@@ -24,7 +25,20 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
     col: -1,
   })
 
-  const value = useMemo(() => ({ focused, setFocused }), [focused, setFocused])
+  // clear focus if you click anywhere that isn't a [data-row][data-col] cell
+  useEffect(() => {
+    const handler = (e: PointerEvent) => {
+      const tgt = e.target as HTMLElement
+      if (!tgt.closest('[data-row][data-col]')) {
+        setFocused({ approachId: -1, row: -1, col: -1 })
+      }
+    }
+    document.addEventListener('pointerdown', handler)
+    return () => document.removeEventListener('pointerdown', handler)
+  }, [])
+
+  const value = useMemo(() => ({ focused, setFocused }), [focused])
+
   return (
     <NavigationContext.Provider value={value}>
       {children}
@@ -44,7 +58,6 @@ export function useCellNavigation(
   const { focused, setFocused } = ctx
   const [isEditing, setIsEditing] = useState(false)
 
-  // clear edit if focus moves to a different table or cell
   useEffect(() => {
     if (
       (focused.approachId !== approachId ||
@@ -56,13 +69,8 @@ export function useCellNavigation(
     }
   }, [focused, approachId, row, col, isEditing])
 
-  const openEditor = useCallback(() => {
-    setIsEditing(true)
-  }, [])
-
-  const closeEditor = useCallback(() => {
-    setIsEditing(false)
-  }, [])
+  const openEditor = useCallback(() => setIsEditing(true), [])
+  const closeEditor = useCallback(() => setIsEditing(false), [])
 
   const tabIndex =
     focused.approachId === approachId &&
@@ -71,43 +79,36 @@ export function useCellNavigation(
       ? 0
       : -1
 
-  const onFocus = useCallback(() => {
-    setFocused({ approachId, row, col })
-  }, [approachId, row, col, setFocused])
+  const onFocus = useCallback(
+    () => setFocused({ approachId, row, col }),
+    [approachId, row, col, setFocused]
+  )
 
   const onKeyDown: React.KeyboardEventHandler<HTMLElement> = useCallback(
     (e) => {
+      if (focused.approachId < 0) return
+
       if (!isEditing && e.key === 'Tab') {
         e.preventDefault()
-        e.stopPropagation()
         let r = row,
           c = col
         if (e.shiftKey) {
-          // backwards
           if (c === 0) {
             c = colCount - 1
             r = r === 0 ? rowCount - 1 : r - 1
-          } else {
-            c--
-          }
+          } else c--
         } else {
-          // forwards
           if (c === colCount - 1) {
             c = 0
             r = r === rowCount - 1 ? 0 : r + 1
-          } else {
-            c++
-          }
+          } else c++
         }
-        console.log('Tab', { approachId, row: r, col: c })
         setFocused({ approachId, row: r, col: c })
         return
       }
 
-      // ENTER to start editing
       if (!isEditing && e.key === 'Enter') {
         e.preventDefault()
-        e.stopPropagation()
         openEditor()
         return
       }
@@ -120,14 +121,12 @@ export function useCellNavigation(
         !e.key.startsWith('Arrow')
       ) {
         e.preventDefault()
-        e.stopPropagation()
         openEditor()
         return
       }
 
       if (e.key.startsWith('Arrow')) {
         e.preventDefault()
-        e.stopPropagation()
         let r = row,
           c = col
         switch (e.key) {
@@ -135,17 +134,13 @@ export function useCellNavigation(
             if (c === colCount - 1) {
               c = 0
               r = r === rowCount - 1 ? 0 : r + 1
-            } else {
-              c++
-            }
+            } else c++
             break
           case 'ArrowLeft':
             if (c === 0) {
               c = colCount - 1
               r = r === 0 ? rowCount - 1 : r - 1
-            } else {
-              c--
-            }
+            } else c--
             break
           case 'ArrowDown':
             r = r === rowCount - 1 ? 0 : r + 1
@@ -157,16 +152,8 @@ export function useCellNavigation(
         setFocused({ approachId, row: r, col: c })
       }
     },
-    [
-      isEditing,
-      openEditor,
-      row,
-      col,
-      rowCount,
-      colCount,
-      setFocused,
-      approachId,
-    ]
+    [focused, isEditing, openEditor, row, col, rowCount, colCount, approachId]
   )
+
   return { tabIndex, onFocus, onKeyDown, isEditing, openEditor, closeEditor }
 }
