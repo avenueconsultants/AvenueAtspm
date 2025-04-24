@@ -18,7 +18,7 @@ import {
 } from '@/features/locations/components/editLocation/locationStore'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { useNotificationStore } from '@/stores/notifications'
-import { Box, Collapse, Paper } from '@mui/material'
+import { Box, Button, Collapse, Paper } from '@mui/material'
 import React, { useCallback, useState } from 'react'
 
 interface ApproachAdminProps {
@@ -64,6 +64,8 @@ function EditApproach({ approach }: ApproachAdminProps) {
   )
   const { findEnumByNameOrAbbreviation: findDetectionHardware } =
     useConfigEnums(ConfigEnum.DetectionHardwareTypes)
+
+  const [deleteMode, setDeleteMode] = useState(false)
 
   const handleApproachClick = useCallback(() => {
     setOpen((prev) => !prev)
@@ -281,13 +283,46 @@ function EditApproach({ approach }: ApproachAdminProps) {
       <Collapse in={open} unmountOnExit>
         <EditApproachGrid approach={approach} />
         <Box display="flex" justifyContent="flex-end" mb={1}>
-          <AddButton
-            label="New Detector"
-            onClick={() => addDetectorInStore(approach.id)}
-            sx={{ m: 1 }}
-          />
+          {!deleteMode && (
+            <>
+              <AddButton
+                label="New Detector"
+                onClick={() => addDetectorInStore(approach.id)}
+                sx={{ m: 1 }}
+              />
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => setDeleteMode(true)}
+                sx={{ m: 1 }}
+              >
+                Delete Detectors
+              </Button>
+            </>
+          )}
+          {deleteMode && (
+            <>
+              <Button
+                variant="outlined"
+                onClick={() => setDeleteMode(false)}
+                sx={{ m: 1 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                onClick={() => {
+                  /* deletion logic later */
+                }}
+                sx={{ m: 1 }}
+              >
+                Delete Selected Detectors
+              </Button>
+            </>
+          )}
         </Box>
-        <EditDetectors approach={approach} />
+        <EditDetectors approach={approach} deleteMode={deleteMode} />
       </Collapse>
 
       <DeleteApproachModal
