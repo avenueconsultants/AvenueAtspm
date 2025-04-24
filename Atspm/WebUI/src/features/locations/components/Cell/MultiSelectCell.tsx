@@ -3,6 +3,7 @@ import {
   Checkbox,
   MenuItem,
   Select,
+  SelectChangeEvent,
   TableCell,
   Tooltip,
   alpha,
@@ -51,16 +52,19 @@ export function MultiSelectCell<T>({
   const cellRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (tabIndex === 0 && !isEditing) {
-      cellRef.current?.focus()
-    }
+    if (tabIndex === 0 && !isEditing) cellRef.current?.focus()
   }, [tabIndex, isEditing])
 
   const handleCellClick = () => {
     if (!isEditing) openEditor()
   }
-
-  const handleCellKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+  const handleCellKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (isEditing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      e.preventDefault()
+      return
+    }
     if (!isEditing && e.key === 'Enter') {
       e.preventDefault()
       openEditor()
@@ -69,19 +73,16 @@ export function MultiSelectCell<T>({
     if (!isEditing && e.key.startsWith('Arrow')) {
       e.preventDefault()
       navKeyDown(e)
-      return
     }
   }
-
   const handleSelectKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === 'Escape' || e.key === 'Enter') {
+    if (e.key === 'Escape') {
       e.preventDefault()
       closeEditor()
       setTimeout(() => cellRef.current?.focus())
     }
   }
-
-  const handleChange = (e: React.ChangeEvent<{ value: unknown }>) => {
+  const handleChange = (e: SelectChangeEvent<T[]>) => {
     onUpdate(e.target.value as T[])
   }
 
@@ -114,31 +115,35 @@ export function MultiSelectCell<T>({
         '&:focus-visible': { outline: 'none' },
       }}
     >
+      {(isEditing || isFocused) && (
+        <Box
+          sx={{
+            pointerEvents: 'none',
+            position: 'absolute',
+            inset: 0,
+            border: `2px solid ${outlineColor}`,
+            borderRadius: 1,
+            zIndex: 1,
+          }}
+        />
+      )}
+
       <Tooltip title={error ?? warning ?? ''}>
         <>
-          {(isEditing || isFocused) && (
-            <Box
-              sx={{
-                pointerEvents: 'none',
-                position: 'absolute',
-                inset: 0,
-                border: `2px solid ${outlineColor}`,
-                borderRadius: 1,
-                zIndex: 1,
-              }}
-            />
-          )}
           <Box sx={{ width: '100%', height: '100%' }}>
             <Select
               multiple
               open={isEditing}
               value={value}
               onChange={handleChange}
-              onClose={closeEditor}
               onKeyDown={handleSelectKeyDown}
               variant="standard"
               disableUnderline
               renderValue={renderValue}
+              MenuProps={{
+                disablePortal: true,
+                onClose: () => closeEditor(),
+              }}
               sx={{
                 height: '100%',
                 width: '100%',
