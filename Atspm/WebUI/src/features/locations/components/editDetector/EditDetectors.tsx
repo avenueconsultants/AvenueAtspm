@@ -41,17 +41,20 @@ interface EditDetectorsProps {
 
 const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
   const theme = useTheme()
-  const outlineColor = theme.palette.error.main
-  const innerColor = alpha(outlineColor, 0.25)
+  const errorColor = theme.palette.error.main
+  const successColor = theme.palette.success.main
+  const innerErrorBg = alpha(errorColor, 0.2)
+  const innerSuccessBg = alpha(successColor, 0.2)
 
   const [selectedIds, setSelectedIds] = useState<number[]>([])
   useEffect(() => {
     if (!deleteMode) setSelectedIds([])
   }, [deleteMode])
+
   const handleRowClick = (id: number) => {
     if (!deleteMode) return
     setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
     )
   }
 
@@ -128,20 +131,31 @@ const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
             ))}
           </TableRow>
         </TableHead>
+
         <TableBody>
           {detectors.map((det, rowIdx) => {
             const isSelected = selectedIds.includes(det.id)
+            const outline = isSelected
+              ? `2px solid ${errorColor}`
+              : det.isNew
+                ? `2px solid ${successColor}`
+                : undefined
+
             return (
               <TableRow
                 key={det.id}
                 sx={{
                   position: 'relative',
                   cursor: deleteMode ? 'pointer' : 'default',
-                  '& td': { borderRight: '0.5px solid lightgrey' },
-                  '& td:first-of-type': { borderLeft: '0.5px solid lightgrey' },
-                  ...(isSelected && {
-                    bgcolor: innerColor,
-                  }),
+                  caretColor: 'transparent',
+                  outline,
+                  outlineOffset: outline ? '-2px' : undefined,
+                  borderRadius: outline ? 1 : undefined,
+                  bgcolor: isSelected
+                    ? innerErrorBg
+                    : det.isNew
+                      ? innerSuccessBg
+                      : undefined,
                 }}
               >
                 <TextCell
@@ -312,16 +326,12 @@ const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
                     colSpan={colCount}
                     onClick={() => handleRowClick(det.id)}
                     sx={{
+                      p: 0,
                       position: 'absolute',
                       inset: 0,
                       zIndex: 1,
-                      backgroundColor: 'transparent',
+                      bgcolor: 'transparent',
                       cursor: 'pointer',
-                      outline: isSelected
-                        ? `2px solid ${outlineColor}`
-                        : 'none',
-                      outlineOffset: '-2px',
-                      borderRadius: 1,
                     }}
                   />
                 )}

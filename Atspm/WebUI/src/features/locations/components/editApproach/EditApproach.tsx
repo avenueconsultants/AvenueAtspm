@@ -5,7 +5,6 @@ import {
   LaneTypes,
   MovementTypes,
 } from '@/api/config/aTSPMConfigurationApi.schemas'
-import { AddButton } from '@/components/addButton'
 import { useEditApproach } from '@/features/locations/api/approach'
 import ApproachEditorRowHeader from '@/features/locations/components/editApproach/ApproachEditorRow'
 import DeleteApproachModal from '@/features/locations/components/editApproach/DeleteApproachModal'
@@ -18,6 +17,8 @@ import {
 } from '@/features/locations/components/editLocation/locationStore'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { useNotificationStore } from '@/stores/notifications'
+import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
 import { Box, Button, Collapse, Paper } from '@mui/material'
 import React, { useCallback, useState } from 'react'
 
@@ -285,16 +286,23 @@ function EditApproach({ approach }: ApproachAdminProps) {
         <Box display="flex" justifyContent="flex-end" mb={1}>
           {!deleteMode && (
             <>
-              <AddButton
-                label="New Detector"
+              <Button
+                variant="contained"
+                color="success"
+                size="small"
                 onClick={() => addDetectorInStore(approach.id)}
-                sx={{ m: 1 }}
-              />
+                sx={{ m: 1, textTransform: 'none' }}
+                startIcon={<AddIcon />}
+              >
+                Add Detector
+              </Button>
               <Button
                 variant="contained"
                 color="error"
                 onClick={() => setDeleteMode(true)}
-                sx={{ m: 1 }}
+                sx={{ m: 1, textTransform: 'none' }}
+                size="small"
+                startIcon={<DeleteIcon />}
               >
                 Delete Detectors
               </Button>
@@ -303,19 +311,21 @@ function EditApproach({ approach }: ApproachAdminProps) {
           {deleteMode && (
             <>
               <Button
+                size="small"
                 variant="outlined"
                 onClick={() => setDeleteMode(false)}
-                sx={{ m: 1 }}
+                sx={{ m: 1, textTransform: 'none' }}
               >
                 Cancel
               </Button>
               <Button
+                size="small"
                 variant="contained"
                 color="error"
                 onClick={() => {
                   /* deletion logic later */
                 }}
-                sx={{ m: 1 }}
+                sx={{ m: 1, textTransform: 'none' }}
               >
                 Delete Selected Detectors
               </Button>
