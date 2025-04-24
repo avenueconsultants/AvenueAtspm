@@ -91,20 +91,17 @@ const CommentCell = ({
     }
   }, [tabIndex, isEditing])
 
-  const handleCellClick = (e: MouseEvent<HTMLElement>) => {
-    if (!detector.isNew) {
-      if (!isEditing) {
-        openEditor()
-        setAnchorEl(e.currentTarget)
-      } else {
-        closeEditor()
-        setAnchorEl(null)
-      }
+  const handleIconClick = (e: MouseEvent<HTMLElement>) => {
+    if (detector.isNew) return
+    if (!isEditing) {
+      openEditor()
+      setAnchorEl(e.currentTarget)
     }
   }
 
   const handleCellKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (e.key === 'Enter' && !isEditing && !detector.isNew) {
+    if (detector.isNew || anchorEl) return
+    if (e.key === 'Enter' && !isEditing) {
       e.preventDefault()
       openEditor()
       setAnchorEl(cellRef.current)
@@ -121,6 +118,7 @@ const CommentCell = ({
       navKeyDown(e)
       return
     }
+    navKeyDown(e)
   }
 
   const handleClosePopover = () => {
@@ -129,6 +127,7 @@ const CommentCell = ({
   }
 
   const handleOpenModal = (id: string | null = null, text = '') => {
+    cellRef.current?.blur()
     setEditCommentId(id)
     setCommentText(text)
     setModalOpen(true)
@@ -160,8 +159,8 @@ const CommentCell = ({
   }
 
   const handleOpenDeleteModal = (id: string) => {
-    setDeleteModalOpen(true)
     setEditCommentId(id)
+    setDeleteModalOpen(true)
   }
 
   const handleCloseDeleteModal = () => {
@@ -178,7 +177,7 @@ const CommentCell = ({
 
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
-  const isFocused = tabIndex === 0 && !isEditing
+  const isFocused = tabIndex === 0 && !isEditing && !modalOpen
 
   return (
     <TableCell
@@ -189,17 +188,20 @@ const CommentCell = ({
       aria-selected={isFocused}
       tabIndex={tabIndex}
       onFocusCapture={onFocus}
-      onClick={handleCellClick}
       onKeyDown={handleCellKeyDown}
       data-row={row}
       data-col={col}
       sx={{
-        py: 1,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 57,
+        p: 0,
         position: 'relative',
         outline: 'none',
         bgcolor: isEditing ? innerColor : 'inherit',
-        caretColor: isEditing ? theme.palette.text.primary : 'transparent',
         borderRight: `1px solid ${theme.palette.divider}`,
+        caretColor: 'transparent',
       }}
     >
       {(isEditing || isFocused) && (
@@ -214,22 +216,32 @@ const CommentCell = ({
           }}
         />
       )}
+
       <Tooltip title={detector.isNew ? 'Save before commenting' : ''}>
-        <span>
-          <IconButton onClick={handleCellClick} disabled={detector.isNew}>
-            <Badge badgeContent={comments.length} color="primary">
-              <ChatBubbleIcon />
-            </Badge>
-          </IconButton>
-        </span>
+        <IconButton onClick={handleIconClick} disabled={detector.isNew}>
+          <Badge
+            badgeContent={comments.length}
+            color="primary"
+            sx={{ cursor: detector.isNew ? 'not-allowed' : 'pointer' }}
+          >
+            <ChatBubbleIcon />
+          </Badge>
+        </IconButton>
       </Tooltip>
+
       <Popover
-        open={isEditing}
+        open={Boolean(anchorEl)}
         anchorEl={anchorEl}
         onClose={handleClosePopover}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Box p={2} sx={{ width: 400 }}>
+        <Box
+          className="skip-blur"
+          p={2}
+          sx={{ width: 400 }}
+          onPointerDownCapture={(e) => e.stopPropagation()}
+          onKeyDownCapture={(e) => e.stopPropagation()}
+        >
           <List sx={{ maxHeight: 300, overflowY: 'auto' }}>
             {comments.length === 0 ? (
               <ListItem>
@@ -260,7 +272,7 @@ const CommentCell = ({
               ))
             )}
           </List>
-          <Divider />
+          {comments.length === 0 && <Divider />}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
             <Button variant="contained" onClick={() => handleOpenModal()}>
               Add New
@@ -268,8 +280,11 @@ const CommentCell = ({
           </Box>
         </Box>
       </Popover>
+
       <Modal open={modalOpen} onClose={handleCloseModal}>
         <Box
+          onPointerDownCapture={(e) => e.stopPropagation()}
+          onKeyDownCapture={(e) => e.stopPropagation()}
           sx={{
             position: 'absolute',
             top: '50%',
@@ -285,6 +300,7 @@ const CommentCell = ({
             {editCommentId ? 'Edit Comment' : 'Add Comment'}
           </Typography>
           <TextField
+            autoFocus
             fullWidth
             multiline
             rows={4}
@@ -303,12 +319,13 @@ const CommentCell = ({
           </Box>
         </Box>
       </Modal>
+
       <DeleteConfirmationModal
         open={deleteModalOpen}
         onClose={handleCloseDeleteModal}
         onDelete={handleConfirmDelete}
         commentText={
-          comments.find((c) => c.id === editCommentId)?.comment ?? ''
+          comments.find((c) => c.id === editCommentId)?.comment || ''
         }
       />
     </TableCell>

@@ -152,7 +152,17 @@ export function useCellNavigation(
         setFocused({ approachId, row: r, col: c })
       }
     },
-    [focused, isEditing, openEditor, row, col, rowCount, colCount, approachId]
+    [
+      focused,
+      isEditing,
+      openEditor,
+      row,
+      col,
+      rowCount,
+      colCount,
+      approachId,
+      setFocused,
+    ]
   )
 
   return { tabIndex, onFocus, onKeyDown, isEditing, openEditor, closeEditor }
