@@ -110,7 +110,7 @@ export function MultiSelectCell<T>({
         position: 'relative',
         outline: 'none',
         caretColor: isEditing ? theme.palette.text.primary : 'transparent',
-        bgcolor: isEditing ? innerColor : 'inherit',
+        bgcolor: isEditing ? innerColor : '',
         borderRight: '0.5px solid lightgrey',
         '&:focus-visible': { outline: 'none' },
       }}
@@ -129,43 +129,41 @@ export function MultiSelectCell<T>({
       )}
 
       <Tooltip title={error ?? warning ?? ''}>
-        <>
-          <Box sx={{ width: '100%', height: '100%' }}>
-            <Select
-              multiple
-              open={isEditing}
-              value={value}
-              onChange={handleChange}
-              onKeyDown={handleSelectKeyDown}
-              variant="standard"
-              disableUnderline
-              renderValue={renderValue}
-              MenuProps={{
-                disablePortal: true,
-                onClose: () => closeEditor(),
-              }}
-              sx={{
+        <Box sx={{ width: '100%', height: '100%' }}>
+          <Select
+            multiple
+            open={isEditing}
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleSelectKeyDown}
+            variant="standard"
+            disableUnderline
+            renderValue={renderValue}
+            MenuProps={{
+              disablePortal: true,
+              onClose: () => closeEditor(),
+            }}
+            sx={{
+              height: '100%',
+              width: '100%',
+              px: 1,
+              boxSizing: 'border-box',
+              '& .MuiSelect-select': {
+                display: 'flex',
+                alignItems: 'center',
                 height: '100%',
-                width: '100%',
-                px: 1,
-                boxSizing: 'border-box',
-                '& .MuiSelect-select': {
-                  display: 'flex',
-                  alignItems: 'center',
-                  height: '100%',
-                  p: 0,
-                },
-              }}
-            >
-              {options.map((opt) => (
-                <MenuItem key={opt.value as any} value={opt.value}>
-                  <Checkbox checked={value.includes(opt.value)} tabIndex={-1} />
-                  {opt.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </Box>
-        </>
+                p: 0,
+              },
+            }}
+          >
+            {options.map((opt) => (
+              <MenuItem key={opt.value as any} value={opt.value}>
+                <Checkbox checked={value.includes(opt.value)} tabIndex={-1} />
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </Box>
       </Tooltip>
     </TableCell>
   )

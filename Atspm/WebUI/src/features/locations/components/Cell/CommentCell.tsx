@@ -199,7 +199,7 @@ const CommentCell = ({
         p: 0,
         position: 'relative',
         outline: 'none',
-        bgcolor: isEditing ? innerColor : 'inherit',
+        bgcolor: isEditing ? innerColor : '',
         borderRight: `1px solid ${theme.palette.divider}`,
         caretColor: 'transparent',
       }}

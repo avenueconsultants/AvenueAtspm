@@ -141,14 +141,6 @@ const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
                   '& td:first-of-type': { borderLeft: '0.5px solid lightgrey' },
                   ...(isSelected && {
                     bgcolor: innerColor,
-                    '&::after': {
-                      content: '""',
-                      position: 'absolute',
-                      inset: 0,
-                      border: `2px solid ${outlineColor}`,
-                      borderRadius: 1,
-                      pointerEvents: 'none',
-                    },
                   }),
                 }}
               >
@@ -320,12 +312,16 @@ const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
                     colSpan={colCount}
                     onClick={() => handleRowClick(det.id)}
                     sx={{
-                      p: 0,
                       position: 'absolute',
                       inset: 0,
                       zIndex: 1,
                       backgroundColor: 'transparent',
                       cursor: 'pointer',
+                      outline: isSelected
+                        ? `2px solid ${outlineColor}`
+                        : 'none',
+                      outlineOffset: '-2px',
+                      borderRadius: 1,
                     }}
                   />
                 )}
