@@ -298,6 +298,9 @@ function EditApproach({ approach }: ApproachAdminProps) {
           mb: '6px',
           border: '2px solid lightgrey',
           borderLeft: (() => {
+            if (approach.isNew || approach.description?.includes('New')) {
+              return `7px solid lightgrey`
+            }
             const dir = approach.description?.charAt(0).toUpperCase()
             switch (dir) {
               case 'N':
@@ -309,7 +312,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
               case 'W':
                 return `7px solid ${Color.Orange}`
               default:
-                return 'none'
+                return '7px solid lightgrey'
             }
           })(),
         }}
@@ -379,7 +382,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
               )}
             </Box>
 
-            <Box sx={{ mt: 1 }}>
+            <Box sx={{ mt: 1, ml: '1px' }}>
               <EditDetectors
                 approach={approach}
                 deleteMode={deleteMode}
