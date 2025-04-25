@@ -18,7 +18,7 @@ interface MultiSelectCellProps<T> {
   col: number
   rowCount: number
   colCount: number
-  value: T[]
+  value: T[] | undefined
   onUpdate: (newVals: T[]) => void
   options: { value: T; label: string }[]
   renderValue: (selected: T[]) => React.ReactNode
@@ -132,6 +132,7 @@ export function MultiSelectCell<T>({
         <Box sx={{ width: '100%', height: '100%' }}>
           <Select
             multiple
+            displayEmpty
             open={isEditing}
             value={value}
             onChange={handleChange}
@@ -157,8 +158,11 @@ export function MultiSelectCell<T>({
             }}
           >
             {options.map((opt) => (
-              <MenuItem key={opt.value as any} value={opt.value}>
-                <Checkbox checked={value.includes(opt.value)} tabIndex={-1} />
+              <MenuItem key={opt.value} value={opt.value}>
+                <Checkbox
+                  checked={(value ?? []).includes(opt.value)}
+                  tabIndex={-1}
+                />
                 {opt.label}
               </MenuItem>
             ))}

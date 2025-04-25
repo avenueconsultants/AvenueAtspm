@@ -70,9 +70,7 @@ const CommentCell = ({
   const [editCommentId, setEditCommentId] = useState<string | null>(null)
   const [commentText, setCommentText] = useState('')
 
-  const { refetch, data: commentsData } = useGetDetectorComments(
-    detector.id.toString()
-  )
+  const { refetch, data: commentsData } = useGetDetectorComments(detector.id)
   const { mutate: addComment } = useCreateDetectorComment()
   const { mutate: deleteComment } = useDeleteDetectorComment()
   const { mutate: updateComment } = useUpdateDetectorComment()

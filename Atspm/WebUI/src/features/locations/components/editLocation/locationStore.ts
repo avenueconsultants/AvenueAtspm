@@ -210,7 +210,7 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
         protectedPhaseNumber: null,
       }
 
-      set({ approaches: [...approaches, newApproach] })
+      set({ approaches: [newApproach, ...approaches] })
     },
 
     copyApproach: (approach) => {
