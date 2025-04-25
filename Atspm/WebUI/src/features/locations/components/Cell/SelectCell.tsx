@@ -8,7 +8,7 @@ import {
   useTheme,
 } from '@mui/material'
 import Select from '@mui/material/Select'
-import { KeyboardEvent, ReactElement, useEffect, useRef } from 'react'
+import React, { KeyboardEvent, useEffect, useRef } from 'react'
 
 interface SelectCellProps {
   approachId: number
@@ -18,7 +18,7 @@ interface SelectCellProps {
   colCount: number
   value: string | number | null | undefined
   onUpdate: (v: string) => void
-  options: { value: string; label: string; icon?: ReactElement }[]
+  options: { value: string; label: string; icon?: React.ReactElement }[]
   error?: string
   warning?: string
 }
@@ -77,20 +77,23 @@ const SelectCell = ({
     ) {
       e.preventDefault()
       openEditor()
-      onUpdate(value + e.key)
+      onUpdate((value ?? '') + e.key)
       return
     }
     navKeyDown(e)
   }
 
-  const handleSelectKeyDown = (
-    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleSelectKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter') {
       e.preventDefault()
       closeEditor()
       setTimeout(() => cellRef.current?.focus())
     }
+  }
+
+  const handleClose = () => {
+    closeEditor()
+    setTimeout(() => cellRef.current?.focus())
   }
 
   const outlineColor = theme.palette.primary.main
@@ -139,15 +142,12 @@ const SelectCell = ({
           <Box sx={{ position: 'relative', width: '100%', height: '100%' }}>
             <Select
               open={isEditing}
-              onClose={() => {
-                closeEditor()
-                setTimeout(() => cellRef.current?.focus())
-              }}
-              value={value}
+              onClose={handleClose}
+              onBlur={handleClose}
+              value={value ?? ''}
               onChange={(e) => {
                 onUpdate(e.target.value)
-                closeEditor()
-                setTimeout(() => cellRef.current?.focus())
+                handleClose()
               }}
               onKeyDown={handleSelectKeyDown}
               variant="standard"
@@ -165,16 +165,15 @@ const SelectCell = ({
                   padding: 0,
                 },
               }}
+              MenuProps={{
+                onClick: handleClose,
+              }}
             >
               {options.map((opt) => (
                 <MenuItem
                   key={opt.value}
                   value={opt.value}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                  }}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
                 >
                   {opt.icon}
                   {opt.label}
