@@ -37,9 +37,14 @@ import { useEffect, useMemo, useState } from 'react'
 interface EditDetectorsProps {
   approach: ConfigApproach
   deleteMode: boolean
+  onSelectionChange?: (ids: number[]) => void
 }
 
-const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
+const EditDetectors = ({
+  approach,
+  deleteMode,
+  onSelectionChange,
+}: EditDetectorsProps) => {
   const theme = useTheme()
   const errorColor = theme.palette.error.main
   const successColor = theme.palette.success.main
@@ -53,9 +58,13 @@ const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
 
   const handleRowClick = (id: number) => {
     if (!deleteMode) return
-    setSelectedIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    )
+    setSelectedIds((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id]
+      onSelectionChange?.(next)
+      return next
+    })
   }
 
   const location = useLocationStore((s) => s.location)
@@ -133,6 +142,15 @@ const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
         </TableHead>
 
         <TableBody>
+          {detectors.length === 0 && (
+            <TableRow>
+              <TableCell colSpan={colCount} sx={{ textAlign: 'center' }}>
+                <Typography variant="body2" color="text.secondary">
+                  No detectors found
+                </Typography>
+              </TableCell>
+            </TableRow>
+          )}
           {detectors.map((det, rowIdx) => {
             const isSelected = selectedIds.includes(det.id)
             const outline = isSelected
@@ -173,7 +191,7 @@ const EditDetectors = ({ approach, deleteMode }: EditDetectorsProps) => {
                   col={1}
                   rowCount={rowCount}
                   colCount={colCount}
-                  value={det.detectionTypes.map((dt) => dt.abbreviation)}
+                  value={det?.detectionTypes?.map((dt) => dt.abbreviation)}
                   options={detectionOptions}
                   onUpdate={(abbrs) => {
                     const types = detectionTypes.filter((d) =>

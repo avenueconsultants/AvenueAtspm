@@ -19,7 +19,17 @@ import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { useNotificationStore } from '@/stores/notifications'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { Box, Button, Collapse, Paper } from '@mui/material'
+import {
+  Box,
+  Button,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Paper,
+} from '@mui/material'
 import React, { useCallback, useState } from 'react'
 
 interface ApproachAdminProps {
@@ -30,6 +40,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
   const locationIdentifier = useLocationStore(
     (s) => s.location?.locationIdentifier
   )
+  const deleteDetector = useLocationStore((s) => s.deleteDetector)
   const channelMap = useLocationStore((s) => s.channelMap)
   const errors = useLocationStore((s) => s.errors)
   const warnings = useLocationStore((s) => s.warnings)
@@ -46,6 +57,9 @@ function EditApproach({ approach }: ApproachAdminProps) {
 
   const [open, setOpen] = useState(false)
   const [openModal, setOpenModal] = useState(false)
+  const [deleteMode, setDeleteMode] = useState(false)
+  const [selectedDetectorIds, setSelectedDetectorIds] = useState<number[]>([])
+  const [confirmDelete, setConfirmDelete] = useState(false)
 
   const { addNotification } = useNotificationStore()
   const { mutate: editApproach } = useEditApproach()
@@ -65,8 +79,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
   )
   const { findEnumByNameOrAbbreviation: findDetectionHardware } =
     useConfigEnums(ConfigEnum.DetectionHardwareTypes)
-
-  const [deleteMode, setDeleteMode] = useState(false)
 
   const handleApproachClick = useCallback(() => {
     setOpen((prev) => !prev)
@@ -247,6 +259,14 @@ function EditApproach({ approach }: ApproachAdminProps) {
     addNotification,
   ])
 
+  const confirmDeleteSelected = useCallback(() => {
+    selectedDetectorIds.forEach((id) => deleteDetector(id))
+    setConfirmDelete(false)
+    setDeleteMode(false)
+    setSelectedDetectorIds([])
+    addNotification({ title: 'Selected detectors deleted', type: 'success' })
+  }, [selectedDetectorIds, deleteDetector, addNotification])
+
   const handleDeleteApproach = useCallback(() => {
     try {
       deleteApproachInStore(approach)
@@ -313,7 +333,10 @@ function EditApproach({ approach }: ApproachAdminProps) {
               <Button
                 size="small"
                 variant="outlined"
-                onClick={() => setDeleteMode(false)}
+                onClick={() => {
+                  setDeleteMode(false)
+                  setSelectedDetectorIds([])
+                }}
                 sx={{ m: 1, textTransform: 'none' }}
               >
                 Cancel
@@ -322,9 +345,8 @@ function EditApproach({ approach }: ApproachAdminProps) {
                 size="small"
                 variant="contained"
                 color="error"
-                onClick={() => {
-                  /* deletion logic later */
-                }}
+                disabled={selectedDetectorIds.length === 0}
+                onClick={() => setConfirmDelete(true)}
                 sx={{ m: 1, textTransform: 'none' }}
               >
                 Delete Selected Detectors
@@ -332,9 +354,26 @@ function EditApproach({ approach }: ApproachAdminProps) {
             </>
           )}
         </Box>
-        <EditDetectors approach={approach} deleteMode={deleteMode} />
+        <EditDetectors
+          approach={approach}
+          deleteMode={deleteMode}
+          onSelectionChange={(ids) => setSelectedDetectorIds(ids)}
+        />
       </Collapse>
-
+      <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
+        <DialogTitle>Confirm Delete Selected Detectors</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete the selected detectors?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete(false)}>Cancel</Button>
+          <Button color="error" onClick={confirmDeleteSelected}>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
       <DeleteApproachModal
         openModal={openModal}
         setOpenModal={setOpenModal}
