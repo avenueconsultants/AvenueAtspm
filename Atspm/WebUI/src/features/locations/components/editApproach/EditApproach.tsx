@@ -5,6 +5,7 @@ import {
   LaneTypes,
   MovementTypes,
 } from '@/api/config/aTSPMConfigurationApi.schemas'
+import { Color } from '@/features/charts/utils'
 import { useEditApproach } from '@/features/locations/api/approach'
 import ApproachEditorRowHeader from '@/features/locations/components/editApproach/ApproachEditorRow'
 import DeleteApproachModal from '@/features/locations/components/editApproach/DeleteApproachModal'
@@ -28,6 +29,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Divider,
   Paper,
 } from '@mui/material'
 import React, { useCallback, useState } from 'react'
@@ -290,7 +292,28 @@ function EditApproach({ approach }: ApproachAdminProps) {
 
   return (
     <>
-      <Paper sx={{ mt: 1 }}>
+      <Paper
+        variant="outlined"
+        sx={{
+          mb: '6px',
+          border: '2px solid lightgrey',
+          borderLeft: (() => {
+            const dir = approach.description?.charAt(0).toUpperCase()
+            switch (dir) {
+              case 'N':
+                return `7px solid ${Color.Blue}`
+              case 'S':
+                return `7px solid ${Color.BrightRed}`
+              case 'E':
+                return `7px solid ${Color.Yellow}`
+              case 'W':
+                return `7px solid ${Color.Orange}`
+              default:
+                return 'none'
+            }
+          })(),
+        }}
+      >
         <ApproachEditorRowHeader
           open={open}
           approach={approach}
@@ -299,67 +322,74 @@ function EditApproach({ approach }: ApproachAdminProps) {
           handleSaveApproach={handleSaveApproach}
           openDeleteApproachModal={openDeleteApproachModal}
         />
+        <Divider />
+        <Collapse in={open} unmountOnExit>
+          <>
+            <EditApproachGrid approach={approach} />
+
+            <Box display="flex" justifyContent="flex-end" mb={1}>
+              {!deleteMode && (
+                <>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    onClick={() => addDetectorInStore(approach.id)}
+                    sx={{ m: 1, textTransform: 'none' }}
+                    startIcon={<AddIcon />}
+                  >
+                    Add Detector
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    size="small"
+                    onClick={() => setDeleteMode(true)}
+                    sx={{ m: 1, textTransform: 'none' }}
+                    startIcon={<DeleteIcon />}
+                  >
+                    Delete Detectors
+                  </Button>
+                </>
+              )}
+              {deleteMode && (
+                <>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setDeleteMode(false)
+                      setSelectedDetectorIds([])
+                    }}
+                    sx={{ m: 1, textTransform: 'none' }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="error"
+                    disabled={selectedDetectorIds.length === 0}
+                    onClick={() => setConfirmDelete(true)}
+                    sx={{ m: 1, textTransform: 'none' }}
+                  >
+                    Delete Selected Detectors
+                  </Button>
+                </>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 1 }}>
+              <EditDetectors
+                approach={approach}
+                deleteMode={deleteMode}
+                onSelectionChange={(ids) => setSelectedDetectorIds(ids)}
+              />
+            </Box>
+          </>
+        </Collapse>
       </Paper>
 
-      <Collapse in={open} unmountOnExit>
-        <EditApproachGrid approach={approach} />
-        <Box display="flex" justifyContent="flex-end" mb={1}>
-          {!deleteMode && (
-            <>
-              <Button
-                variant="contained"
-                color="success"
-                size="small"
-                onClick={() => addDetectorInStore(approach.id)}
-                sx={{ m: 1, textTransform: 'none' }}
-                startIcon={<AddIcon />}
-              >
-                Add Detector
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                onClick={() => setDeleteMode(true)}
-                sx={{ m: 1, textTransform: 'none' }}
-                size="small"
-                startIcon={<DeleteIcon />}
-              >
-                Delete Detectors
-              </Button>
-            </>
-          )}
-          {deleteMode && (
-            <>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => {
-                  setDeleteMode(false)
-                  setSelectedDetectorIds([])
-                }}
-                sx={{ m: 1, textTransform: 'none' }}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="small"
-                variant="contained"
-                color="error"
-                disabled={selectedDetectorIds.length === 0}
-                onClick={() => setConfirmDelete(true)}
-                sx={{ m: 1, textTransform: 'none' }}
-              >
-                Delete Selected Detectors
-              </Button>
-            </>
-          )}
-        </Box>
-        <EditDetectors
-          approach={approach}
-          deleteMode={deleteMode}
-          onSelectionChange={(ids) => setSelectedDetectorIds(ids)}
-        />
-      </Collapse>
       <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
         <DialogTitle>Confirm Delete Selected Detectors</DialogTitle>
         <DialogContent>
@@ -374,6 +404,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
           </Button>
         </DialogActions>
       </Dialog>
+
       <DeleteApproachModal
         openModal={openModal}
         setOpenModal={setOpenModal}
