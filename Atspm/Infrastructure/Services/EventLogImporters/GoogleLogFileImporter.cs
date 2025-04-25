@@ -37,6 +37,9 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogImporters
         protected readonly ILogger _log;
         protected readonly EventLogImporterConfiguration _options;
         protected readonly IConfiguration _configuration;
+        private int batchSize = 50000;
+        private int parallelProcesses = 50;
+        private CancellationToken cancellationToken = default;
 
         #endregion
 
@@ -50,6 +53,11 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogImporters
         }
 
         #region Properties
+
+        public TransformBlock<string, Stream> DownloadFileStream { get; private set; }
+        public GoogleCloudStorageService googleCloudStorageService { get; set; }
+
+        public GoogleLogToIndianaDecoder googleLogToIndianaDecoder { get; set; }
 
         #endregion
 
@@ -78,7 +86,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogImporters
             if (parameter == null)
                 throw new ArgumentNullException(nameof(parameter));
 
-            var device = new Device()
+            var device = new Device
             {
                 Id = 0,
                 DeviceConfiguration = new DeviceConfiguration()
@@ -92,59 +100,52 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogImporters
             var logMessages = new EventLogDecoderLogMessages(_log, this.GetType().Name, device, file);
             var decoder = _decoders.FirstOrDefault(w => w.GetType().Name == nameof(GoogleLogToIndianaDecoder));
             var google = new GoogleCloudStorageService(_configuration["GoogleBucketPath"]);
-            var memoryStream = await google.GetFileStreamAsync(file.Name);
 
-            var decodeBlock = new TransformManyBlock<bool, Tuple<Device, EventLogModelBase>>(async _ =>
+            Stream memoryStream = null;
+
+            memoryStream = await google.GetFileStreamAsync(file.Name);
+            logMessages.DecodeLogFileMessage(file.FullName);
+
+            await foreach (var result in StreamEventsAsync(device, memoryStream, decoder, cancelToken))
             {
-                try
-                {
-                    logMessages.DecodeLogFileMessage(file.FullName);
-
-                    var results = new List<Tuple<Device, EventLogModelBase>>();
-
-                    foreach (var log in decoder.Decode(device, memoryStream, cancelToken))
-                    {
-                        if (IsAcceptableDateRange(log))
-                        {
-                            //progress?.Report(new ControllerDecodeProgress(log, ..., ...));
-                            results.Add(Tuple.Create(device, log));
-                        }
-                    }
-
-                    logMessages.DecodedLogsMessage(file.FullName, results.Count);
-
-                    return results;
-                }
-                catch (EventLogDecoderException e)
-                {
-                    logMessages.DecodeLogFileException(file.FullName, e);
-                }
-                catch (OperationCanceledException e)
-                {
-                    logMessages.OperationCancelledException(file.FullName, e);
-                }
-                finally
-                {
-                    memoryStream.Dispose();
-                }
-
-                return Enumerable.Empty<Tuple<Device, EventLogModelBase>>();
-            }, new ExecutionDataflowBlockOptions { CancellationToken = cancelToken });
-
-            decodeBlock.Post(true);
-            decodeBlock.Complete();
-
-            while (await decodeBlock.OutputAvailableAsync(cancelToken))
-            {
-                while (decodeBlock.TryReceive(out var result))
-                {
-                    yield return result;
-                }
+                yield return result;
             }
 
-            logMessages.DeletingFileLogsMessage(file.FullName, _options.DeleteSource);
-            if (_options.DeleteSource)
-                file.Delete();
+        }
+
+        private async IAsyncEnumerable<Tuple<Device, EventLogModelBase>> StreamEventsAsync(
+            Device device,
+            Stream stream,
+            IEventLogDecoder decoder,
+            [EnumeratorCancellation] CancellationToken cancelToken)
+        {
+            var enumerable = await Task.Run(() =>
+            {
+                return DecodeAndStream(device, stream, decoder, cancelToken);
+            }, cancelToken);
+
+            foreach (var ev in enumerable)
+            {
+                yield return Tuple.Create(device, ev);
+            }
+        }
+
+        private IEnumerable<EventLogModelBase> DecodeAndStream(Device device, Stream stream, IEventLogDecoder decoder, CancellationToken cancelToken)
+        {
+            try
+            {
+                foreach (var ev in decoder.Decode(device, stream, cancelToken))
+                {
+                    cancelToken.ThrowIfCancellationRequested();
+
+                    if (IsAcceptableDateRange(ev))
+                        yield return ev;
+                }
+            }
+            finally
+            {
+                stream.Dispose(); // safely dispose after enumeration ends
+            }
         }
 
         #endregion
