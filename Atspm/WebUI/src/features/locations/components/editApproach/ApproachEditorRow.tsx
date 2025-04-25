@@ -55,57 +55,41 @@ const ApproachEditorRowHeader = ({
         position: 'relative', // Required for absolute positioning of the error icon
       }}
     >
-      {/* Error Icon for Bad Approaches */}
-      {isBadApproach && (
-        <Tooltip title="Phase number not found in data">
-          <WarningIcon
+      <ButtonBase
+        onClick={handleApproachClick}
+        sx={{
+          cursor: 'pointer',
+          textTransform: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+        }}
+      >
+        <Box display="flex" alignItems="center">
+          <Box
             sx={{
-              position: 'absolute',
-              left: '-30px',
-              color: 'warning.light',
-              fontSize: '1.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              transition: 'transform 0.2s ease-in-out',
+              transform: open ? 'rotateZ(-180deg)' : 'rotateZ(0deg)',
             }}
-          />
-        </Tooltip>
-      )}
-
-      <Tooltip title="Approach Details">
-        <ButtonBase
-          onClick={handleApproachClick}
-          sx={{
-            cursor: 'pointer',
-            textTransform: 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-          }}
-        >
-          <Box display="flex" alignItems="center">
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'transform 0.2s ease-in-out',
-                transform: open ? 'rotateZ(-180deg)' : 'rotateZ(0deg)',
-              }}
-            >
-              <ExpandMoreIcon />
-            </Box>
-            <Typography
-              variant="h4"
-              component={'h3'}
-              sx={{ padding: 1, marginRight: 2 }}
-            >
-              {approach.description}
-            </Typography>
-            <Typography variant="h5" component="p">
-              {approach.detectors.length}{' '}
-              {approach.detectors.length === 1 ? 'Detector' : 'Detectors'}
-            </Typography>
+          >
+            <ExpandMoreIcon />
           </Box>
-        </ButtonBase>
-      </Tooltip>
+          <Typography
+            variant="h4"
+            component={'h3'}
+            sx={{ padding: 1, marginRight: 2 }}
+          >
+            {approach.description}
+          </Typography>
+          <Typography variant="h5" component="p">
+            {approach.detectors.length}{' '}
+            {approach.detectors.length === 1 ? 'Detector' : 'Detectors'}
+          </Typography>
+        </Box>
+      </ButtonBase>
       <Box display="flex" alignItems="center">
         <Tooltip title="Copy Approach">
           <IconButton aria-label="copy approach" onClick={handleCopyApproach}>
