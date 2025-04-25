@@ -218,15 +218,18 @@ const CommentCell = ({
       )}
 
       <Tooltip title={detector.isNew ? 'Save before commenting' : ''}>
-        <IconButton onClick={handleIconClick} disabled={detector.isNew}>
-          <Badge
-            badgeContent={comments.length}
-            color="primary"
-            sx={{ cursor: detector.isNew ? 'not-allowed' : 'pointer' }}
-          >
-            <ChatBubbleIcon />
-          </Badge>
-        </IconButton>
+        <span>
+          {/* can't have a disabled element as the child of a tooltip */}
+          <IconButton onClick={handleIconClick} disabled={detector.isNew}>
+            <Badge
+              badgeContent={comments.length}
+              color="primary"
+              sx={{ cursor: detector.isNew ? 'not-allowed' : 'pointer' }}
+            >
+              <ChatBubbleIcon />
+            </Badge>
+          </IconButton>
+        </span>
       </Tooltip>
 
       <Popover

@@ -58,9 +58,7 @@ export function MultiSelectCell<T>({
   const handleCellClick = () => {
     if (!isEditing) openEditor()
   }
-  const handleCellKeyDown = (
-    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleCellKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (isEditing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       e.preventDefault()
       return
@@ -75,7 +73,9 @@ export function MultiSelectCell<T>({
       navKeyDown(e)
     }
   }
-  const handleSelectKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+  const handleSelectKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     if (e.key === 'Escape') {
       e.preventDefault()
       closeEditor()
