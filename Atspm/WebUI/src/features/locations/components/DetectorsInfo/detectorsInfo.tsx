@@ -197,7 +197,7 @@ const detectorsHeaders: GridColDef[] = [
       const comments = params.value?.split(',') as string[]
       return (
         <Box display={'grid'} alignItems={'center'}>
-          {comments.map((comment) => (
+          {comments?.map((comment) => (
             <Box key={comment} mr={1}>
               {comment}
             </Box>

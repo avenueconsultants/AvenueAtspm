@@ -95,7 +95,7 @@ const EditDetectors = ({
   )
 
   const detectors = approach.detectors
-  const rowCount = detectors.length
+  const rowCount = detectors.length + 1
   const colCount = 13
 
   return (
@@ -151,7 +151,8 @@ const EditDetectors = ({
               </TableCell>
             </TableRow>
           )}
-          {detectors.map((det, rowIdx) => {
+          {detectors.map((det, i) => {
+            const rowIdx = i + 1
             const isSelected = selectedIds.includes(det.id)
             const outline = isSelected
               ? `2px solid ${errorColor}`
