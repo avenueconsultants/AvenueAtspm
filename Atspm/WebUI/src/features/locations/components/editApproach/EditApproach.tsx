@@ -99,11 +99,11 @@ function EditApproach({ approach }: ApproachAdminProps) {
       newErrors = { ...newErrors, ...channelErrors }
     }
     if (
-      !approach.protectedPhaseNumber ||
-      isNaN(approach.protectedPhaseNumber)
+      !!approach.protectedPhaseNumber ||
+      (approach.protectedPhaseNumber === 0 && !!approach.permissivePhaseNumber)
     ) {
       newErrors.protectedPhaseNumber = {
-        error: 'Protected Phase Number is required',
+        error: 'A Phase Number is required',
         id: String(approach.id),
       }
     }
