@@ -2,15 +2,24 @@ import DirectionsBikeOutlinedIcon from '@mui/icons-material/DirectionsBikeOutlin
 import DirectionsBusFilledOutlinedIcon from '@mui/icons-material/DirectionsBusFilledOutlined'
 import DirectionsCarFilledOutlinedIcon from '@mui/icons-material/DirectionsCarFilledOutlined'
 import DirectionsWalkOutlinedIcon from '@mui/icons-material/DirectionsWalkOutlined'
+import EastOutlinedIcon from '@mui/icons-material/EastOutlined'
 import ExitToAppOutlinedIcon from '@mui/icons-material/ExitToAppOutlined'
 import ForkLeftOutlinedIcon from '@mui/icons-material/ForkLeftOutlined'
 import ForkRightOutlinedIcon from '@mui/icons-material/ForkRightOutlined'
+import QuestionMarkIcon from '@mui/icons-material/HelpOutline'
+import NorthEastOutlinedIcon from '@mui/icons-material/NorthEastOutlined'
+import NorthOutlinedIcon from '@mui/icons-material/NorthOutlined'
+import NorthWestOutlinedIcon from '@mui/icons-material/NorthWestOutlined'
 import NotInterestedOutlinedIcon from '@mui/icons-material/NotInterestedOutlined'
 import PeopleAltOutlinedIcon from '@mui/icons-material/PeopleAltOutlined'
+import SouthEastOutlinedIcon from '@mui/icons-material/SouthEastOutlined'
+import SouthOutlinedIcon from '@mui/icons-material/SouthOutlined'
+import SouthWestOutlinedIcon from '@mui/icons-material/SouthWestOutlined'
 import StraightOutlinedIcon from '@mui/icons-material/StraightOutlined'
 import TrainOutlinedIcon from '@mui/icons-material/TrainOutlined'
 import TurnLeftOutlinedIcon from '@mui/icons-material/TurnLeftOutlined'
 import TurnRightOutlinedIcon from '@mui/icons-material/TurnRightOutlined'
+import WestOutlinedIcon from '@mui/icons-material/WestOutlined'
 
 export const movementType = [
   { id: 'NA', description: 'Unknown', icon: <NotInterestedOutlinedIcon /> },
@@ -83,6 +92,18 @@ export const laneTypes = [
   },
 ]
 
+export const directionTypes = {
+  NA: { id: 'NA', icon: <QuestionMarkIcon />, description: 'Unknown' },
+  NB: { id: 'NB', icon: <NorthOutlinedIcon />, description: 'Northbound' },
+  SB: { id: 'SB', icon: <SouthOutlinedIcon />, description: 'Southbound' },
+  EB: { id: 'EB', icon: <EastOutlinedIcon />, description: 'Eastbound' },
+  WB: { id: 'WB', icon: <WestOutlinedIcon />, description: 'Westbound' },
+  NE: { id: 'NE', icon: <NorthEastOutlinedIcon />, description: 'Northeast' },
+  NW: { id: 'NW', icon: <NorthWestOutlinedIcon />, description: 'Northwest' },
+  SE: { id: 'SE', icon: <SouthEastOutlinedIcon />, description: 'Southeast' },
+  SW: { id: 'SW', icon: <SouthWestOutlinedIcon />, description: 'Southwest' },
+}
+
 export const hardwareTypeOptions = hardwareTypes.map((ht) => ({
   value: ht.id,
   label: ht.description,
@@ -98,4 +119,10 @@ export const laneTypeOptions = laneTypes.map((lt) => ({
   value: lt.id,
   label: lt.description,
   icon: lt.icon,
+}))
+
+export const directionTypeOptions = Object.values(directionTypes).map((dt) => ({
+  value: dt.id,
+  label: dt.description,
+  icon: dt.icon,
 }))
