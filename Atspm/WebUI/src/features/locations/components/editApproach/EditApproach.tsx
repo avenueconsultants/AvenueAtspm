@@ -32,7 +32,7 @@ import {
   Divider,
   Paper,
 } from '@mui/material'
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useMemo, useState } from 'react'
 
 interface ApproachAdminProps {
   approach: ConfigApproach
@@ -290,6 +290,27 @@ function EditApproach({ approach }: ApproachAdminProps) {
     }
   }, [approach, deleteApproachInStore, addNotification])
 
+  const leftBorderColor = useMemo(() => {
+    if (approach.directionTypeId === DirectionTypes.NA) {
+      return 'lightgrey'
+    }
+    const dir = approach.directionTypeId?.charAt(0).toUpperCase()
+    switch (dir) {
+      case 'N':
+        return Color.Blue
+      case 'S':
+        return Color.BrightRed
+      case 'E':
+        return Color.Yellow
+      case 'W':
+        return Color.Orange
+      default:
+        return 'lightgrey'
+    }
+  }, [approach.directionTypeId])
+
+  console.log('EditApproach', approach.id, open, deleteMode)
+
   return (
     <>
       <Paper
@@ -297,24 +318,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
         sx={{
           mb: '6px',
           border: '2px solid lightgrey',
-          borderLeft: (() => {
-            if (approach.isNew || approach.description?.includes('New')) {
-              return `7px solid lightgrey`
-            }
-            const dir = approach.description?.charAt(0).toUpperCase()
-            switch (dir) {
-              case 'N':
-                return `7px solid ${Color.Blue}`
-              case 'S':
-                return `7px solid ${Color.BrightRed}`
-              case 'E':
-                return `7px solid ${Color.Yellow}`
-              case 'W':
-                return `7px solid ${Color.Orange}`
-              default:
-                return '7px solid lightgrey'
-            }
-          })(),
+          borderLeft: `7px solid ${leftBorderColor}`,
         }}
       >
         <ApproachEditorRowHeader
