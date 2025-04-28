@@ -29,9 +29,14 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const handler = (e: PointerEvent) => {
       const tgt = e.target as HTMLElement
-      if (!tgt.closest('[data-row][data-col]')) {
-        setFocused({ approachId: -1, row: -1, col: -1 })
-      }
+      // 1) keep focus if you clicked inside a cell:
+      if (tgt.closest('[data-row][data-col]')) return
+      // 2) also ignore clicks inside any MUI Popover/Menu
+      if (tgt.closest('.MuiPopover-root, .MuiMenu-list, .MuiMenuItem-root'))
+        return
+
+      // otherwise clear focus:
+      setFocused({ approachId: -1, row: -1, col: -1 })
     }
     document.addEventListener('pointerdown', handler)
     return () => document.removeEventListener('pointerdown', handler)

@@ -52,12 +52,17 @@ export function MultiSelectCell<T>({
   const cellRef = useRef<HTMLElement>(null)
 
   useEffect(() => {
-    if (tabIndex === 0 && !isEditing) cellRef.current?.focus()
+    if (tabIndex === 0 && !isEditing) {
+      cellRef.current?.focus()
+    }
   }, [tabIndex, isEditing])
 
   const handleCellClick = () => {
-    if (!isEditing) openEditor()
+    if (!isEditing) {
+      openEditor()
+    }
   }
+
   const handleCellKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
     if (isEditing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       e.preventDefault()
@@ -73,15 +78,16 @@ export function MultiSelectCell<T>({
       navKeyDown(e)
     }
   }
+
   const handleSelectKeyDown = (
     e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     if (e.key === 'Escape') {
       e.preventDefault()
       closeEditor()
-      setTimeout(() => cellRef.current?.focus())
     }
   }
+
   const handleChange = (e: SelectChangeEvent<T[]>) => {
     onUpdate(e.target.value as T[])
   }
@@ -110,7 +116,7 @@ export function MultiSelectCell<T>({
         position: 'relative',
         outline: 'none',
         caretColor: isEditing ? theme.palette.text.primary : 'transparent',
-        bgcolor: isEditing ? innerColor : '',
+        bgcolor: isEditing ? innerColor : undefined,
         borderRight: '0.5px solid lightgrey',
         '&:focus-visible': { outline: 'none' },
       }}
@@ -127,14 +133,13 @@ export function MultiSelectCell<T>({
           }}
         />
       )}
-
       <Tooltip title={error ?? warning ?? ''}>
         <Box sx={{ width: '100%', height: '100%' }}>
           <Select
             multiple
             displayEmpty
             open={isEditing}
-            value={value}
+            value={value ?? []}
             onChange={handleChange}
             onKeyDown={handleSelectKeyDown}
             variant="standard"

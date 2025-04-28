@@ -29,28 +29,23 @@ const BooleanCell = ({
     onFocus,
     onKeyDown: navKeyDown,
   } = useCellNavigation(approachId, row, col, rowCount, colCount)
-
   const cellRef = useRef<HTMLElement>(null)
   const isFocused = tabIndex === 0
 
-  // Ensure the DOM focus moves to this cell when nav context focuses it
   useEffect(() => {
-    if (isFocused) {
-      cellRef.current?.focus()
-    }
+    if (isFocused) cellRef.current?.focus()
   }, [isFocused])
 
   const handleToggle = (
     e: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>
   ) => {
     e.preventDefault()
-    onUpdate(value === true ? false : true)
+    onUpdate(value !== true)
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      // mark focus in context and toggle
       onFocus()
       handleToggle(e)
     } else {
@@ -87,9 +82,7 @@ const BooleanCell = ({
         textAlign: 'center',
         verticalAlign: 'middle',
         outline: 'none',
-        '&:focus, &:focus-visible': {
-          outline: 'none',
-        },
+        '&:focus, &:focus-visible': { outline: 'none' },
       }}
     >
       {isFocused && (
@@ -104,7 +97,6 @@ const BooleanCell = ({
           }}
         />
       )}
-
       <Box
         sx={{
           display: 'flex',
@@ -114,7 +106,7 @@ const BooleanCell = ({
           height: '100%',
         }}
       >
-        {(value ?? false) ? <CheckIcon /> : <ClearIcon />}
+        {value ? <CheckIcon /> : <ClearIcon />}
       </Box>
     </TableCell>
   )

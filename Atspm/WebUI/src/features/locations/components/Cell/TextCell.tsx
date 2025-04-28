@@ -95,7 +95,6 @@ export const TextCell = ({
       if (e.key === 'Enter') {
         e.preventDefault()
         closeEditor()
-        setTimeout(() => cellRef.current?.focus())
       } else if (e.key.startsWith('Arrow')) {
         e.preventDefault()
         closeEditor()
@@ -110,7 +109,6 @@ export const TextCell = ({
       const to = e.relatedTarget as HTMLElement | null
       if (to?.hasAttribute('data-row') && to.hasAttribute('data-col')) return
       closeEditor()
-      setTimeout(() => cellRef.current?.focus())
     },
     [closeEditor]
   )

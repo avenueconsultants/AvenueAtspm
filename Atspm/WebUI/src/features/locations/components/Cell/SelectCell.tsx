@@ -87,15 +87,12 @@ const SelectCell = ({
     if (e.key === 'Enter') {
       e.preventDefault()
       closeEditor()
-      setTimeout(() => cellRef.current?.focus())
     }
   }
 
   const handleClose = () => {
     closeEditor()
-    setTimeout(() => cellRef.current?.focus())
   }
-
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
 
@@ -143,11 +140,10 @@ const SelectCell = ({
             <Select
               open={isEditing}
               onClose={handleClose}
-              onBlur={handleClose}
               value={value ?? ''}
               onChange={(e) => {
                 onUpdate(e.target.value)
-                handleClose()
+                closeEditor()
               }}
               onKeyDown={handleSelectKeyDown}
               variant="standard"
@@ -165,9 +161,11 @@ const SelectCell = ({
                   padding: 0,
                 },
               }}
-              MenuProps={{
-                onClick: handleClose,
-              }}
+              // MenuProps={{
+              //   TransitionProps: {
+              //     onExited: handleMenuExited,
+              //   },
+              // }}
             >
               {options.map((opt) => (
                 <MenuItem
