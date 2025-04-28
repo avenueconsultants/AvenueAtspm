@@ -99,9 +99,12 @@ function EditApproach({ approach }: ApproachAdminProps) {
       newErrors = { ...newErrors, ...channelErrors }
     }
     if (
-      !!approach.protectedPhaseNumber ||
-      (approach.protectedPhaseNumber === 0 && !!approach.permissivePhaseNumber)
+      !!approach.protectedPhaseNumber &&
+      approach.protectedPhaseNumber === 0 &&
+      !!approach.permissivePhaseNumber
     ) {
+      console.log('Protected Phase Number:', approach.protectedPhaseNumber)
+      console.log('Permissive Phase Number:', approach.permissivePhaseNumber)
       newErrors.protectedPhaseNumber = {
         error: 'A Phase Number is required',
         id: String(approach.id),
@@ -128,20 +131,21 @@ function EditApproach({ approach }: ApproachAdminProps) {
     ) as ConfigApproach
 
     // If the approach is new, remove the local ID so the server will create one
-    if (approach.isNew) {
-      delete approach.id
-      approach.detectors.forEach((d) => delete d.approachId)
+    if (modifiedApproach.isNew) {
+      delete modifiedApproach.id
+      modifiedApproach.detectors.forEach((d) => delete d.approachId)
     }
-    delete approach.index
-    delete approach.open
-    delete approach.isNew
+    delete modifiedApproach.index
+    delete modifiedApproach.open
+    delete modifiedApproach.isNew
 
     // Convert direction type from name -> numeric enum
-    approach.directionTypeId =
-      findDirectionType(approach.directionTypeId)?.value || DirectionTypes.NA
+    modifiedApproach.directionTypeId =
+      findDirectionType(modifiedApproach.directionTypeId)?.value ||
+      DirectionTypes.NA
 
     // Detectors
-    approach.detectors.forEach((det) => {
+    modifiedApproach.detectors.forEach((det) => {
       if (det.isNew) {
         delete det.id
       }
@@ -168,10 +172,10 @@ function EditApproach({ approach }: ApproachAdminProps) {
       det.laneType = findLaneType(det.laneType)?.value
     })
 
-    editApproach(approach, {
+    editApproach(modifiedApproach, {
       onSuccess: (saved) => {
         try {
-          const detectorsArray = saved?.detectors || []
+          const detectorsArray = saved.detectors || []
           detectorsArray.forEach((detector) => {
             detector.detectionTypes = detector.detectionTypes || []
             detector.detectionTypes.forEach((dType) => {
@@ -194,7 +198,9 @@ function EditApproach({ approach }: ApproachAdminProps) {
             directionTypeId:
               findDirectionType(saved.directionTypeId)?.name ||
               DirectionTypes.NA,
-            detectors: detectorsArray,
+            detectors: detectorsArray.sort(
+              (a, b) => a.detectorChannel - b.detectorChannel
+            ),
           }
 
           /**
@@ -213,8 +219,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
             updateApproachInStore(normalizedSaved)
           }
 
-          // Update savedApproaches to reflect the saved state
-          updateSavedApproaches(normalizedSaved)
+          updateApproachInStore(normalizedSaved)
 
           addNotification({
             title: 'Approach saved successfully',
@@ -257,7 +262,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
     findDetectionType,
     updateApproachInStore,
     deleteApproachInStore,
-    updateSavedApproaches,
     addNotification,
   ])
 
@@ -308,8 +312,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
         return 'lightgrey'
     }
   }, [approach.directionTypeId])
-
-  console.log('EditApproach', approach.id, open, deleteMode)
 
   return (
     <>
