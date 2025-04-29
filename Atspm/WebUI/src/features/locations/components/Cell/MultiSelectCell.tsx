@@ -58,17 +58,9 @@ export function MultiSelectCell<T>({
     }
   }, [isFocused])
 
-  // 1) One Tab on the cell opens the menu
+  // 1) Tab always jumps cell; Enter opens menu; arrows navigate
   const handleCellKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (isEditing) {
-      // allow arrow navigation inside menu only via handleSelectKeyDown
-      return
-    }
-    if (e.key === 'Tab') {
-      e.preventDefault()
-      openEditor()
-      return
-    }
+    if (isEditing) return
     if (e.key === 'Enter') {
       e.preventDefault()
       openEditor()
@@ -77,10 +69,13 @@ export function MultiSelectCell<T>({
     if (e.key.startsWith('Arrow')) {
       e.preventDefault()
       navKeyDown(e)
+      return
     }
+    // delegate Tab (and any other) to navKeyDown => Tab moves to next cell
+    navKeyDown(e)
   }
 
-  // 2) Inside the open menu, Tab toggles the focused option, closes, moves on
+  // 2) Inside menu: Tab toggles focused option, closes menu, moves to next cell
   const handleSelectKeyDown = (e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Tab') {
       e.preventDefault()
@@ -88,12 +83,9 @@ export function MultiSelectCell<T>({
       if (active?.getAttribute('role') === 'option') {
         const valAttr = active.getAttribute('data-value')
         if (valAttr != null) {
-          const optionValue =
-            typeof value[0] === 'string'
-              ? (valAttr as unknown as T)
-              : JSON.parse(valAttr) // or custom parsing if T isn't string
-          const isSelected = value.includes(optionValue)
-          const newVals = isSelected
+          const optionValue = valAttr as unknown as T
+          const isSel = value.includes(optionValue)
+          const newVals = isSel
             ? value.filter((v) => v !== optionValue)
             : [...value, optionValue]
           onUpdate(newVals)
@@ -103,7 +95,6 @@ export function MultiSelectCell<T>({
       navKeyDown(e)
       return
     }
-
     if (e.key === 'Escape') {
       e.preventDefault()
       closeEditor()
@@ -171,7 +162,7 @@ export function MultiSelectCell<T>({
               onClose: closeEditor,
               MenuListProps: {
                 onKeyDown: handleSelectKeyDown,
-                autoFocus: true, // focus first option
+                autoFocus: true,
               },
             }}
             sx={{
@@ -188,7 +179,11 @@ export function MultiSelectCell<T>({
             }}
           >
             {options.map((opt) => (
-              <MenuItem key={String(opt.value)} value={opt.value}>
+              <MenuItem
+                key={String(opt.value)}
+                value={opt.value}
+                data-value={String(opt.value)}
+              >
                 <Checkbox checked={value.includes(opt.value)} tabIndex={-1} />
                 {opt.label}
               </MenuItem>

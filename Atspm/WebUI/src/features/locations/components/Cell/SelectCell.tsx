@@ -57,16 +57,11 @@ const SelectCell = ({
   }
 
   const handleCellKeyDown = (e: KeyboardEvent<HTMLElement>) => {
-    if (isEditing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.stopPropagation()
-      e.preventDefault()
-      return
-    }
     if (isEditing) return
     if (e.key === 'Backspace') {
       e.preventDefault()
-      openEditor()
       onUpdate('')
+      openEditor()
       return
     }
     if (
@@ -76,14 +71,31 @@ const SelectCell = ({
       !e.key.startsWith('Arrow')
     ) {
       e.preventDefault()
-      openEditor()
       onUpdate((value ?? '') + e.key)
+      openEditor()
       return
     }
     navKeyDown(e)
   }
 
   const handleSelectKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+
+      // grab whatever <li role="option"> currently has focus
+      const active = document.activeElement as HTMLElement | null
+      if (active?.getAttribute('role') === 'option') {
+        const newVal = active.getAttribute('data-value')
+        if (newVal != null) {
+          onUpdate(newVal)
+        }
+      }
+
+      closeEditor()
+      navKeyDown(e)
+      return
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault()
       closeEditor()
@@ -93,6 +105,7 @@ const SelectCell = ({
   const handleClose = () => {
     closeEditor()
   }
+
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
 
@@ -146,6 +159,11 @@ const SelectCell = ({
                 closeEditor()
               }}
               onKeyDown={handleSelectKeyDown}
+              MenuProps={{
+                MenuListProps: {
+                  onKeyDown: handleSelectKeyDown,
+                },
+              }}
               variant="standard"
               disableUnderline
               sx={{
@@ -161,11 +179,6 @@ const SelectCell = ({
                   padding: 0,
                 },
               }}
-              // MenuProps={{
-              //   TransitionProps: {
-              //     onExited: handleMenuExited,
-              //   },
-              // }}
             >
               {options.map((opt) => (
                 <MenuItem

@@ -93,22 +93,32 @@ export function useCellNavigation(
     (e) => {
       if (focused.approachId < 0) return
 
-      if (!isEditing && e.key === 'Tab') {
+      // always handle Tab, even when editing
+      if (e.key === 'Tab') {
         e.preventDefault()
-        let r = row,
-          c = col
-        if (e.shiftKey) {
-          if (c === 0) {
-            c = colCount - 1
-            r = r === 0 ? rowCount - 1 : r - 1
-          } else c--
-        } else {
-          if (c === colCount - 1) {
-            c = 0
-            r = r === rowCount - 1 ? 0 : r + 1
-          } else c++
+        if (isEditing) {
+          closeEditor()
         }
-        setFocused({ approachId, row: r, col: c })
+        let nextRow = row
+        let nextCol = col
+
+        if (e.shiftKey) {
+          if (nextCol === 0) {
+            nextCol = colCount - 1
+            nextRow = nextRow === 0 ? rowCount - 1 : nextRow - 1
+          } else {
+            nextCol--
+          }
+        } else {
+          if (nextCol === colCount - 1) {
+            nextCol = 0
+            nextRow = nextRow === rowCount - 1 ? 0 : nextRow + 1
+          } else {
+            nextCol++
+          }
+        }
+
+        setFocused({ approachId, row: nextRow, col: nextCol })
         return
       }
 
@@ -132,34 +142,41 @@ export function useCellNavigation(
 
       if (e.key.startsWith('Arrow')) {
         e.preventDefault()
-        let r = row,
-          c = col
+        let nextRow = row
+        let nextCol = col
+
         switch (e.key) {
           case 'ArrowRight':
-            if (c === colCount - 1) {
-              c = 0
-              r = r === rowCount - 1 ? 0 : r + 1
-            } else c++
+            if (nextCol === colCount - 1) {
+              nextCol = 0
+              nextRow = nextRow === rowCount - 1 ? 0 : nextRow + 1
+            } else {
+              nextCol++
+            }
             break
           case 'ArrowLeft':
-            if (c === 0) {
-              c = colCount - 1
-              r = r === 0 ? rowCount - 1 : r - 1
-            } else c--
+            if (nextCol === 0) {
+              nextCol = colCount - 1
+              nextRow = nextRow === 0 ? rowCount - 1 : nextRow - 1
+            } else {
+              nextCol--
+            }
             break
           case 'ArrowDown':
-            r = r === rowCount - 1 ? 0 : r + 1
+            nextRow = nextRow === rowCount - 1 ? 0 : nextRow + 1
             break
           case 'ArrowUp':
-            r = r === 0 ? rowCount - 1 : r - 1
+            nextRow = nextRow === 0 ? rowCount - 1 : nextRow - 1
             break
         }
-        setFocused({ approachId, row: r, col: c })
+
+        setFocused({ approachId, row: nextRow, col: nextCol })
       }
     },
     [
       focused,
       isEditing,
+      closeEditor,
       openEditor,
       row,
       col,
