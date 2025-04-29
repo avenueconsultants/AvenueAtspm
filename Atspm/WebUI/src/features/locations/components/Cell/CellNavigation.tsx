@@ -36,7 +36,8 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
         return
 
       // otherwise clear focus:
-      setFocused({ approachId: -1, row: -1, col: -1 })
+        setFocused({ approachId: -1, row: -1, col: -1 })
+      }
     }
     document.addEventListener('pointerdown', handler)
     return () => document.removeEventListener('pointerdown', handler)
@@ -106,7 +107,7 @@ export function useCellNavigation(
           if (nextCol === 0) {
             nextCol = colCount - 1
             nextRow = nextRow === 0 ? rowCount - 1 : nextRow - 1
-          } else {
+        } else {
             nextCol--
           }
         } else {

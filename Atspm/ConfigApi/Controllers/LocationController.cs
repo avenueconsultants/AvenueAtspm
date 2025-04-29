@@ -18,14 +18,17 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Formatter;
 using Microsoft.AspNetCore.OData.Query;
 using Utah.Udot.Atspm.Business.Watchdog;
 using Utah.Udot.Atspm.ConfigApi.Models;
+using Utah.Udot.Atspm.ConfigApi.Services;
 using Utah.Udot.Atspm.Data.Enums;
 using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Extensions;
 using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.Specifications;
+using Utah.Udot.Atspm.ValueObjects;
 using Utah.Udot.NetStandardToolkit.Extensions;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Microsoft.AspNetCore.OData.Query.AllowedQueryOptions;
@@ -37,14 +40,18 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
     /// </summary>
     /// 
     [ApiVersion(1.0)]
-    public class LocationController : AtspmConfigControllerBase<Location, int>
+    public class LocationController : LocationPolicyControllerBase<Location, int>
     {
         private readonly ILocationRepository _repository;
+        private readonly IDeviceRepository _deviceRepository;
+        private readonly ISignalTemplateService _signalTemplateService;
 
         /// <inheritdoc/>
-        public LocationController(ILocationRepository repository) : base(repository)
+        public LocationController(ILocationRepository repository, IDeviceRepository deviceRepository, ISignalTemplateService signalTemplateService) : base(repository)
         {
             _repository = repository;
+            _deviceRepository = deviceRepository;
+            _signalTemplateService = signalTemplateService;
         }
 
         #region NavigationProperties
@@ -112,13 +119,85 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         {
             try
             {
-                return Ok(await _repository.CopyLocationToNewVersion(key));
+                var deviceIds = _deviceRepository.GetList()
+                    .Where(w => w.LocationId == key)
+                    .Select(s => s.Id)
+                    .ToList();
+                var newLocation = await _repository.CopyLocationToNewVersion(key);
+                _deviceRepository.UpdateDevicesForNewVersion(deviceIds, newLocation.Id);
+
+                return Ok();
             }
             catch (ArgumentException e)
             {
                 return NotFound(e.Message);
             }
         }
+
+        /// <summary>
+        /// Copies <see cref="Location"/> and associated <see cref="Approach"/> to new version
+        /// </summary>
+        /// <param name="key">Location version to copy</param>
+        /// <returns>New version of copied <see cref="Location"/></returns>
+        /// 
+        //[Authorize(Policy = "CanEditLocationConfigurations")]
+        [HttpPost]
+        [ProducesResponseType(typeof(TemplateLocationModifiedDto), Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult SyncLocation(int key)
+        {
+            try
+            {
+                TemplateLocationModifiedDto modLocation = _signalTemplateService.SyncNewLocationDetectorsAndApproaches(key);
+                return Ok(modLocation);
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// Templates <see cref="Location"/> and associated <see cref="Approach"/> to new version
+        /// </summary>
+        /// <param name="key">Location version to template</param>
+        /// <returns>New version of templated <see cref="Location"/></returns>
+        /// 
+        [Authorize(Policy = "CanEditLocationConfigurations")]
+        [HttpPost]
+        [ProducesResponseType(typeof(Location), Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SaveTemplatedLocation(int key, ODataActionParameters ourParams)
+        {
+            if (!ModelState.IsValid) { return BadRequest(); }
+
+            try
+            {
+                string locationIdentifier = ourParams["locationIdentifier"].ToString();
+                double lat = double.Parse(ourParams["latitude"].ToString());
+                double lon = double.Parse(ourParams["longitude"].ToString());
+                string primary = ourParams["primaryName"].ToString();
+                string secondary = ourParams["secondaryName"].ToString();
+                //(List<Device>)ourParams["devices"];
+                List<Device> devices = (ourParams["devices"] as IEnumerable<Device>)?.ToList();
+
+                TemplateLocationDto templateLocationDto = new TemplateLocationDto
+                {
+                    LocationIdentifier = locationIdentifier,
+                    Latitude = lat,
+                    Longitude = lon,
+                    PrimaryName = primary,
+                    SecondaryName = secondary,
+                    Devices = devices
+                };
+                return Ok(await _repository.SaveTemplatedLocation(key, templateLocationDto));
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
+        }
+
 
         /// <summary>
         /// Marks <see cref="Location"/> to deleted
@@ -134,7 +213,67 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         {
             try
             {
+                var location = await _repository.LookupAsync(key);
+                var versions = _repository.GetAllVersionsOfLocation(location.LocationIdentifier);
+                if (versions.Count() > 1)
+                {
+                    //get the version previous to the one being deleted
+                    var previousVersion = versions.Where(w => w.Start < location.Start).OrderByDescending(o => o.Start).FirstOrDefault();
+                    if (previousVersion != null && location.Devices != null)
+                    {
+                        //assign the devices of the deleted version to the location id of the previous version
+                        foreach (var device in location.Devices)
+                        {
+                            device.LocationId = previousVersion.Id;
+                        }
+                    }
+                }
+                else
+                {
+                    if (location.Devices != null)
+                    {
+                        foreach (var device in location.Devices)
+                        {
+                            _deviceRepository.Remove(device);
+                        }
+                    }
+                }
                 await _repository.SetLocationToDeleted(key);
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Marks <see cref="Location"/> to deleted
+        /// </summary>
+        /// <param name="key">Key of <see cref="Location"/> to mark as deleted</param>
+        /// <returns></returns>
+        /// 
+        [Authorize(Policy = "CanDeleteLocationConfigurations")]
+        [HttpPost]
+        [ProducesResponseType(Status200OK)]
+        [ProducesResponseType(Status404NotFound)]
+        public async Task<IActionResult> DeleteAllVersions(string key)
+        {
+            try
+            {
+                var versions = _repository.GetAllVersionsOfLocationWithDevices(key);
+                foreach (var version in versions)
+                {
+                    if (version.Devices != null)
+                    {
+                        foreach (var device in version.Devices)
+                        {
+                            _deviceRepository.Remove(device);
+                        }
+                    }
+                    await _repository.SetLocationToDeleted(version.Id);
+                }
             }
             catch (ArgumentException e)
             {

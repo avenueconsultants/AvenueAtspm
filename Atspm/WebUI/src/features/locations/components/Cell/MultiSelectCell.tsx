@@ -55,7 +55,7 @@ export function MultiSelectCell<T>({
   useEffect(() => {
     if (isFocused) {
       cellRef.current?.focus()
-    }
+  }
   }, [isFocused])
 
   // 1) Tab always jumps cell; Enter opens menu; arrows navigate
@@ -94,10 +94,14 @@ export function MultiSelectCell<T>({
       closeEditor()
       navKeyDown(e)
       return
-    }
+  }
+  const handleSelectKeyDown = (
+    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     if (e.key === 'Escape') {
       e.preventDefault()
       closeEditor()
+      setTimeout(() => cellRef.current?.focus())
     }
   }
 
@@ -107,6 +111,7 @@ export function MultiSelectCell<T>({
 
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
+  const isFocused = tabIndex === 0 && !isEditing
 
   return (
     <TableCell
@@ -145,6 +150,7 @@ export function MultiSelectCell<T>({
           }}
         />
       )}
+
       <Tooltip title={error ?? warning ?? ''}>
         <Box sx={{ width: '100%', height: '100%' }}>
           <Select
