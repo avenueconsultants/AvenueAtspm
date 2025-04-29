@@ -101,12 +101,27 @@ function EditApproach({ approach }: ApproachAdminProps) {
       newErrors = { ...newErrors, ...channelErrors }
     }
 
-    // 2) required protected/permissive phase logic
-    if (
-      approach.protectedPhaseNumber == '' ||
-      (approach.protectedPhaseNumber === 0 &&
-        approach.permissivePhaseNumber == '')
-    ) {
+    // ── parse phase inputs into number | null ──
+    const rawProt = approach.protectedPhaseNumber
+    const rawPerm = approach.permissivePhaseNumber
+    const rawPed = approach.pedestrianPhaseNumber
+
+    const protectedPhaseNumber =
+      rawProt === '' || rawProt == null ? null : Number(rawProt)
+    const permissivePhaseNumber =
+      rawPerm === '' || rawPerm == null ? null : Number(rawPerm)
+    const pedestrianPhaseNumber =
+      rawPed === '' || rawPed == null ? null : Number(rawPed)
+
+    console.log(
+      'parsed phases',
+      protectedPhaseNumber,
+      permissivePhaseNumber,
+      pedestrianPhaseNumber
+    )
+
+    // 2) protectedPhaseNumber is always required (even if it’s zero)
+    if (protectedPhaseNumber == null) {
       newErrors[approach.id] = {
         error: 'A Phase Number is required',
         id: String(approach.id),
@@ -134,6 +149,11 @@ function EditApproach({ approach }: ApproachAdminProps) {
     const modifiedApproach = JSON.parse(
       JSON.stringify(approach)
     ) as ConfigApproach
+
+    // overwrite with our parsed phase values
+    modifiedApproach.protectedPhaseNumber = protectedPhaseNumber
+    modifiedApproach.permissivePhaseNumber = permissivePhaseNumber
+    modifiedApproach.pedestrianPhaseNumber = pedestrianPhaseNumber
 
     // If the approach is new, remove the local ID so the server will create one
     if (modifiedApproach.isNew) {
@@ -208,23 +228,12 @@ function EditApproach({ approach }: ApproachAdminProps) {
             ),
           }
 
-          /**
-           * If the approach was new, we must remove the "local" approach
-           * (with its random ID) from the store, then add this saved approach
-           * (with the real server ID) so we don't end up with duplicates.
-           */
           if (approach.isNew) {
-            // 1) remove the old approach from store (no server API call for new approaches)
             deleteApproachInStore(approach)
-
-            // 2) updateApproachInStore() with the newly created approach
             updateApproachInStore(normalizedSaved)
           } else {
-            // If it wasn't new, we can just update existing approach
             updateApproachInStore(normalizedSaved)
           }
-
-          updateApproachInStore(normalizedSaved)
 
           addNotification({
             title: 'Approach saved successfully',
