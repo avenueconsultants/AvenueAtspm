@@ -91,25 +91,29 @@ function EditApproach({ approach }: ApproachAdminProps) {
   }, [])
 
   const handleSaveApproach = useCallback(() => {
+    // 1) check for duplicate detectorChannel errors
     const { isValid, errors: channelErrors } =
       hasUniqueDetectorChannels(channelMap)
-    let newErrors: Record<string, { error: string; id: string }> = {}
 
+    // collect all our errors here
+    let newErrors: Record<string, { error: string; id: string }> = {}
     if (!isValid) {
       newErrors = { ...newErrors, ...channelErrors }
     }
+
+    // 2) required protected/permissive phase logic
     if (
-      !!approach.protectedPhaseNumber &&
-      approach.protectedPhaseNumber === 0 &&
-      !!approach.permissivePhaseNumber
+      approach.protectedPhaseNumber == '' ||
+      (approach.protectedPhaseNumber === 0 &&
+        approach.permissivePhaseNumber == '')
     ) {
-      console.log('Protected Phase Number:', approach.protectedPhaseNumber)
-      console.log('Permissive Phase Number:', approach.permissivePhaseNumber)
-      newErrors.protectedPhaseNumber = {
+      newErrors[approach.id] = {
         error: 'A Phase Number is required',
         id: String(approach.id),
       }
     }
+
+    // 3) every detector must have a channel
     approach.detectors.forEach((det) => {
       if (!det.detectorChannel) {
         newErrors[String(det.id)] = {
@@ -119,6 +123,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
       }
     })
 
+    // if any errors, stop here and render them
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
