@@ -32,7 +32,7 @@ export function MultiSelectCell<T>({
   col,
   rowCount,
   colCount,
-  value,
+  value = [],
   onUpdate,
   options,
   renderValue,
@@ -50,38 +50,60 @@ export function MultiSelectCell<T>({
   } = useCellNavigation(approachId, row, col, rowCount, colCount)
 
   const cellRef = useRef<HTMLElement>(null)
+  const isFocused = tabIndex === 0 && !isEditing
 
   useEffect(() => {
-    if (tabIndex === 0 && !isEditing) {
+    if (isFocused) {
       cellRef.current?.focus()
     }
-  }, [tabIndex, isEditing])
+  }, [isFocused])
 
-  const handleCellClick = () => {
-    if (!isEditing) {
-      openEditor()
-    }
-  }
-
+  // 1) One Tab on the cell opens the menu
   const handleCellKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (isEditing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
-      e.preventDefault()
+    if (isEditing) {
+      // allow arrow navigation inside menu only via handleSelectKeyDown
       return
     }
-    if (!isEditing && e.key === 'Enter') {
+    if (e.key === 'Tab') {
       e.preventDefault()
       openEditor()
       return
     }
-    if (!isEditing && e.key.startsWith('Arrow')) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      openEditor()
+      return
+    }
+    if (e.key.startsWith('Arrow')) {
       e.preventDefault()
       navKeyDown(e)
     }
   }
 
-  const handleSelectKeyDown = (
-    e: KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  // 2) Inside the open menu, Tab toggles the focused option, closes, moves on
+  const handleSelectKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+      const active = document.activeElement as HTMLElement | null
+      if (active?.getAttribute('role') === 'option') {
+        const valAttr = active.getAttribute('data-value')
+        if (valAttr != null) {
+          const optionValue =
+            typeof value[0] === 'string'
+              ? (valAttr as unknown as T)
+              : JSON.parse(valAttr) // or custom parsing if T isn't string
+          const isSelected = value.includes(optionValue)
+          const newVals = isSelected
+            ? value.filter((v) => v !== optionValue)
+            : [...value, optionValue]
+          onUpdate(newVals)
+        }
+      }
+      closeEditor()
+      navKeyDown(e)
+      return
+    }
+
     if (e.key === 'Escape') {
       e.preventDefault()
       closeEditor()
@@ -94,7 +116,6 @@ export function MultiSelectCell<T>({
 
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
-  const isFocused = tabIndex === 0 && !isEditing
 
   return (
     <TableCell
@@ -106,7 +127,7 @@ export function MultiSelectCell<T>({
       tabIndex={tabIndex}
       onFocusCapture={onFocus}
       onKeyDown={handleCellKeyDown}
-      onClick={handleCellClick}
+      onClick={() => !isEditing && openEditor()}
       data-row={row}
       data-col={col}
       sx={{
@@ -139,7 +160,7 @@ export function MultiSelectCell<T>({
             multiple
             displayEmpty
             open={isEditing}
-            value={value ?? []}
+            value={value}
             onChange={handleChange}
             onKeyDown={handleSelectKeyDown}
             variant="standard"
@@ -147,7 +168,11 @@ export function MultiSelectCell<T>({
             renderValue={renderValue}
             MenuProps={{
               disablePortal: true,
-              onClose: () => closeEditor(),
+              onClose: closeEditor,
+              MenuListProps: {
+                onKeyDown: handleSelectKeyDown,
+                autoFocus: true, // focus first option
+              },
             }}
             sx={{
               height: '100%',
@@ -163,11 +188,8 @@ export function MultiSelectCell<T>({
             }}
           >
             {options.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>
-                <Checkbox
-                  checked={(value ?? []).includes(opt.value)}
-                  tabIndex={-1}
-                />
+              <MenuItem key={String(opt.value)} value={opt.value}>
+                <Checkbox checked={value.includes(opt.value)} tabIndex={-1} />
                 {opt.label}
               </MenuItem>
             ))}
