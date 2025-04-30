@@ -65,6 +65,7 @@ const SelectCell = ({
     if (isEditing) return
     if (e.key === 'Backspace') {
       e.preventDefault()
+      onUpdate('')
       openEditor()
       onUpdate('')
       return
@@ -76,6 +77,7 @@ const SelectCell = ({
       !e.key.startsWith('Arrow')
     ) {
       e.preventDefault()
+      onUpdate((value ?? '') + e.key)
       openEditor()
       onUpdate((value ?? '') + e.key)
       return
@@ -84,6 +86,23 @@ const SelectCell = ({
   }
 
   const handleSelectKeyDown = (e: KeyboardEvent<HTMLElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault()
+
+      // grab whatever <li role="option"> currently has focus
+      const active = document.activeElement as HTMLElement | null
+      if (active?.getAttribute('role') === 'option') {
+        const newVal = active.getAttribute('data-value')
+        if (newVal != null) {
+          onUpdate(newVal)
+        }
+      }
+
+      closeEditor()
+      navKeyDown(e)
+      return
+    }
+
     if (e.key === 'Enter') {
       e.preventDefault()
       closeEditor()
@@ -147,9 +166,14 @@ const SelectCell = ({
               value={value ?? ''}
               onChange={(e) => {
                 onUpdate(e.target.value)
-                handleClose()
+                closeEditor()
               }}
               onKeyDown={handleSelectKeyDown}
+              MenuProps={{
+                MenuListProps: {
+                  onKeyDown: handleSelectKeyDown,
+                },
+              }}
               variant="standard"
               disableUnderline
               sx={{

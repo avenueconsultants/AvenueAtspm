@@ -144,7 +144,7 @@ function EditApproachGrid({ approach }: EditApproachGridProps) {
               colCount={colCount}
               value={approach.protectedPhaseNumber}
               onUpdate={(v) => handleUpdate('protectedPhaseNumber', v)}
-              error={errors?.protectedPhaseNumber?.error}
+              error={errors?.[approach.id]}
             />
 
             <TextCell
