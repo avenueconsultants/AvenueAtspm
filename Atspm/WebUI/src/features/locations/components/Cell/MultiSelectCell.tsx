@@ -108,7 +108,6 @@ export function MultiSelectCell<T>({
 
   const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
-  const isFocused = tabIndex === 0 && !isEditing
 
   return (
     <TableCell

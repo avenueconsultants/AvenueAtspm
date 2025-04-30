@@ -153,7 +153,6 @@ export const TextCell = ({
     [closeEditor]
   )
 
-  const outlineColor = theme.palette.primary.main
   const innerColor = alpha(outlineColor, 0.15)
 
   return (

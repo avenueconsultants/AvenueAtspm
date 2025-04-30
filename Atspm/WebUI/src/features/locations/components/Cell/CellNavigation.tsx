@@ -38,7 +38,6 @@ export const NavigationProvider = ({ children }: { children: ReactNode }) => {
       // otherwise clear focus:
       setFocused({ approachId: -1, row: -1, col: -1 })
     }
-    }
     document.addEventListener('pointerdown', handler)
     return () => document.removeEventListener('pointerdown', handler)
   }, [])
