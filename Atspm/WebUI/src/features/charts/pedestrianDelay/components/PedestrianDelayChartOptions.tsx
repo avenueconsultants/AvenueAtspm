@@ -57,7 +57,16 @@ export const PedestrianDelayChartOptions = ({
 
   const updateYAxisDefault = (nexYAxis: string) => {
     setYAxisMax(nexYAxis)
-    setYAxisMaxStore(nexYAxis)
+
+    if (isMeasureDefaultView) {
+      handleChartOptionsUpdate({
+        id: chartDefaults.yAxisDefault.id,
+        option: chartDefaults.yAxisDefault.option,
+        value: nexYAxis,
+      })
+    } else {
+      setYAxisMaxStore(nexYAxis)
+    }
   }
 
   const visuallyHidden: React.CSSProperties = {

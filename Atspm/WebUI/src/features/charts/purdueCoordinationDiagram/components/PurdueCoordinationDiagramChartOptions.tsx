@@ -39,8 +39,16 @@ export const PurdueCoordinationDiagramChartOptions = ({
   }
 
   const updateYAxisDefault = (nexYAxis: string) => {
-    setYAxisMaxStore(nexYAxis)
     setYAxisMax(nexYAxis)
+    if (isMeasureDefaultView) {
+      handleChartOptionsUpdate({
+        value: nexYAxis,
+        option: chartDefaults.yAxisDefault.option,
+        id: chartDefaults.yAxisDefault.id,
+      })
+    } else {
+      setYAxisMaxStore(nexYAxis)
+    }
   }
 
   return (

@@ -49,8 +49,6 @@ export const SplitMonitorChartOptions = ({
   }
 
   const updateYAxisDefault = (newYAxis: string) => {
-    console.log('newYAxis', newYAxis)
-    return
     setYAxisMax(newYAxis)
 
     if (isMeasureDefaultView) {

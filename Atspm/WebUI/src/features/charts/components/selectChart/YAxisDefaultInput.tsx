@@ -40,7 +40,9 @@ export const YAxisDefaultInput = ({
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value
     setInputValue(newValue)
-    handleChange(newValue)
+    if (isMeasureDefaultView) {
+      handleChange(newValue)
+    }
   }
 
   useEffect(() => {
