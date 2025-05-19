@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for Infrastructure - Utah.Udot.Atspm.Infrastructure.Extensions/ServiceExtensions.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -186,7 +186,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Extensions
 
             services.AddScoped<IIndianaEventLogRepository, IndianaEventLogEFRepository>();
             services.AddScoped<ISpeedEventLogRepository, SpeedEventLogEFRepository>();
-            services.AddScoped<IVisionCameraDetectionEventLogRepository, VisionCameraDetectionEventLogEFRepository>();
+            services.AddScoped<IEnhancedVehicleEventLogRepository, EnhancedVehicleEventLogEFRepository>();
             services.AddScoped<IVisionCameraStatisticsEventLogRepository, VisionCameraStatisticsEventLogEFRepository>();
 
             return services;

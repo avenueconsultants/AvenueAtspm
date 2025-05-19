@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for Infrastructure - Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories/EventLogEFRepository.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -30,7 +30,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
         #region IEventLogRepository
 
         ///<inheritdoc/>
-        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateOnly start, DateOnly end, Type dataType, int deviceId)
+        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateTime start, DateTime end, Type dataType, int deviceId)
         {
             return GetList()
                 .FromSpecification(new CompressedEventLogSpecification(locationIdentifier, start, end, deviceId))
@@ -39,19 +39,18 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
         }
 
         ///<inheritdoc/>
-        public IReadOnlyList<CompressedEventLogs<T>> GetArchivedEvents<T>(string locationIdentifier, DateOnly start, DateOnly end, int deviceId) where T : EventLogModelBase
+        public IReadOnlyList<CompressedEventLogs<T>> GetArchivedEvents<T>(string locationIdentifier, DateTime start, DateTime end, int deviceId) where T : EventLogModelBase
         {
             var type = typeof(T);
 
-            return GetList()
+            return [.. GetList()
                 .FromSpecification(new CompressedEventLogSpecification(locationIdentifier, start, end, deviceId))
                 .Where(w => w.DataType == type)
-                .Cast<CompressedEventLogs<T>>()
-                .ToList();
+                .Cast<CompressedEventLogs<T>>()];
         }
 
         ///<inheritdoc/>
-        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateOnly start, DateOnly end)
+        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateTime start, DateTime end)
         {
             return GetList()
                 .FromSpecification(new CompressedEventLogSpecification(locationIdentifier, start, end))
@@ -59,7 +58,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
         }
 
         ///<inheritdoc/>
-        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateOnly start, DateOnly end, Type dataType)
+        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateTime start, DateTime end, Type dataType)
         {
             return GetList()
                 .FromSpecification(new CompressedEventLogSpecification(locationIdentifier, start, end))
@@ -68,7 +67,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
         }
 
         ///<inheritdoc/>
-        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateOnly start, DateOnly end, int deviceId)
+        public IReadOnlyList<CompressedEventLogBase> GetArchivedEvents(string locationIdentifier, DateTime start, DateTime end, int deviceId)
         {
             return GetList()
                 .FromSpecification(new CompressedEventLogSpecification(locationIdentifier, start, end, deviceId))
@@ -76,7 +75,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
         }
 
         ///<inheritdoc/>
-        public IReadOnlyList<CompressedEventLogs<T>> GetArchivedEvents<T>(string locationIdentifier, DateOnly start, DateOnly end) where T : EventLogModelBase
+        public IReadOnlyList<CompressedEventLogs<T>> GetArchivedEvents<T>(string locationIdentifier, DateTime start, DateTime end) where T : EventLogModelBase
         {
             var type = typeof(T);
 

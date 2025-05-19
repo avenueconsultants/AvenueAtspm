@@ -1,5 +1,5 @@
+import { Device } from '@/api/config/aTSPMConfigurationApi.schemas'
 import { useGetDeviceConfigurations } from '@/features/devices/api'
-import { Device } from '@/features/locations/types'
 import CircleIcon from '@mui/icons-material/Circle'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark'
@@ -12,6 +12,7 @@ import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined'
 import {
   Avatar,
   Box,
+  Button,
   Card,
   Chip,
   IconButton,
@@ -20,6 +21,7 @@ import {
   Typography,
 } from '@mui/material'
 import React, { useState } from 'react'
+import { useGetRetrieveDectionData } from '../../api/getRetrieveDectionData'
 
 const statusColorMap = {
   Unknown: { label: 'Unknown', color: 'default' },
@@ -38,6 +40,7 @@ const deviceTypeMap = {
   FIRCamera: { label: 'FIR Camera', icon: <VideocamOutlinedIcon /> },
   LidarSensor: { label: 'Lidar Sensor', icon: <SensorsIcon /> },
   WavetronixSpeed: { label: 'Wavetronix Speed', icon: <SettingsRemoteIcon /> },
+  SpeedSensor: { label: 'Speed Sensor', icon: <SettingsRemoteIcon /> },
 }
 
 const StyledLabel = ({ children }: { children: React.ReactNode }) => (
@@ -54,12 +57,30 @@ interface DeviceCardProps {
 
 const DeviceCard = ({ device, onEdit, onDelete }: DeviceCardProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [anchorElCameras, setAnchorElCameras] = useState<null | HTMLElement>(
+    null
+  )
+
+  const handleOpenCamerasMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorElCameras(event.currentTarget)
+  }
+  const handleCloseCamerasMenu = () => {
+    setAnchorElCameras(null)
+  }
 
   const { data: deviceConfigurationsData } = useGetDeviceConfigurations()
+  console.log('deviceConfigurationsData', device)
+  const {
+    data: cameraData,
+    isLoading: cameraLoading,
+    error: cameraError,
+  } = useGetRetrieveDectionData({
+    IpAddress: device.ipaddress,
+    port: device.deviceConfiguration?.port,
+    detectionType: device.deviceType,
+  })
 
   const deviceConfigurations = deviceConfigurationsData?.value
-
-  if (!deviceConfigurations) return null
 
   device.deviceConfiguration = deviceConfigurations.find(
     (dc) => dc.id === device.deviceConfigurationId
@@ -73,6 +94,12 @@ const DeviceCard = ({ device, onEdit, onDelete }: DeviceCardProps) => {
     setAnchorEl(null)
   }
 
+  // Use the API call for FIRCamera
+
+  console.log('DAN', cameraData)
+
+  if (!deviceConfigurations) return null
+
   return (
     <Card
       key={device.id}
@@ -82,7 +109,7 @@ const DeviceCard = ({ device, onEdit, onDelete }: DeviceCardProps) => {
         mb: 2,
         minWidth: '400px',
         maxWidth: '400px',
-        height: '400px',
+        minHeight: '400px',
       }}
     >
       <Box mx={2}>
@@ -137,17 +164,56 @@ const DeviceCard = ({ device, onEdit, onDelete }: DeviceCardProps) => {
             mt: 3,
           }}
         >
-          <Avatar sx={{ width: 40, height: 40, marginRight: '10px' }}>
+          <Avatar sx={{ width61: 40, height: 40, marginRight: '10px' }}>
             {deviceTypeMap[device.deviceType]?.icon}
           </Avatar>
           <Box sx={{ textAlign: 'left' }}>
             <Typography variant="h4" fontWeight={'bold'} component={'h3'}>
-              {deviceTypeMap[device.deviceType].label}
+              {deviceTypeMap[device.deviceType]?.label}
             </Typography>
           </Box>
         </Box>
-
         <Box mt={2} display={'flex'} flexDirection={'column'}>
+          {/* Associated Cameras for FIRCamera */}
+          {device.deviceType === 'FIRCamera' && (
+            <Box display="flex" flexDirection="column">
+              <Box display="flex" justifyContent="flex-start">
+                <StyledLabel>Associated Cameras</StyledLabel>
+                {cameraLoading ? (
+                  <Typography sx={{ mt: 0.25 }} variant="body1">
+                    Loading...
+                  </Typography>
+                ) : cameraError ? (
+                  <Typography sx={{ mt: 0.25 }} variant="body1">
+                    No cameras found
+                  </Typography>
+                ) : cameraData && cameraData.length > 0 ? (
+                  <>
+                    <Button
+                      sx={{ mt: -0.5, ml: -1 }}
+                      onClick={handleOpenCamerasMenu}
+                    >
+                      {`${cameraData.length} camera(s)`}
+                    </Button>
+                    <Menu
+                      anchorEl={anchorElCameras}
+                      open={Boolean(anchorElCameras)}
+                      onClose={handleCloseCamerasMenu}
+                    >
+                      {cameraData.map((camera: string) => (
+                        <MenuItem key={camera}>{camera}</MenuItem>
+                      ))}
+                    </Menu>
+                  </>
+                ) : (
+                  <Typography sx={{ mt: 0.25 }} variant="body1">
+                    No cameras found
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          )}
+
           <Box display={'flex'} justifyContent={'flex-start'}>
             <StyledLabel>Manufacturer</StyledLabel>
             <Typography variant="body1">
@@ -170,6 +236,29 @@ const DeviceCard = ({ device, onEdit, onDelete }: DeviceCardProps) => {
               {device.loggingEnabled ? 'Yes' : 'No'}
             </Typography>
           </Box>
+          {Object.entries(device)
+            .filter(
+              ([key]) =>
+                ![
+                  'id',
+                  'loggingEnabled',
+                  'ipaddress',
+                  'deviceStatus',
+                  'deviceType',
+                  'notes',
+                  'locationId',
+                  'deviceConfigurationId',
+                  'deviceIdentifier',
+                  'location',
+                  'deviceConfiguration',
+                ].includes(key)
+            )
+            .map(([key, value]) => (
+              <Box display="flex" justifyContent="flex-start" key={key}>
+                <StyledLabel>{key}</StyledLabel>
+                <Typography variant="body1">{String(value)}</Typography>
+              </Box>
+            ))}
           <Box display={'flex'} justifyContent={'flex-start'}>
             <StyledLabel>Notes</StyledLabel>
           </Box>

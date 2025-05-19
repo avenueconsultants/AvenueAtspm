@@ -1,5 +1,5 @@
 #region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for ReportApi - %Namespace%/Program.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -48,7 +48,7 @@ using Utah.Udot.Atspm.ReportApi.ReportServices;
 using Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices;
 using Utah.Udot.ATSPM.ReportApi.ReportServices;
 
-//gitactions: I 
+//gitactions: II
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 

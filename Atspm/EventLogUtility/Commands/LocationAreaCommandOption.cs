@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for EventLogUtility - Utah.Udot.Atspm.EventLogUtility.Commands/LocationAreaCommandOption.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ namespace Utah.Udot.Atspm.EventLogUtility.Commands
 {
     public class LocationAreaCommandOption : Option<IEnumerable<string>>
     {
-        public LocationAreaCommandOption() : base("--areas", "Areas to include in filter")
+        public LocationAreaCommandOption() : base("--areas", "List of area names to include")
         {
             AllowMultipleArgumentsPerToken = true;
             AddAlias("-a");

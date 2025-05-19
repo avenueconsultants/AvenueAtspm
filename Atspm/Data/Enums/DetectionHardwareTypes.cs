@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for Data - Utah.Udot.Atspm.Data.Enums/DetectionHardwareTypes.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -65,5 +65,11 @@ namespace Utah.Udot.Atspm.Data.Enums
         /// </summary>
         [Display(Name = "FLIR: Thermal Camera", Order = 6)]
         FLIRThermalCamera = 6,
+
+        /// <summary>
+        /// LiDar
+        /// </summary> 
+        [Display(Name = "LiDAR", Order = 7)]
+        LiDar = 7,
     }
 }

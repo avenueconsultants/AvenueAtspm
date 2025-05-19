@@ -1,4 +1,21 @@
-﻿using Google.Cloud.Diagnostics.Common;
+﻿#region license
+// Copyright 2025 Utah Departement of Transportation
+// for Infrastructure - Utah.Udot.Atspm.Infrastructure.LogMessages/DeviceDownloaderLogMessages.cs
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http://www.apache.org/licenses/LICENSE-2.
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#endregion
+
+using Google.Cloud.Diagnostics.Common;
 using Microsoft.Extensions.Logging;
 using System.Net;
 
@@ -14,18 +31,23 @@ namespace Utah.Udot.Atspm.Infrastructure.LogMessages
         /// <summary>
         /// Log messages for <see cref="IDeviceDownloader"/> implementations
         /// </summary>
-        /// <param name="logger">Abstract logging providers</param>
-        /// <param name="device">Device to download</param>
-        public DeviceDownloaderLogMessages(ILogger logger, Device device)
+        /// <param name="logger"></param>
+        /// <param name="serviceName"></param>
+        /// <param name="device"></param>
+        public DeviceDownloaderLogMessages(ILogger logger, string serviceName, Device device)
         {
             _logger = logger.WithAddedLabels(new Dictionary<string, string>()
             {
-                { "LocationIdentifier", device?.Location?.LocationIdentifier },
-                { "LocationName", device?.Location?.PrimaryName },
+                { "service", serviceName },
                 { "DeviceId", device.Id.ToString() },
-                { "deviceIdentifier", device.DeviceIdentifier },
+                { "deviceIdentifier", device?.DeviceIdentifier },
                 { "DeviceType", device?.DeviceType.ToString() },
-                { "IPAddress", device?.Ipaddress.ToString() },
+                { "DeviceStatus", device?.DeviceStatus.ToString() },
+                { "IPAddress", device?.Ipaddress?.ToString() },
+                { "ConfigurationId", device?.DeviceConfigurationId?.ToString() },
+                { "TransportProtocol", device?.DeviceConfiguration.Protocol.ToString() },
+                { "Model", device?.DeviceConfiguration?.Product?.Model },
+                { "LocationIdentifier", device?.Location?.LocationIdentifier },
             });
         }
 
@@ -175,7 +197,7 @@ namespace Utah.Udot.Atspm.Infrastructure.LogMessages
         /// <param name="resource"></param>
         /// <param name="deviceIdentifier"></param>
         /// <param name="ip"></param>
-        [LoggerMessage(EventId = 1031, EventName = "Deleted Resource", Level = LogLevel.Debug, Message = "Deleted resource {resource} from {deviceIdentifier} at {ip}")]
+        [LoggerMessage(EventId = 1031, EventName = "Deleted Resource", Level = LogLevel.Information, Message = "Deleted resource {resource} from {deviceIdentifier} at {ip}")]
         public partial void DeletedResourceMessage(Uri resource, string deviceIdentifier, IPAddress ip);
 
         /// <summary>

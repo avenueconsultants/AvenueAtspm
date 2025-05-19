@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for EventLogUtility - Utah.Udot.Atspm.EventLogUtility.Commands/LocationJurisdictionCommandOption.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ namespace Utah.Udot.Atspm.EventLogUtility.Commands
 {
     public class LocationJurisdictionCommandOption : Option<IEnumerable<string>>
     {
-        public LocationJurisdictionCommandOption() : base("--jurisdictions", "Jurisdictions to include in filter")
+        public LocationJurisdictionCommandOption() : base("--jurisdictions", "List of jurisdiction names to include")
         {
             AllowMultipleArgumentsPerToken = true;
             AddAlias("-j");

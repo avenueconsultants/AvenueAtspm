@@ -23,7 +23,7 @@ using Utah.Udot.Atspm.ValueObjects;
 
 namespace Utah.Udot.Atspm.ConfigApi.Services
 {
-    public class SignalTemplateService
+    public class SignalTemplateService : ISignalTemplateService
     {
         private readonly IApproachRepository _approachRepository;
         private readonly ILocationRepository _locationRepository;
@@ -46,7 +46,7 @@ namespace Utah.Udot.Atspm.ConfigApi.Services
         //}
 
         //Sync signal: From the data in the database return a list of phases and detector channels that are in the logs and compare the newly created signal.
-        //Remove any phases or channels that dont exist on the signal, provide a list of non configured event phases. 
+        //Remove any phases or channels that dont exist on the signal, provide a list of non configured event phases. .
         public TemplateLocationModifiedDto SyncNewLocationDetectorsAndApproaches(int locationId)
         {
             DateTime now = DateTime.Now;
@@ -54,8 +54,10 @@ namespace Utah.Udot.Atspm.ConfigApi.Services
             var sourceLocation = _locationRepository.GetVersionByIdDetached(locationId);
             if (sourceLocation != null)
             {
+                DateOnly dateOnly = DateOnly.Parse(yesterday);
+                DateTime dateTime = dateOnly.ToDateTime(TimeOnly.MinValue);
 
-                var compressedLocationsEvents = _eventLogRepository.GetArchivedEvents(sourceLocation.LocationIdentifier, DateOnly.Parse(yesterday), DateOnly.Parse(yesterday));
+                var compressedLocationsEvents = _eventLogRepository.GetArchivedEvents(sourceLocation.LocationIdentifier, dateTime, dateTime);
                 var indianaEvents = compressedLocationsEvents.Where(l => l.DataType == typeof(IndianaEvent)).SelectMany(s => s.Data).Cast<IndianaEvent>();
                 return ModifyLocationWithEvents(sourceLocation, indianaEvents);
             }

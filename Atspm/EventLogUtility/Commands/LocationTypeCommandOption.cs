@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for EventLogUtility - Utah.Udot.Atspm.EventLogUtility.Commands/LocationTypeCommandOption.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,7 +21,7 @@ namespace Utah.Udot.Atspm.EventLogUtility.Commands
 {
     public class LocationTypeCommandOption : Option<IEnumerable<string>>
     {
-        public LocationTypeCommandOption() : base("--location-type", "Location type to include in filter")
+        public LocationTypeCommandOption() : base("--location-type", "Location type to include")
         {
             AllowMultipleArgumentsPerToken = true;
             AddAlias("-t");

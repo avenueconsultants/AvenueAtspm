@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for ConfigApi - Utah.Udot.Atspm.ConfigApi.Controllers/DeviceController.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,7 +28,7 @@ using static Microsoft.AspNetCore.OData.Query.AllowedQueryOptions;
 namespace Utah.Udot.Atspm.ConfigApi.Controllers
 {
     /// <summary>
-    /// Device controller
+    /// Device Controller
     /// </summary>
     [ApiVersion(1.0)]
     public class DeviceController : AtspmConfigControllerBase<Device, int>

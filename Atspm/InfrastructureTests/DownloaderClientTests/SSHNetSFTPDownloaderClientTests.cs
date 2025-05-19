@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for InfrastructureTests - Utah.Udot.Atspm.InfrastructureTests.DownloaderClientTests/SSHNetSFTPDownloaderClientTests.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,19 +15,14 @@
 // limitations under the License.
 #endregion
 
-using FluentFTP;
 using Moq;
 using Renci.SshNet;
+using Renci.SshNet.Sftp;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Utah.Udot.Atspm.Infrastructure.Services.DownloaderClients;
 using Xunit.Abstractions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace Utah.Udot.Atspm.InfrastructureTests.DownloaderClientTests
 {
@@ -309,7 +304,8 @@ namespace Utah.Udot.Atspm.InfrastructureTests.DownloaderClientTests
             client.SetupGet(p => p.IsConnected).Returns(true);
 
             client.Setup(s => s.ListDirectoryAsync(It.IsAny<string>(), It.Is<string[]>(a => true)))
-                .ReturnsAsync((string a, string[] b) => [a]);
+                .ReturnsAsync((string a, string[] b) => Mock.Of<ISftpFile[]>());
+            //.ReturnsAsync((string a, string[] b) => [a]);
 
             Sut = new SSHNetSFTPDownloaderClient(client.Object);
 

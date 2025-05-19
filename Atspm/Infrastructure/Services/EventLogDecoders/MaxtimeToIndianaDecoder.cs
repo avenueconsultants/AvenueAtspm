@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for Infrastructure - Utah.Udot.Atspm.Infrastructure.Services.EventLogDecoders/MaxtimeToIndianaDecoder.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,15 +64,18 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogDecoders
 
                 try
                 {
-                    var log = new IndianaEvent()
+                    if (Int16.TryParse(l.Attribute("EventTypeID").Value, out short eventCode) && Int16.TryParse(l.Attribute("Parameter").Value, out short eventParam))
                     {
-                        LocationIdentifier = locationIdentifider,
-                        EventCode = Convert.ToInt16(l.Attribute("EventTypeID").Value),
-                        EventParam = Convert.ToInt16(l.Attribute("Parameter").Value),
-                        Timestamp = Convert.ToDateTime(l.Attribute("TimeStamp").Value)
-                    };
+                        var log = new IndianaEvent()
+                        {
+                            LocationIdentifier = locationIdentifider,
+                            EventCode = eventCode,
+                            EventParam = eventParam,
+                            Timestamp = Convert.ToDateTime(l.Attribute("TimeStamp").Value)
+                        };
 
-                    decodedLogs.Add(log);
+                        decodedLogs.Add(log);
+                    }
                 }
                 catch (Exception e)
                 {

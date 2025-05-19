@@ -1,5 +1,5 @@
 #region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for ConfigApi - %Namespace%/Program.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,6 +29,8 @@ using Utah.Udot.Atspm.ConfigApi.Services;
 using Utah.Udot.Atspm.ConfigApi.Utility;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
 using Utah.Udot.NetStandardToolkit.Extensions;
+
+//gitactions: II
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -123,17 +125,14 @@ builder.Host
             l.ResponseBodyLogLimit = 4096;
         });
 
-    s.AddAtspmDbContext(h);
-    s.AddAtspmEFConfigRepositories();
-
-    s.AddScoped<IRouteService, RouteService>();
-    s.AddScoped<IApproachService, ApproachService>();
-    s.AddScoped<SignalTemplateService>();
-
-    s.AddPathBaseFilter(h);
-
-    s.AddAtspmIdentity(h);
-});
+        s.AddAtspmDbContext(h);
+        s.AddAtspmEFConfigRepositories();
+        s.AddScoped<IRouteService, RouteService>();
+        s.AddScoped<IApproachService, ApproachService>();
+        s.AddScoped<ISignalTemplateService, SignalTemplateService>();
+        s.AddPathBaseFilter(h);
+        s.AddAtspmIdentity(h);
+    });
 
 var app = builder.Build();
 

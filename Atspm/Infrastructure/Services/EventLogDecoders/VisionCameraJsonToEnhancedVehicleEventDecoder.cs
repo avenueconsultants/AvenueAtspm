@@ -11,7 +11,7 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.EventLogDecoders
             var memoryStream = (MemoryStream)stream;
             var rootStats = memoryStream.ToArray().FromEncodedJson<Root>().detections;
 
-            return rootStats.Select(x => new EnhancedEventLog
+            var response = rootStats.Select(x => new EnhancedVehicleEvent
             {
                 LocationIdentifier = device.Location.LocationIdentifier,
                 Timestamp = x.time,
@@ -25,6 +25,7 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.EventLogDecoders
                 Direction = x.direction
 
             });
+            return response;
         }
 
         private class Root

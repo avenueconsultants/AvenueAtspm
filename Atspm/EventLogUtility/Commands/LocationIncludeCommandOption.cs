@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for EventLogUtility - Utah.Udot.Atspm.EventLogUtility.Commands/LocationIncludeCommandOption.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,10 +21,10 @@ namespace Utah.Udot.Atspm.EventLogUtility.Commands
 {
     public class LocationIncludeCommandOption : Option<IEnumerable<string>>
     {
-        public LocationIncludeCommandOption() : base("--include", "List of location identifiers to include")
+        public LocationIncludeCommandOption() : base("--include-locations", "List of location identifiers to include")
         {
             AllowMultipleArgumentsPerToken = true;
-            AddAlias("-i");
+            AddAlias("-il");
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿#region license
-// Copyright 2024 Utah Departement of Transportation
+// Copyright 2025 Utah Departement of Transportation
 // for EventLogUtility - Utah.Udot.Atspm.EventLogUtility.Commands/ExtractConsoleCommand.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,7 +71,7 @@ namespace Utah.Udot.Atspm.EventLogUtility.Commands
 
             //    Console.WriteLine($"Extraction path {p}");
 
-            //}, FileCommandOption, DateOption, IncludeOption, ExcludeOption, PathCommandOption);
+            //}, FileCommandOption, DateOption, IncludeLocationOption, ExcludeLocationOption, PathCommandOption);
         }
 
         public Option<string> FileCommandOption { get; set; } = new("--filetype", () => ".csv", "File type format to export to");
