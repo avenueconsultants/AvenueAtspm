@@ -6,6 +6,7 @@ import EditApproach from '@/features/locations/components/editApproach/EditAppro
 import EditDevices from '@/features/locations/components/editLocation/EditDevices'
 import LocationGeneralOptionsEditor from '@/features/locations/components/editLocation/LocationGeneralOptionsEditor'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
+import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import {
   Box,
@@ -58,10 +59,6 @@ function EditLocation() {
       setCurrentTab('3') // Approaches tab
     }
   }, [useWizard, deviceVerificationStatus, approachVerificationStatus])
-
-  const handleTabChange = useCallback((_: SyntheticEvent, newTab: string) => {
-    setCurrentTab(newTab)
-  }, [])
 
   const handleDialogClose = (confirm: boolean) => {
     setDialogOpen(false)

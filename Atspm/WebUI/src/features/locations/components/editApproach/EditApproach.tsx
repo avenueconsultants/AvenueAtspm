@@ -7,7 +7,7 @@ import {
 } from '@/api/config/aTSPMConfigurationApi.schemas'
 import { Color } from '@/features/charts/utils'
 import { useEditApproach } from '@/features/locations/api/approach'
-import ApproachEditorRowHeader from '@/features/locations/components/editApproach/ApproachEditorRow'
+import { ApproachEditorRowHeader } from '@/features/locations/components/editApproach/ApproachEditorRow'
 import DeleteApproachModal from '@/features/locations/components/editApproach/DeleteApproachModal'
 import { hasUniqueDetectorChannels } from '@/features/locations/components/editApproach/utils/checkDetectors'
 import EditApproachGrid from '@/features/locations/components/EditApproachGrid'
@@ -32,7 +32,7 @@ import {
   Divider,
   Paper,
 } from '@mui/material'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface ApproachAdminProps {
   approach: ConfigApproach
@@ -457,7 +457,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
         setOpenModal={setOpenModal}
         confirmDeleteApproach={handleDeleteApproach}
       />
-    </div>
+    </>
   )
 }
 

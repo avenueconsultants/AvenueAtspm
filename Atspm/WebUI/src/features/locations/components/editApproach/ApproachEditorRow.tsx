@@ -1,8 +1,15 @@
-import { Box, ButtonBase, IconButton, Tooltip, Typography } from '@mui/material'
+import {
+  Alert,
+  Box,
+  ButtonBase,
+  IconButton,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import { useEffect, useState } from 'react'
 
 import { ConfigApproach } from '@/features/locations/components/editLocation/editLocationConfigHandler'
-import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
+import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -94,95 +101,98 @@ const ApproachEditorRowHeader = ({
         </Tooltip>
       )}
 
-      <Tooltip title="Approach Details">
-    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: 1,
-          backgroundColor: approach.isNew
-            ? 'rgba(100, 210, 100, 0.3)'
-            : 'white',
-        }}
-      >
-        <ButtonBase
-          onClick={handleApproachClick}
+      <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <Box
           sx={{
-            cursor: 'pointer',
-            textTransform: 'none',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            width: '100%',
+            padding: 1,
+            backgroundColor: approach.isNew
+              ? 'rgba(100, 210, 100, 0.3)'
+              : 'white',
           }}
         >
-          <Box display="flex" alignItems="center">
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'transform 0.2s ease-in-out',
-                transform: open ? 'rotateZ(-180deg)' : 'rotateZ(0deg)',
-              }}
-            >
-              <ExpandMoreIcon />
+          <ButtonBase
+            onClick={handleApproachClick}
+            sx={{
+              cursor: 'pointer',
+              textTransform: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              width: '100%',
+            }}
+          >
+            <Box display="flex" alignItems="center">
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'transform 0.2s ease-in-out',
+                  transform: open ? 'rotateZ(-180deg)' : 'rotateZ(0deg)',
+                }}
+              >
+                <ExpandMoreIcon />
+              </Box>
+              <Typography
+                variant="h4"
+                component="h3"
+                sx={{ padding: 1, marginRight: 2 }}
+              >
+                {approach.description}
+              </Typography>
+              <Typography variant="h5" component="p">
+                {approach.detectors.length}{' '}
+                {approach.detectors.length === 1 ? 'Detector' : 'Detectors'}
+              </Typography>
             </Box>
-            <Typography
-              variant="h4"
-              component="h3"
-              sx={{ padding: 1, marginRight: 2 }}
-            >
-              {approach.description}
-            </Typography>
-            <Typography variant="h5" component="p">
-              {approach.detectors.length}{' '}
-              {approach.detectors.length === 1 ? 'Detector' : 'Detectors'}
-            </Typography>
+          </ButtonBase>
+
+          <Box display="flex" alignItems="center">
+            <Tooltip title="Copy Approach">
+              <IconButton
+                aria-label="copy approach"
+                onClick={handleCopyApproach}
+              >
+                <ContentCopyIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Save Approach">
+              <IconButton
+                aria-label="save approach"
+                color="success"
+                onClick={() => {
+                  // mark that we tried to save, then run your handler
+                  setSaveAttempted(true)
+                  handleSaveApproach()
+                }}
+              >
+                <SaveIcon />
+              </IconButton>
+            </Tooltip>
+
+            <Tooltip title="Delete Approach">
+              <IconButton
+                aria-label="delete approach"
+                color="error"
+                onClick={openDeleteApproachModal}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
-        </ButtonBase>
-
-        <Box display="flex" alignItems="center">
-          <Tooltip title="Copy Approach">
-            <IconButton aria-label="copy approach" onClick={handleCopyApproach}>
-              <ContentCopyIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Save Approach">
-            <IconButton
-              aria-label="save approach"
-              color="success"
-              onClick={() => {
-                // mark that we tried to save, then run your handler
-                setSaveAttempted(true)
-                handleSaveApproach()
-              }}
-            >
-              <SaveIcon />
-            </IconButton>
-          </Tooltip>
-
-          <Tooltip title="Delete Approach">
-            <IconButton
-              aria-label="delete approach"
-              color="error"
-              onClick={openDeleteApproachModal}
-            >
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
         </Box>
+
+        {saveAttempted && hasAnyError && (
+          <Box>
+            <Alert severity="error">
+              Please fix the highlighted errors before saving
+            </Alert>
+          </Box>
+        )}
       </Box>
-
-      {saveAttempted && hasAnyError && (
-        <Box>
-          <Alert severity="error">
-            Please fix the highlighted errors before saving
-          </Alert>
-        </Box>
-      )}
     </Box>
   )
 }
