@@ -22,7 +22,7 @@ using Utah.Udot.Atspm.Data.Models.EventLogModels;
 namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
 {
     ///<inheritdoc cref="IEnhancedVehicleEventLogRepository"/>
-    public class EnhancedVehicleEventLogEFRepository : EventLogEFRepositoryBase<EnhancedVehicleEvent>, IEnhancedVehicleEventLogRepository
+    public class EnhancedVehicleEventLogEFRepository : EventLogEFRepositoryBase<EnhancedEventLog>, IEnhancedVehicleEventLogRepository
     {
         ///<inheritdoc/>
         public EnhancedVehicleEventLogEFRepository(EventLogContext db, ILogger<EnhancedVehicleEventLogEFRepository> log) : base(db, log) { }

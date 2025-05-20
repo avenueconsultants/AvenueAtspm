@@ -30,4 +30,17 @@ namespace Utah.Udot.ATSPM.ConfigApi.Models
     {
         public List<CameraDetailsInfo> Cameras { get; set; } = new();
     }
+
+    public class CameraZoneDetailsInfo
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string ModifiedTime { get; set; }
+        public string Index { get; set; }
+    }
+
+    public class CameraZoneDetailsResponse
+    {
+        public List<CameraZoneDetailsInfo> Zones { get; set; } = new();
+    }
 }
