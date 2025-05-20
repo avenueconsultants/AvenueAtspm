@@ -1,6 +1,8 @@
+import { Location } from '@/api/config/aTSPMConfigurationApi.schemas'
 import { useLatestVersionOfAllLocations } from '@/features/locations/api'
 import LocationInput from '@/features/locations/components/selectLocation/LocationInput'
 import { Location } from '@/features/locations/types'
+import SelectLocationMap from '@/features/locations/components/selectLocationMap'
 import { Button } from '@mui/material'
 import { memo, useCallback, useMemo, useState } from 'react'
 

@@ -19,10 +19,10 @@ module.exports = {
   // },
   data: {
     input: {
-      target: './data-spec.json',
+      target: './config-spec.json',
     },
     output: {
-      target: './src/api/data',
+      target: './src/api/config',
       client: 'react-query',
       templates: './orval-templates',
       mock: true,
@@ -30,7 +30,7 @@ module.exports = {
       override: {
         mutator: {
           path: './src/lib/axios.ts',
-          name: 'dataRequest',
+          name: 'configRequest',
         },
       },
     },

@@ -26,22 +26,48 @@ const ApproachEditorRowHeader = ({
   handleSaveApproach,
   openDeleteApproachModal,
 }: ApproachEditorRowProps) => {
-  const { badApproaches } = useLocationWizardStore()
-  const [isBadApproach, setIsBadApproach] = useState(false)
+  const { errors, setErrors } = useLocationStore((s) => ({
+    errors: s.errors,
+    setErrors: s.setErrors,
+  }))
 
+  // track whether the user has tried saving
+  const [saveAttempted, setSaveAttempted] = useState(false)
+
+  // do we have any errors on this approach or its detectors?
+  const hasApproachError = Boolean(errors?.[approach.id])
+  const hasDetectorError = approach.detectors.some((det) =>
+    Boolean(errors?.[det.id])
+  )
+  const hasAnyError = hasApproachError || hasDetectorError
+
+  // if errors go away (because inputs auto-clear them), reset our "attempted" flag
   useEffect(() => {
-    setIsBadApproach(badApproaches.includes(approach.id))
-  }, [badApproaches, approach.id])
-
-  const backgroundColor = () => {
-    if (isBadApproach) {
-      return 'rgba(255, 165, 0, 0.3)'
-    } else if (approach.isNew) {
-      return 'rgba(100, 210, 100, 0.3)'
-    } else {
-      return 'white'
+    if (saveAttempted && !hasAnyError) {
+      setSaveAttempted(false)
     }
-  }
+  }, [hasAnyError, saveAttempted])
+
+  // existing phase-number auto-clear logic stays as is
+  useEffect(() => {
+    if (!hasApproachError) return
+    const { protectedPhaseNumber, permissivePhaseNumber, id } = approach
+    const phaseValid =
+      protectedPhaseNumber !== '' &&
+      !(protectedPhaseNumber === 0 && permissivePhaseNumber === '')
+    if (phaseValid) {
+      const newErrors = { ...errors }
+      delete newErrors[id]
+      setErrors(Object.keys(newErrors).length ? newErrors : null)
+    }
+  }, [
+    approach.protectedPhaseNumber,
+    approach.permissivePhaseNumber,
+    hasApproachError,
+    errors,
+    setErrors,
+    approach,
+  ])
 
   return (
     <Box
@@ -69,6 +95,18 @@ const ApproachEditorRowHeader = ({
       )}
 
       <Tooltip title="Approach Details">
+    <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: 1,
+          backgroundColor: approach.isNew
+            ? 'rgba(100, 210, 100, 0.3)'
+            : 'white',
+        }}
+      >
         <ButtonBase
           onClick={handleApproachClick}
           sx={{
@@ -93,7 +131,7 @@ const ApproachEditorRowHeader = ({
             </Box>
             <Typography
               variant="h4"
-              component={'h3'}
+              component="h3"
               sx={{ padding: 1, marginRight: 2 }}
             >
               {approach.description}
@@ -104,32 +142,47 @@ const ApproachEditorRowHeader = ({
             </Typography>
           </Box>
         </ButtonBase>
-      </Tooltip>
-      <Box display="flex" alignItems="center">
-        <Tooltip title="Copy Approach">
-          <IconButton aria-label="copy approach" onClick={handleCopyApproach}>
-            <ContentCopyIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Save Approach">
-          <IconButton
-            aria-label="save approach"
-            color="success"
-            onClick={handleSaveApproach}
-          >
-            <SaveIcon />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete Approach">
-          <IconButton
-            aria-label="delete approach"
-            color="error"
-            onClick={openDeleteApproachModal}
-          >
-            <DeleteIcon />
-          </IconButton>
-        </Tooltip>
+
+        <Box display="flex" alignItems="center">
+          <Tooltip title="Copy Approach">
+            <IconButton aria-label="copy approach" onClick={handleCopyApproach}>
+              <ContentCopyIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Save Approach">
+            <IconButton
+              aria-label="save approach"
+              color="success"
+              onClick={() => {
+                // mark that we tried to save, then run your handler
+                setSaveAttempted(true)
+                handleSaveApproach()
+              }}
+            >
+              <SaveIcon />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Delete Approach">
+            <IconButton
+              aria-label="delete approach"
+              color="error"
+              onClick={openDeleteApproachModal}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
+
+      {saveAttempted && hasAnyError && (
+        <Box>
+          <Alert severity="error">
+            Please fix the highlighted errors before saving
+          </Alert>
+        </Box>
+      )}
     </Box>
   )
 }

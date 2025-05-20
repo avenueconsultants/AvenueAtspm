@@ -22,6 +22,7 @@ using Utah.Udot.Atspm.ConfigApi.Services;
 using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.ValueObjects;
+using Utah.Udot.ATSPM.ConfigApi.DTO;
 using static Microsoft.AspNetCore.Http.StatusCodes;
 using static Microsoft.AspNetCore.OData.Query.AllowedQueryOptions;
 
@@ -31,7 +32,7 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
     /// Approaches Controller
     /// </summary>
     [ApiVersion(1.0)]
-    public class ApproachController : AtspmGeneralConfigBase<Approach, int>
+    public class ApproachController : LocationPolicyControllerBase<Approach, int>
     {
         private readonly IApproachRepository _repository;
         private readonly IApproachService approachService;

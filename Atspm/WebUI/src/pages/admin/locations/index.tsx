@@ -21,7 +21,7 @@ export async function getLocation(locationId: number) {
   })
   if (locationResponse?.value?.length) {
     const newestLocation = locationResponse.value[0]
-    newestLocation.approaches = sortApproachesByPhaseNumber(
+    newestLocation.approaches = sortApproachesAndDetectors(
       newestLocation.approaches
     )
     return newestLocation
@@ -63,7 +63,7 @@ const LocationsAdmin = () => {
   if (pageAccess.isLoading) return null
 
   return (
-    <ResponsivePageLayout title="Manage Locations">
+    <ResponsivePageLayout title="Manage Locations" useFullWidth>
       <AddButton
         label="New Location"
         onClick={openNewLocationModal}
