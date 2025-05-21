@@ -22,7 +22,5 @@ namespace Utah.Udot.Atspm.Repositories.ConfigurationRepositories
     /// <summary>
     /// Measure option preset repository
     /// </summary>
-    public interface IMeasureOptionPresetRepository : IAsyncRepository<MeasureOptionPreset>
-    {
-    }
+    public interface IEnhancedVehicleEventLogRepository : IEventLogRepository<EnhancedEventLog> { }
 }
