@@ -14,7 +14,6 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import SaveIcon from '@mui/icons-material/Save'
-import WarningRoundedIcon from '@mui/icons-material/WarningRounded'
 
 interface ApproachEditorRowProps {
   approach: ConfigApproach
@@ -47,6 +46,17 @@ const ApproachEditorRowHeader = ({
     Boolean(errors?.[det.id])
   )
   const hasAnyError = hasApproachError || hasDetectorError
+
+  const backgroundColor = () => {
+    // if (isBadApproach) {
+    //   return 'rgba(255, 165, 0, 0.3)'
+    // }
+    if (approach.isNew) {
+      return 'rgba(100, 210, 100, 0.3)'
+    } else {
+      return 'white'
+    }
+  }
 
   // if errors go away (because inputs auto-clear them), reset our "attempted" flag
   useEffect(() => {
@@ -88,7 +98,7 @@ const ApproachEditorRowHeader = ({
       }}
     >
       {/* Error Icon for Bad Approaches */}
-      {isBadApproach && (
+      {/* {isBadApproach && (
         <Tooltip title="Phase number not found in data">
           <WarningRoundedIcon
             sx={{
@@ -99,7 +109,7 @@ const ApproachEditorRowHeader = ({
             }}
           />
         </Tooltip>
-      )}
+      )} */}
 
       <Box sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
         <Box

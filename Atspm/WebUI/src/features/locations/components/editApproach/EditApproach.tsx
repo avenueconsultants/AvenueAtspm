@@ -7,7 +7,7 @@ import {
 } from '@/api/config/aTSPMConfigurationApi.schemas'
 import { Color } from '@/features/charts/utils'
 import { useEditApproach } from '@/features/locations/api/approach'
-import { ApproachEditorRowHeader } from '@/features/locations/components/editApproach/ApproachEditorRow'
+import ApproachEditorRowHeader from '@/features/locations/components/editApproach/ApproachEditorRow'
 import DeleteApproachModal from '@/features/locations/components/editApproach/DeleteApproachModal'
 import { hasUniqueDetectorChannels } from '@/features/locations/components/editApproach/utils/checkDetectors'
 import EditApproachGrid from '@/features/locations/components/EditApproachGrid'
