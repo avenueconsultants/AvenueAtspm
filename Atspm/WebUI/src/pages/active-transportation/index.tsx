@@ -1,6 +1,7 @@
 // ActiveTransportation.tsx
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import { ActiveTransportationOptions } from '@/features/activeTransportation/components/activeTransportationOptions'
+import PedatChartsContainer from '@/features/activeTransportation/components/pedatChartsContainer'
 import { DropResult } from '@hello-pangea/dnd'
 import { zodResolver } from '@hookform/resolvers/zod'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
@@ -214,6 +215,7 @@ const ActiveTransportation = () => {
           {renderErrorAlert()}
         </Box>
         {/* TODO: Add report display component here */}
+        <PedatChartsContainer />
       </Box>
     </ResponsivePageLayout>
   )
