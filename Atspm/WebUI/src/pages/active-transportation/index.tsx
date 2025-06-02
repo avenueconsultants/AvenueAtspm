@@ -12,7 +12,6 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
-// Zod schema
 const activeTransportationSchema = z.object({
   locations: z.array(
     z.object({
@@ -68,6 +67,8 @@ const ActiveTransportation = () => {
 
   const { watch, setValue } = form
   const [errorState, setErrorState] = useState<ATErrorState>({ type: 'NONE' })
+  const [mockData, setMockData] = useState<boolean>(false)
+  const [mockdataIsLoaded, setMockDataIsLoading] = useState<boolean>(false)
 
   const locations = watch('locations')
   const daysOfWeek = watch('daysOfWeek')
@@ -107,6 +108,13 @@ const ActiveTransportation = () => {
     return null
   }
 
+  const getMockData = () => {
+    setMockDataIsLoading(true)
+    setTimeout(() => {
+      setMockDataIsLoading(false)
+      setMockData(true)
+    }, 3000)
+  }
   const setLocations = (newLocations: ATLocation[]) => {
     const hadNoLocations = errorState.type === 'NO_LOCATIONS'
     newLocations.forEach((loc) => {
@@ -204,17 +212,18 @@ const ActiveTransportation = () => {
         />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
           <LoadingButton
+            loading={mockdataIsLoaded}
+            loadingPosition="start"
             startIcon={<PlayArrowIcon />}
-            loading={false}
             variant="contained"
             sx={{ padding: '10px', mb: 2 }}
-            onClick={handleGenerateReport}
+            onClick={getMockData}
           >
             Generate Report
           </LoadingButton>
           {renderErrorAlert()}
         </Box>
-        <PedatChartsContainer />
+        {mockData && <PedatChartsContainer />}
       </Box>
     </ResponsivePageLayout>
   )
