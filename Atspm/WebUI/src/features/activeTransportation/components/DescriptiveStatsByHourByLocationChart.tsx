@@ -10,7 +10,14 @@ const DescriptiveStatsByHourByLocationTable = () => {
           Descriptive Statistics By Hour by location
         </Typography>
       </Box>
-      <div style={{ overflow: 'auto', maxHeight: '600px' }}>
+      <Box
+        sx={{
+          overflow: 'auto',
+          maxHeight: '600px',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+        }}
+      >
         <table
           style={{
             width: '100%',
@@ -49,15 +56,19 @@ const DescriptiveStatsByHourByLocationTable = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </Box>
     </>
   )
 }
 
 const th = {
-  padding: '8px',
+  position: 'sticky',
+  top: 0,
+  zIndex: 1,
+  backgroundColor: '#f2f2f2',
   borderBottom: '2px solid #ccc',
   textAlign: 'left',
+  padding: '8px',
   fontWeight: 600,
 }
 

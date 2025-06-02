@@ -115,7 +115,7 @@ export const mockBoxPlotPedestrianVolumeByLocation = [
       q1: 0,
       median: 5,
       q3: 9,
-      max: 294,
+      max: 150,
       missing: 0,
     },
   },
@@ -98550,7 +98550,7 @@ export const timeSeriesOfPedestrianVolumeByHourByLocation = [
       },
       {
         timestamp: '2022-10-04 21:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2022-10-04 22:00:00',
@@ -98566,7 +98566,7 @@ export const timeSeriesOfPedestrianVolumeByHourByLocation = [
       },
       {
         timestamp: '2022-10-05 01:00:00',
-        volume: 294.0,
+        volume: 150.0,
       },
       {
         timestamp: '2022-10-05 02:00:00',
@@ -113845,7 +113845,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2022-06-22 00:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2022-06-23 00:00:00',
@@ -115078,7 +115078,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2018-04-25 00:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2018-04-26 00:00:00',
@@ -115246,7 +115246,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2018-06-06 00:00:00',
-        volume: 294.0,
+        volume: 150.0,
       },
       {
         timestamp: '2018-06-07 00:00:00',
@@ -119498,7 +119498,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2021-05-04 00:00:00',
-        volume: 294.0,
+        volume: 150.0,
       },
       {
         timestamp: '2021-05-05 00:00:00',
@@ -119974,7 +119974,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2021-08-31 00:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2021-09-01 00:00:00',
@@ -120902,7 +120902,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2022-04-20 00:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2022-04-21 00:00:00',
@@ -127411,7 +127411,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2021-10-02 00:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2021-10-03 00:00:00',
@@ -127839,7 +127839,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2022-01-17 00:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2022-01-18 00:00:00',
@@ -128271,7 +128271,7 @@ export const timeSeriesOfPedestrianVolumeByDayByLocation = [
       },
       {
         timestamp: '2022-05-05 00:00:00',
-        volume: 245.0,
+        volume: 50.0,
       },
       {
         timestamp: '2022-05-06 00:00:00',

@@ -10,12 +10,18 @@ const PedestrianVolumeTimeSeriesTable: React.FC = () => {
           Data By Hour By Location
         </Typography>
       </Box>
-      <div style={{ overflow: 'auto', maxHeight: '600px' }}>
+      <Box
+        sx={{
+          overflow: 'auto',
+          maxHeight: '600px',
+          border: '1px solid #ccc',
+          borderRadius: '8px',
+        }}
+      >
         <table
           style={{
             width: '100%',
             borderCollapse: 'collapse',
-            fontFamily: 'sans-serif',
           }}
         >
           <thead>
@@ -45,19 +51,22 @@ const PedestrianVolumeTimeSeriesTable: React.FC = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      </Box>
     </>
   )
 }
 
-const thStyle: React.CSSProperties = {
+export const thStyle: React.CSSProperties = {
+  position: 'sticky',
+  top: 0,
+  zIndex: 1,
+  backgroundColor: '#f2f2f2',
   borderBottom: '2px solid #ccc',
   textAlign: 'left',
   padding: '8px',
-  backgroundColor: '#f2f2f2',
 }
 
-const tdStyle: React.CSSProperties = {
+export const tdStyle: React.CSSProperties = {
   borderBottom: '1px solid #eee',
   padding: '8px',
   fontSize: '14px',

@@ -17,7 +17,7 @@ const TotalPedVolByLocationCharts = () => {
   )
 
   return (
-    <Box>
+    <Box sx={{ mb: 5 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }} gutterBottom>
           Total Pedestrian Volume, by Location

@@ -214,7 +214,6 @@ const ActiveTransportation = () => {
           </LoadingButton>
           {renderErrorAlert()}
         </Box>
-        {/* TODO: Add report display component here */}
         <PedatChartsContainer />
       </Box>
     </ResponsivePageLayout>

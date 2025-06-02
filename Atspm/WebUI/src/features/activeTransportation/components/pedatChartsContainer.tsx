@@ -20,14 +20,14 @@ import PedestrianVolumeTimeSeriesTable from './PedestrianVolumeTimeSeriesTable'
 
 const PedatChartsContainer: React.FC = () => {
   return (
-    <Container sx={{ py: 4 }}>
+    <Container sx={{ py: 4, minWidth: '1400px' }}>
       {/* Averages Section */}
       <Accordion defaultExpanded>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography variant="h4">Averages</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Box sx={{ mb: 4 }}>
+          <Box sx={{ mb: 10 }}>
             <AverageDailyPedVolByLocationChart />
             <HourlyPedVolByHourOfDayChart />
             <HourlyPedVolByDayOfWeekChart />
