@@ -4,7 +4,7 @@ import { mockPedestrianVolumeTimeSeries } from '../mockdata/pedatMockData'
 
 const PedestrianVolumeTimeSeriesTable: React.FC = () => {
   return (
-    <>
+    <Box sx={{ mb: 8 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }} gutterBottom>
           Data By Hour By Location
@@ -52,7 +52,7 @@ const PedestrianVolumeTimeSeriesTable: React.FC = () => {
           </tbody>
         </table>
       </Box>
-    </>
+    </Box>
   )
 }
 

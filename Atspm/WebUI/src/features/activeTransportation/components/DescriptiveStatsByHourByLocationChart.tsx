@@ -4,7 +4,7 @@ import { mockDescriptiveStatsByHourByLocation } from '../mockdata/pedatMockData'
 // /features/activeTransportation/components/charts/DescriptiveStatsByHourByLocationTable.tsx
 const DescriptiveStatsByHourByLocationTable = () => {
   return (
-    <>
+    <Box sx={{ mb: 2 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }} gutterBottom>
           Descriptive Statistics By Hour by location
@@ -57,7 +57,7 @@ const DescriptiveStatsByHourByLocationTable = () => {
           </tbody>
         </table>
       </Box>
-    </>
+    </Box>
   )
 }
 
