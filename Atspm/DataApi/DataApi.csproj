@@ -40,6 +40,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Reference Include="Utah.Udot.NetStandardToolkit">
+	    <HintPath>..\..\..\udot-atspm\Atspm\Utah.Udot.NetStandardToolkit.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Using Include="Utah.Udot.Atspm.Data.Models" />
 	  <Using Include="Utah.Udot.Atspm.Data.Models.EventLogModels" />
 	  <Using Include="Utah.Udot.Atspm.Infrastructure.Extensions" />
