@@ -15,14 +15,13 @@
 // limitations under the License.
 #endregion
 
-using Utah.Udot.NetStandardToolkit.Services;
+using Utah.Udot.Atspm.Data.Models.EventLogModels;
+using Utah.Udot.Atspm.Repositories.EventLogRepositories;
 
 namespace Utah.Udot.Atspm.Repositories.ConfigurationRepositories
 {
     /// <summary>
     /// Measure option preset repository
     /// </summary>
-    public interface IMeasureOptionPresetRepository : IAsyncRepository<MeasureOptionPreset>
-    {
-    }
+    public interface IEnhancedVehicleEventLogRepository : IEventLogRepository<EnhancedEventLog> { }
 }
