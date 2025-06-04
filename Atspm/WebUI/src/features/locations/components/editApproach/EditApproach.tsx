@@ -5,7 +5,7 @@ import {
   LaneTypes,
   MovementTypes,
 } from '@/api/config/aTSPMConfigurationApi.schemas'
-import { AddButton } from '@/components/addButton'
+import { Color } from '@/features/charts/utils'
 import { useEditApproach } from '@/features/locations/api/approach'
 import ApproachEditorRowHeader from '@/features/locations/components/editApproach/ApproachEditorRow'
 import DeleteApproachModal from '@/features/locations/components/editApproach/DeleteApproachModal'
@@ -18,8 +18,21 @@ import {
 } from '@/features/locations/components/editLocation/locationStore'
 import { ConfigEnum, useConfigEnums } from '@/hooks/useConfigEnums'
 import { useNotificationStore } from '@/stores/notifications'
-import { Box, Collapse, Paper } from '@mui/material'
-import React, { useCallback, useState } from 'react'
+import AddIcon from '@mui/icons-material/Add'
+import DeleteIcon from '@mui/icons-material/Delete'
+import {
+  Box,
+  Button,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Divider,
+  Paper,
+} from '@mui/material'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface ApproachAdminProps {
   approach: ConfigApproach
@@ -29,26 +42,29 @@ function EditApproach({ approach }: ApproachAdminProps) {
   const locationIdentifier = useLocationStore(
     (s) => s.location?.locationIdentifier
   )
+  const deleteDetector = useLocationStore((s) => s.deleteDetector)
   const channelMap = useLocationStore((s) => s.channelMap)
-  const errors = useLocationStore((s) => s.errors)
-  const warnings = useLocationStore((s) => s.warnings)
   const setErrors = useLocationStore((s) => s.setErrors)
-  const setWarnings = useLocationStore((s) => s.setWarnings)
-  const clearErrorsAndWarnings = useLocationStore(
-    (s) => s.clearErrorsAndWarnings
-  )
   const updateApproachInStore = useLocationStore((s) => s.updateApproach)
   const copyApproachInStore = useLocationStore((s) => s.copyApproach)
   const deleteApproachInStore = useLocationStore((s) => s.deleteApproach)
   const addDetectorInStore = useLocationStore((s) => s.addDetector)
+  const scrollToApproach = useLocationStore((s) => s.scrollToApproach)
+  const scrollToDetector = useLocationStore((s) => s.scrollToDetector)
+  const setScrollToApproach = useLocationStore((s) => s.setScrollToApproach)
+  const setScrollToDetector = useLocationStore((s) => s.setScrollToDetector)
+  const updateSavedApproaches = useLocationStore((s) => s.updateSavedApproaches)
 
   const [open, setOpen] = useState(false)
   const [openModal, setOpenModal] = useState(false)
+  const [deleteMode, setDeleteMode] = useState(false)
+  const [selectedDetectorIds, setSelectedDetectorIds] = useState<number[]>([])
+  const [confirmDelete, setConfirmDelete] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { addNotification } = useNotificationStore()
   const { mutate: editApproach } = useEditApproach()
 
-  // Lookups
   const { findEnumByNameOrAbbreviation: findDetectionType } = useConfigEnums(
     ConfigEnum.DetectionTypes
   )
@@ -68,27 +84,45 @@ function EditApproach({ approach }: ApproachAdminProps) {
     setOpen((prev) => !prev)
   }, [])
 
-  const openDeleteApproachModal = useCallback(() => {
-    setOpenModal(true)
-  }, [])
-
   const handleSaveApproach = useCallback(() => {
+    // 1) check for duplicate detectorChannel errors
     const { isValid, errors: channelErrors } =
       hasUniqueDetectorChannels(channelMap)
-    let newErrors: Record<string, { error: string; id: string }> = {}
 
+    // collect all our errors here
+    let newErrors: Record<string, { error: string; id: string }> = {}
     if (!isValid) {
       newErrors = { ...newErrors, ...channelErrors }
     }
-    if (
-      !approach.protectedPhaseNumber ||
-      isNaN(approach.protectedPhaseNumber)
-    ) {
-      newErrors.protectedPhaseNumber = {
-        error: 'Protected Phase Number is required',
+
+    // ── parse phase inputs into number | null ──
+    const rawProt = approach.protectedPhaseNumber
+    const rawPerm = approach.permissivePhaseNumber
+    const rawPed = approach.pedestrianPhaseNumber
+
+    const protectedPhaseNumber =
+      rawProt === '' || rawProt == null ? null : Number(rawProt)
+    const permissivePhaseNumber =
+      rawPerm === '' || rawPerm == null ? null : Number(rawPerm)
+    const pedestrianPhaseNumber =
+      rawPed === '' || rawPed == null ? null : Number(rawPed)
+
+    console.log(
+      'parsed phases',
+      protectedPhaseNumber,
+      permissivePhaseNumber,
+      pedestrianPhaseNumber
+    )
+
+    // 2) protectedPhaseNumber is always required (even if it’s zero)
+    if (protectedPhaseNumber == null) {
+      newErrors[approach.id] = {
+        error: 'A Phase Number is required',
         id: String(approach.id),
       }
     }
+
+    // 3) every detector must have a channel
     approach.detectors.forEach((det) => {
       if (!det.detectorChannel) {
         newErrors[String(det.id)] = {
@@ -98,16 +132,21 @@ function EditApproach({ approach }: ApproachAdminProps) {
       }
     })
 
+    // if any errors, stop here and render them
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
     }
     setErrors(null)
 
-    // Create a deep clone so we can safely mutate
     const modifiedApproach = JSON.parse(
       JSON.stringify(approach)
     ) as ConfigApproach
+
+    // overwrite with our parsed phase values
+    modifiedApproach.protectedPhaseNumber = protectedPhaseNumber
+    modifiedApproach.permissivePhaseNumber = permissivePhaseNumber
+    modifiedApproach.pedestrianPhaseNumber = pedestrianPhaseNumber
 
     // If the approach is new, remove the local ID so the server will create one
     if (modifiedApproach.isNew) {
@@ -118,12 +157,10 @@ function EditApproach({ approach }: ApproachAdminProps) {
     delete modifiedApproach.open
     delete modifiedApproach.isNew
 
-    // Convert direction type from name -> numeric enum
     modifiedApproach.directionTypeId =
       findDirectionType(modifiedApproach.directionTypeId)?.value ||
       DirectionTypes.NA
 
-    // Detectors
     modifiedApproach.detectors.forEach((det) => {
       if (det.isNew) {
         delete det.id
@@ -154,9 +191,9 @@ function EditApproach({ approach }: ApproachAdminProps) {
     editApproach(modifiedApproach, {
       onSuccess: (saved) => {
         try {
-          const detectorsArray = saved.detectors?.$values || []
+          const detectorsArray = saved.detectors || []
           detectorsArray.forEach((detector) => {
-            detector.detectionTypes = detector.detectionTypes?.$values || []
+            detector.detectionTypes = detector.detectionTypes || []
             detector.detectionTypes.forEach((dType) => {
               dType.abbreviation =
                 findDetectionType(dType.abbreviation)?.name || DetectionTypes.NA
@@ -170,29 +207,21 @@ function EditApproach({ approach }: ApproachAdminProps) {
               findLaneType(detector.laneType)?.name || LaneTypes.NA
           })
 
-          // Build final approach object for the store
           const normalizedSaved: ConfigApproach = {
             ...saved,
             isNew: false,
             directionTypeId:
               findDirectionType(saved.directionTypeId)?.name ||
               DirectionTypes.NA,
-            detectors: detectorsArray,
+            detectors: detectorsArray.sort(
+              (a, b) => a.detectorChannel - b.detectorChannel
+            ),
           }
 
-          /**
-           * If the approach was new, we must remove the "local" approach
-           * (with its random ID) from the store, then add this saved approach
-           * (with the real server ID) so we don't end up with duplicates.
-           */
           if (approach.isNew) {
-            // 1) remove the old approach from store (no server API call for new approaches)
             deleteApproachInStore(approach)
-
-            // 2) updateApproachInStore() with the newly created approach
             updateApproachInStore(normalizedSaved)
           } else {
-            // If it wasn't new, we can just update existing approach
             updateApproachInStore(normalizedSaved)
           }
 
@@ -240,6 +269,14 @@ function EditApproach({ approach }: ApproachAdminProps) {
     addNotification,
   ])
 
+  const confirmDeleteSelected = useCallback(() => {
+    selectedDetectorIds.forEach((id) => deleteDetector(id))
+    setConfirmDelete(false)
+    setDeleteMode(false)
+    setSelectedDetectorIds([])
+    addNotification({ title: 'Selected detectors deleted', type: 'success' })
+  }, [selectedDetectorIds, deleteDetector, addNotification])
+
   const handleDeleteApproach = useCallback(() => {
     try {
       deleteApproachInStore(approach)
@@ -261,33 +298,159 @@ function EditApproach({ approach }: ApproachAdminProps) {
     }
   }, [approach, deleteApproachInStore, addNotification])
 
+  const leftBorderColor = useMemo(() => {
+    if (approach.directionTypeId === DirectionTypes.NA) {
+      return 'lightgrey'
+    }
+    const dir = approach.directionTypeId?.charAt(0).toUpperCase()
+    switch (dir) {
+      case 'N':
+        return Color.Blue
+      case 'S':
+        return Color.BrightRed
+      case 'E':
+        return Color.Yellow
+      case 'W':
+        return Color.Orange
+      default:
+        return 'lightgrey'
+    }
+  }, [approach.directionTypeId])
+
+  useEffect(() => {
+    if (scrollToApproach !== approach.id) return
+
+    containerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+
+    setTimeout(() => {
+      if (!open) setOpen(true)
+    }, 500)
+
+    setScrollToApproach(null)
+  }, [scrollToApproach, approach.id, open, setScrollToApproach])
+
+  useEffect(() => {
+    if (scrollToDetector) {
+      const hasDetector = approach.detectors.some(
+        (det) => det.id.toString() === scrollToDetector.toString()
+      )
+      if (hasDetector) {
+        if (!open) setOpen(true)
+        // Allow time for the collapse to open.
+        setTimeout(() => {
+          const el = document.getElementById(`detector-${scrollToDetector}`)
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+          setScrollToDetector(null)
+        }, 0)
+      }
+    }
+  }, [scrollToDetector, approach.detectors, open, setScrollToDetector])
+
   return (
     <>
-      <Paper sx={{ mt: 1 }}>
+      <Paper
+        variant="outlined"
+        sx={{
+          mb: '6px',
+          border: '2px solid lightgrey',
+          borderLeft: `7px solid ${leftBorderColor}`,
+        }}
+      >
         <ApproachEditorRowHeader
           open={open}
           approach={approach}
           handleApproachClick={handleApproachClick}
           handleCopyApproach={() => copyApproachInStore(approach)}
           handleSaveApproach={handleSaveApproach}
-          openDeleteApproachModal={openDeleteApproachModal}
+          openDeleteApproachModal={() => setOpenModal(true)}
         />
+        <Divider />
+        <Collapse in={open} unmountOnExit>
+          <>
+            <EditApproachGrid approach={approach} />
+
+            <Box display="flex" justifyContent="flex-end" mb={1}>
+              {!deleteMode && (
+                <>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    size="small"
+                    onClick={() => addDetectorInStore(approach.id)}
+                    sx={{ m: 1, textTransform: 'none' }}
+                    startIcon={<AddIcon />}
+                  >
+                    Add Detector
+                  </Button>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    size="small"
+                    onClick={() => setDeleteMode(true)}
+                    sx={{ m: 1, textTransform: 'none' }}
+                    startIcon={<DeleteIcon />}
+                  >
+                    Delete Detectors
+                  </Button>
+                </>
+              )}
+              {deleteMode && (
+                <>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setDeleteMode(false)
+                      setSelectedDetectorIds([])
+                    }}
+                    sx={{ m: 1, textTransform: 'none' }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    color="error"
+                    disabled={selectedDetectorIds.length === 0}
+                    onClick={() => setConfirmDelete(true)}
+                    sx={{ m: 1, textTransform: 'none' }}
+                  >
+                    Delete Selected Detectors
+                  </Button>
+                </>
+              )}
+            </Box>
+
+            <Box sx={{ mt: 1, ml: '1px' }}>
+              <EditDetectors
+                approach={approach}
+                deleteMode={deleteMode}
+                onSelectionChange={(ids) => setSelectedDetectorIds(ids)}
+              />
+            </Box>
+          </>
+        </Collapse>
       </Paper>
 
-      <Collapse in={open} unmountOnExit>
-        <Box minHeight="600px">
-          <EditApproachGrid approach={approach} />
-          <br />
-          <Box display="flex" justifyContent="flex-end" mb={1}>
-            <AddButton
-              label="New Detector"
-              onClick={() => addDetectorInStore(approach.id)}
-              sx={{ m: 1 }}
-            />
-          </Box>
-          <EditDetectors approach={approach} />
-        </Box>
-      </Collapse>
+      <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)}>
+        <DialogTitle>Confirm Delete Selected Detectors</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete the selected detectors?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDelete(false)}>Cancel</Button>
+          <Button color="error" onClick={confirmDeleteSelected}>
+            Yes
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <DeleteApproachModal
         openModal={openModal}

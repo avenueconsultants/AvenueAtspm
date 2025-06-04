@@ -4,11 +4,14 @@ import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import { StyledPaper } from '@/components/StyledPaper'
 import { AddButton } from '@/components/addButton'
 import { PageNames, useViewPage } from '@/features/identity/pagesCheck'
-import { sortApproachesByPhaseNumber } from '@/features/locations/components/editApproach/utils/sortApproaches'
+import LocationSetupWizard from '@/features/locations/components/LocationSetupWizard/LocationSetupWizard'
+import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
+import { sortApproachesAndDetectors } from '@/features/locations/components/editApproach/utils/sortApproaches'
 import LocationEditor from '@/features/locations/components/editLocation/EditLocation'
 import NewLocationModal from '@/features/locations/components/editLocation/NewLocationModal'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import SelectLocation from '@/features/locations/components/selectLocation/SelectLocation'
+import { Button } from '@mui/material'
 import { useCallback, useState } from 'react'
 
 export async function getLocation(locationId: number) {
@@ -18,7 +21,7 @@ export async function getLocation(locationId: number) {
   })
   if (locationResponse?.value?.length) {
     const newestLocation = locationResponse.value[0]
-    newestLocation.approaches = sortApproachesByPhaseNumber(
+    newestLocation.approaches = sortApproachesAndDetectors(
       newestLocation.approaches
     )
     return newestLocation
@@ -29,13 +32,19 @@ export async function getLocation(locationId: number) {
 const LocationsAdmin = () => {
   const location = useLocationStore((s) => s.location)
   const setLocation = useLocationStore((s) => s.setLocation)
+  const resetStore = useLocationWizardStore((s) => s.resetStore)
+  const setUseWizard = useLocationWizardStore((s) => s.setUseWizard)
+  const useWizard = useLocationWizardStore((s) => s.useWizard)
 
   const pageAccess = useViewPage(PageNames.Location)
   const [isModalOpen, setModalOpen] = useState(false)
+  const [isWizardOpen, setIsWizardOpen] = useState(false)
 
   const handleSetLocation = useCallback(
     async (selectedLocation: Location | null) => {
       if (selectedLocation) {
+        resetStore()
+        // setIsWizardOpen(false)
         setLocation(await getLocation(selectedLocation.id))
       } else {
         setLocation(null)
@@ -44,13 +53,17 @@ const LocationsAdmin = () => {
     [setLocation]
   )
 
+  const handleOpenWizard = () => {
+    setUseWizard(true)
+  }
+
   const openNewLocationModal = useCallback(() => setModalOpen(true), [])
   const closeModal = useCallback(() => setModalOpen(false), [])
 
   if (pageAccess.isLoading) return null
 
   return (
-    <ResponsivePageLayout title="Manage Locations">
+    <ResponsivePageLayout title="Manage Locations" useFullWidth>
       <AddButton
         label="New Location"
         onClick={openNewLocationModal}
@@ -63,11 +76,19 @@ const LocationsAdmin = () => {
           mapHeight={400}
         />
       </StyledPaper>
+      <Button onClick={handleOpenWizard}>Use Wizard</Button>
       {location && <LocationEditor />}
       {isModalOpen && (
         <NewLocationModal
           closeModal={closeModal}
           setLocation={handleSetLocation}
+          onCreatedFromTemplate={handleOpenWizard}
+        />
+      )}
+      {useWizard && (
+        <LocationSetupWizard
+          open={isWizardOpen}
+          onClose={() => setIsWizardOpen(false)}
         />
       )}
     </ResponsivePageLayout>
