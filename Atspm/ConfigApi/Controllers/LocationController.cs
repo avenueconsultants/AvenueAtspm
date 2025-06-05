@@ -47,9 +47,15 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         private readonly ISignalTemplateService _signalTemplateService;
 
         /// <inheritdoc/>
-        public LocationController(ILocationRepository repository, IDeviceRepository deviceRepository) : base(repository)
+        public LocationController(
+            ILocationRepository repository,
+            IDeviceRepository deviceRepository,
+            ISignalTemplateService signalTemplateService
+            ) : base(repository)
         {
             _repository = repository;
+            _deviceRepository = deviceRepository;
+            _signalTemplateService = signalTemplateService;
         }
 
         #region NavigationProperties
