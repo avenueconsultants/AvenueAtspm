@@ -53,7 +53,7 @@ export default function timeSeriesByHourByLocationTransformer(
     name: 'Pedestrian Volume',
   }
 
-  const grid = createGrid({ top: 80, left: 60, right: 190, bottom: 60 })
+  const grid = createGrid({ top: 80, left: 60, right: 190, bottom: 80 })
 
   const legend = createLegend({
     bottom: 0,

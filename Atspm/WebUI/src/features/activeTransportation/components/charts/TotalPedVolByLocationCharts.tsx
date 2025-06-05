@@ -6,7 +6,7 @@ import {
   transformBlockChartTransformer,
   transformPieChartTransformer,
 } from '@/features/charts/pedat/totalPedVolByLocationTransformer'
-import { Box, Typography } from '@mui/material'
+import { Box, Paper, Typography } from '@mui/material'
 
 const TotalPedVolByLocationCharts = () => {
   const pieOption = transformPieChartTransformer(
@@ -17,7 +17,7 @@ const TotalPedVolByLocationCharts = () => {
   )
 
   return (
-    <Box sx={{ mb: 5 }}>
+    <Paper sx={{ padding: '25px', mb: 5 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }} gutterBottom>
           Total Pedestrian Volume, by Location
@@ -47,7 +47,7 @@ const TotalPedVolByLocationCharts = () => {
           />
         </Box>
       </Box>
-    </Box>
+    </Paper>
   )
 }
 

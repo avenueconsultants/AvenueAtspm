@@ -1,13 +1,5 @@
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Button,
-  Container,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Container, Tab, Tabs } from '@mui/material'
+import { useState } from 'react'
 import AverageDailyPedVolByLocationChart from './charts/AverageDailyPedVolByLocationChart'
 import BoxPlotByLocationChart from './charts/BoxPlotByLocationChart'
 import DailyPedVolByMonthChart from './charts/DailyPedVolByMonthChart'
@@ -19,69 +11,50 @@ import DescriptiveStatsByHourByLocationChart from './DescriptiveStatsByHourByLoc
 import PedestrianVolumeTimeSeriesTable from './PedestrianVolumeTimeSeriesTable'
 
 const PedatChartsContainer: React.FC = () => {
+  const [tabIndex, setTabIndex] = useState(0)
   return (
     <Container sx={{ py: 4, minWidth: '1530px', ml: '-15px' }}>
-      {/* Averages Section */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h4">Averages</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box sx={{ mb: 10 }}>
-            <AverageDailyPedVolByLocationChart />
-            <HourlyPedVolByHourOfDayChart />
-            <HourlyPedVolByDayOfWeekChart />
-            <DailyPedVolByMonthChart />
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+      <Tabs
+        value={tabIndex}
+        onChange={(_, val) => setTabIndex(val)}
+        sx={{ mb: 4 }}
+      >
+        <Tab label="Averages" />
+        <Tab label="Figures" />
+        <Tab label="Map" />
+        <Tab label="Data" />
+      </Tabs>
 
-      {/* Figures Section */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h4">Figures</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box sx={{ mb: 4 }}>
-            <TotalPedVolByLocationCharts />
-            <TimeSeriesByHourByLocationChart />
-            <BoxPlotByLocationChart />
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+      {tabIndex === 0 && (
+        <Box sx={{ mb: 10 }}>
+          <AverageDailyPedVolByLocationChart />
+          <HourlyPedVolByHourOfDayChart />
+          <HourlyPedVolByDayOfWeekChart />
+          <DailyPedVolByMonthChart />
+        </Box>
+      )}
 
-      {/* Map Section */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h4">Map</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box sx={{ mb: 4 }}>
-            <Typography variant="h5" gutterBottom>
-              Heat Map
-            </Typography>
-            <Box sx={{ height: 400, backgroundColor: '#e0e0e0', mb: 3 }} />
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+      {tabIndex === 1 && (
+        <Box sx={{ mb: 4 }}>
+          <TotalPedVolByLocationCharts />
+          <TimeSeriesByHourByLocationChart />
+          <BoxPlotByLocationChart />
+        </Box>
+      )}
 
-      {/* Data Section */}
-      <Accordion defaultExpanded>
-        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-          <Typography variant="h4">Data</Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          <Box sx={{ mb: 4, gap: 2 }}>
-            <Box></Box>
-            <PedestrianVolumeTimeSeriesTable />
-          </Box>
-          <Box>
-            <DescriptiveStatsByHourByLocationChart />
-          </Box>
-        </AccordionDetails>
-      </Accordion>
+      {tabIndex === 2 && (
+        <Box sx={{ mb: 4 }}>
+          <Box sx={{ height: 400, backgroundColor: '#e0e0e0', mb: 3 }} />
+        </Box>
+      )}
 
-      {/* Action Buttons */}
+      {tabIndex === 3 && (
+        <Box sx={{ mb: 4 }}>
+          <PedestrianVolumeTimeSeriesTable />
+          <DescriptiveStatsByHourByLocationChart />
+        </Box>
+      )}
+
       <Box sx={{ display: 'flex', gap: 2, mt: 4 }}>
         <Button variant="contained">Download Data</Button>
         <Button variant="contained">Generate Report</Button>
