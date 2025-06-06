@@ -26,7 +26,6 @@ namespace Utah.Udot.Atspm.Extensions
         /// Checks to see if <paramref name="source"/> is null or empty
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="enumerable"></param>
         /// <param name="source"></param>
         /// <returns></returns>
         public static bool IsNullOrEmpty<T>(this IEnumerable<T> source)
