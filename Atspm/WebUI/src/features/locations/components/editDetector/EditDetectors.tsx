@@ -126,6 +126,7 @@ const EditDetectors = ({
           </TableRow>
           <TableRow>
             {[
+              'Detector Identifier',
               'Channel',
               'Detection Types',
               'Hardware',
