@@ -138,7 +138,8 @@ function EditApproach({ approach }: ApproachAdminProps) {
           : Number(det.latencyCorrection)
 
       det.dectectorIdentifier =
-        (locationIdentifier || '') + (det.detectorChannel || '')
+        det.dectectorIdentifier ??
+        (locationIdentifier ?? '') + det.detectorChannel
 
       det.detectionTypes.forEach((dType) => {
         dType.id = findDetectionType(dType.abbreviation)?.value
@@ -154,9 +155,9 @@ function EditApproach({ approach }: ApproachAdminProps) {
     editApproach(modifiedApproach, {
       onSuccess: (saved) => {
         try {
-          const detectorsArray = saved.detectors?.$values || []
+          const detectorsArray = saved.detectors || []
           detectorsArray.forEach((detector) => {
-            detector.detectionTypes = detector.detectionTypes?.$values || []
+            detector.detectionTypes = detector.detectionTypes || []
             detector.detectionTypes.forEach((dType) => {
               dType.abbreviation =
                 findDetectionType(dType.abbreviation)?.name || DetectionTypes.NA

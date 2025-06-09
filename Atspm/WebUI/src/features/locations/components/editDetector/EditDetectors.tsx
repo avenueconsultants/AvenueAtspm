@@ -84,6 +84,7 @@ function EditDetectors({ approach }: { approach: ConfigApproach }) {
               <TableCell />
             </TableRow>
             <TableRow>
+              <TableCell>Detector Identifier</TableCell>
               <TableCell>Channel</TableCell>
               <TableCell>Detection Types</TableCell>
               <TableCell>Hardware</TableCell>
@@ -119,6 +120,13 @@ function EditDetectors({ approach }: { approach: ConfigApproach }) {
                     : 'white',
                 }}
               >
+                <EditableTableCell
+                  value={det.dectectorIdentifier}
+                  onUpdate={(val) => {
+                    console.log('Updating detector identifier:', val)
+                    updateDetector(det.id, 'dectectorIdentifier', val)
+                  }}
+                />
                 <EditableTableCell
                   value={det.detectorChannel}
                   onUpdate={(val) =>
