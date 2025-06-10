@@ -26,6 +26,7 @@ using Utah.Udot.Atspm.ConfigApi.Services;
 using Utah.Udot.Atspm.Data.Enums;
 using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Extensions;
+using Utah.Udot.Atspm.Infrastructure.Services;
 using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.Specifications;
 using Utah.Udot.Atspm.ValueObjects;
@@ -40,11 +41,13 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
     /// </summary>
     /// 
     [ApiVersion(1.0)]
-    public class LocationController : AtspmConfigControllerBase<Location, int>
+    public class LocationController : LocationPolicyControllerBase<Location, int>
     {
         private readonly ILocationRepository _repository;
         private readonly IDeviceRepository _deviceRepository;
         private readonly ISignalTemplateService _signalTemplateService;
+
+        //HACK: ILocationManager is temporary
 
         /// <inheritdoc/>
         public LocationController(
@@ -108,6 +111,8 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         #endregion
 
         #region Actions
+
+        //HACK: move this to LocationManagementController
 
         /// <summary>
         /// Copies <see cref="Location"/> and associated <see cref="Approach"/> to new version
@@ -202,6 +207,8 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
             }
         }
 
+        //HACK: move this to LocationManagementController
+
         /// <summary>
         /// Marks <see cref="Location"/> to deleted
         /// </summary>
@@ -281,8 +288,32 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
             {
                 return NotFound(e.Message);
             }
+        }
 
-            return Ok();
+        //HACK: move this to LocationManagementController
+
+        /// <summary>
+        /// Marks <see cref="Location"/> to deleted
+        /// </summary>
+        /// <param name="key">Identifier of <see cref="Location"/> to mark as deleted</param>
+        /// <returns></returns>
+        /// 
+        [Authorize(Policy = "CanDeleteLocationConfigurations")]
+        [HttpPost]
+        [ProducesResponseType(Status200OK)]
+        [ProducesResponseType(Status404NotFound)]
+        public async Task<IActionResult> DeleteAllVersions(string key)
+        {
+            try
+            {
+                await _locationManager.DeleteAllVersions(key);
+
+                return Ok();
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
         }
 
 
