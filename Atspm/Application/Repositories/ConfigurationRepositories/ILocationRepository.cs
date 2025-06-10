@@ -88,9 +88,5 @@ namespace Utah.Udot.Atspm.Repositories.ConfigurationRepositories
         IReadOnlyList<Location> GetLocationsBetweenDates(string LocationIdentifier, DateTime startDate, DateTime endDate);
         IReadOnlyList<Location> GetAllVersionsOfLocationWithDevices(string LocationIdentifier);
         Location GetLatestVersionOfLocationWithDevice(string LocationIdentifier, DateTime startDate);
-
-
-
-        Location GetLatestVersionOfLocationWithDevice(string LocationIdentifier, DateTime startDate);
     }
 }

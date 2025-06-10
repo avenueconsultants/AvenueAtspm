@@ -34,6 +34,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Reference Include="Utah.Udot.NetStandardToolkit">
+	    <HintPath>..\..\..\udot-atspm\Atspm\Utah.Udot.NetStandardToolkit.dll</HintPath>
+	  </Reference>
+	</ItemGroup>
+
+	<ItemGroup>
 	  <Using Include="Utah.Udot.Atspm.Business" />
 	  <Using Include="Utah.Udot.Atspm.Business.Aggregation" />
 	  <Using Include="Utah.Udot.Atspm.Business.Bins" />
@@ -48,7 +54,7 @@
 	  <Using Include="Utah.Udot.Atspm.Services" />
 	  <Using Include="Utah.Udot.Atspm.TempExtensions" />
 	  <Using Include="Utah.Udot.NetStandardToolkit.Extensions" />
-	  <Using Include="Utah.Udot.Atspm.Data.Models.MeasureOptions"/>
+	  <Using Include="Utah.Udot.Atspm.Data.Models.MeasureOptions" />
 	</ItemGroup>
 
 </Project>
