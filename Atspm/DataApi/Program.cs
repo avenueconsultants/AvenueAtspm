@@ -114,9 +114,10 @@ builder.Host
             l.ResponseBodyLogLimit = 4096;
         });
 
-        s.AddAtspmDbContext(h);
-        s.AddAtspmEFEventLogRepositories();
-        s.AddAtspmEFAggregationRepositories();
+    s.AddAtspmDbContext(h);
+    s.AddAtspmEFEventLogRepositories();
+    s.AddAtspmEFConfigRepositories();
+    s.AddAtspmEFAggregationRepositories();
 
         s.AddPathBaseFilter(h);
 

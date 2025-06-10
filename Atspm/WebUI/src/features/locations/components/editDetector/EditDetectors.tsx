@@ -169,7 +169,6 @@ const EditDetectors = ({
                 : det.isNew
                   ? `2px solid ${successColor}`
                   : undefined
-
               return (
                 <TableRow
                   key={det.id}
