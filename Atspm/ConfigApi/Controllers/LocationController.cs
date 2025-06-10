@@ -46,6 +46,7 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         private readonly ILocationRepository _repository;
         private readonly IDeviceRepository _deviceRepository;
         private readonly ISignalTemplateService _signalTemplateService;
+        private readonly ILocationManager _locationManager;
 
         //HACK: ILocationManager is temporary
 
@@ -53,12 +54,14 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         public LocationController(
             ILocationRepository repository,
             IDeviceRepository deviceRepository,
-            ISignalTemplateService signalTemplateService
+            ISignalTemplateService signalTemplateService,
+            ILocationManager locationManager
             ) : base(repository)
         {
             _repository = repository;
             _deviceRepository = deviceRepository;
             _signalTemplateService = signalTemplateService;
+            _locationManager = locationManager;
         }
 
         #region NavigationProperties
@@ -255,39 +258,6 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
             }
 
             return Ok();
-        }
-
-        /// <summary>
-        /// Marks <see cref="Location"/> to deleted
-        /// </summary>
-        /// <param name="key">Key of <see cref="Location"/> to mark as deleted</param>
-        /// <returns></returns>
-        /// 
-        [Authorize(Policy = "CanDeleteLocationConfigurations")]
-        [HttpPost]
-        [ProducesResponseType(Status200OK)]
-        [ProducesResponseType(Status404NotFound)]
-        public async Task<IActionResult> DeleteAllVersions(string key)
-        {
-            try
-            {
-                var versions = _repository.GetAllVersionsOfLocationWithDevices(key);
-                foreach (var version in versions)
-                {
-                    if (version.Devices != null)
-                    {
-                        foreach (var device in version.Devices)
-                        {
-                            _deviceRepository.Remove(device);
-                        }
-                    }
-                    await _repository.SetLocationToDeleted(version.Id);
-                }
-            }
-            catch (ArgumentException e)
-            {
-                return NotFound(e.Message);
-            }
         }
 
         //HACK: move this to LocationManagementController
