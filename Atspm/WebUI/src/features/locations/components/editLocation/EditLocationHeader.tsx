@@ -8,6 +8,7 @@ import {
 import { Location } from '@/api/config/aTSPMConfigurationApi.schemas'
 import CustomSelect from '@/components/customSelect'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
+import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { getLocationTypeConfig } from '@/features/locations/utils'
 import { getLocation } from '@/pages/admin/locations'
 import { useNotificationStore } from '@/stores/notifications'
@@ -43,6 +44,7 @@ const modalStyle = {
 
 export default function EditLocationHeader() {
   const { location, setLocation } = useLocationStore()
+  const { resetStore: resetWizardStore } = useLocationWizardStore()
   const { addNotification } = useNotificationStore()
 
   const queryClient = useQueryClient()
@@ -113,6 +115,8 @@ export default function EditLocationHeader() {
   const handleVersionChange = (e: SelectChangeEvent<unknown>) => {
     const selectedId = e.target.value
     const newLocation = locationVersions?.find((ver) => ver.id === selectedId)
+
+    resetWizardStore()
     updateLocationVersion(newLocation || null)
   }
 

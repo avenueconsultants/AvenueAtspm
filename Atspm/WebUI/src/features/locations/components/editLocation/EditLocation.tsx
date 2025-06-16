@@ -1,21 +1,10 @@
-import { AddButton } from '@/components/addButton'
-import ApproachesInfo from '@/features/locations/components/ApproachesInfo/approachesInfo'
-import { NavigationProvider } from '@/features/locations/components/Cell/CellNavigation'
-import DetectorsInfo from '@/features/locations/components/DetectorsInfo/detectorsInfo'
-import EditApproach from '@/features/locations/components/editApproach/EditApproach'
+import ApproachOptions from '@/features/locations/components/ApproachOptions/ApproachOptions'
 import EditDevices from '@/features/locations/components/editLocation/EditDevices'
 import LocationGeneralOptionsEditor from '@/features/locations/components/editLocation/LocationGeneralOptionsEditor'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
+import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import {
-  Box,
-  Button,
-  Divider,
-  Modal,
-  Paper,
-  Tab,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Modal, Tab, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { memo, useCallback, useEffect, useState } from 'react'
 import EditLocationHeader from './EditLocationHeader'
@@ -23,6 +12,8 @@ import WatchdogEditor from './WatchdogEditor'
 
 function EditLocation() {
   const router = useRouter()
+  const { useWizard, deviceVerificationStatus, approachVerificationStatus } =
+    useLocationWizardStore()
   const location = useLocationStore((state) => state.location)
   const hasUnsavedChanges = useLocationStore((state) => state.hasUnsavedChanges)
   const resetStore = useLocationStore((state) => state.resetStore)
@@ -33,6 +24,18 @@ function EditLocation() {
   const [pendingTab, setPendingTab] = useState<string | null>(null)
   const [pendingRoute, setPendingRoute] = useState<string | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  useEffect(() => {
+    if (!useWizard) return // Don't run if not using wizard
+    // For a 2-step wizard:
+    //  step 1 => "Devices" => tab "2"
+    //  step 2 => "Approaches" => tab "3"
+    if (deviceVerificationStatus === 'READY_TO_RUN') {
+      setCurrentTab('2') // Devices tab
+    } else if (approachVerificationStatus === 'READY_TO_RUN') {
+      setCurrentTab('3') // Approaches tab
+    }
+  }, [useWizard, deviceVerificationStatus, approachVerificationStatus])
 
   const handleTabChange = useCallback(
     (_: React.SyntheticEvent, newTab: string) => {
@@ -102,7 +105,7 @@ function EditLocation() {
           <EditDevices />
         </TabPanel>
         <TabPanel value="3" sx={{ padding: 0, minHeight: '400px' }}>
-          <ApproachesTab />
+          <ApproachOptions />
         </TabPanel>
         <TabPanel value="4" sx={{ padding: 0 }}>
           <WatchdogEditor />
@@ -152,68 +155,3 @@ function EditLocation() {
 }
 
 export default memo(EditLocation)
-
-function ApproachesTab() {
-  const location = useLocationStore((state) => state.location)
-  const approaches = useLocationStore((state) => state.approaches)
-
-  const addApproach = useLocationStore((state) => state.addApproach)
-
-  const [showSummary, setShowSummary] = useState(false)
-
-  const handleAddApproach = useCallback(() => {
-    addApproach()
-  }, [addApproach])
-
-  const combinedLocation = { ...location, approaches }
-
-  return (
-    <Box sx={{ minHeight: '400px' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          gap: 2,
-          mb: 2,
-        }}
-      >
-        <AddButton label="New Approach" onClick={handleAddApproach} />
-        <Button
-          variant="outlined"
-          onClick={() => setShowSummary((prev) => !prev)}
-        >
-          {showSummary ? 'Hide Summary' : 'Summary'}
-        </Button>
-      </Box>
-
-      {showSummary && (
-        <Paper sx={{ mb: 2 }}>
-          <Typography variant="h6" sx={{ p: 2, fontWeight: 'bold' }}>
-            Approaches
-          </Typography>
-          <Divider sx={{ m: 1 }} />
-          <ApproachesInfo location={combinedLocation} />
-          <Typography variant="h6" sx={{ p: 2, fontWeight: 'bold' }}>
-            Detectors
-          </Typography>
-          <Divider sx={{ m: 1 }} />
-          <DetectorsInfo location={combinedLocation} />
-        </Paper>
-      )}
-      {approaches.length > 0 ? (
-        <NavigationProvider>
-          {approaches.map((approach) => (
-            <EditApproach key={approach.id} approach={approach} />
-          ))}
-        </NavigationProvider>
-      ) : (
-        <Box sx={{ p: 2, mt: 2, textAlign: 'center' }}>
-          <Typography variant="caption" fontStyle="italic">
-            No approaches found
-          </Typography>
-        </Box>
-      )}
-    </Box>
-  )
-}
