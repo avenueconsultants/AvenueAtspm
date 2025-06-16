@@ -49,15 +49,13 @@ namespace Utah.Udot.Atspm.ConfigApi.Services
         //Remove any phases or channels that dont exist on the signal, provide a list of non configured event phases. .
         public TemplateLocationModifiedDto SyncNewLocationDetectorsAndApproaches(int locationId)
         {
-            DateTime now = DateTime.Now;
-            var yesterday = now.Date.AddDays(-1).ToString("yyyy-MM-dd");
             var sourceLocation = _locationRepository.GetVersionByIdDetached(locationId);
             if (sourceLocation != null)
             {
-                DateOnly dateOnly = DateOnly.Parse(yesterday);
-                DateTime dateTime = dateOnly.ToDateTime(TimeOnly.MinValue);
+                DateTime now = DateTime.Now;
+                DateTime yesterday = DateTime.Today.AddDays(-1);
 
-                var compressedLocationsEvents = _eventLogRepository.GetArchivedEvents(sourceLocation.LocationIdentifier, dateTime, dateTime);
+                var compressedLocationsEvents = _eventLogRepository.GetArchivedEvents(sourceLocation.LocationIdentifier, yesterday, now);
                 var indianaEvents = compressedLocationsEvents.Where(l => l.DataType == typeof(IndianaEvent)).SelectMany(s => s.Data).Cast<IndianaEvent>();
                 return ModifyLocationWithEvents(sourceLocation, indianaEvents);
             }
