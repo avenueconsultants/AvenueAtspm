@@ -171,6 +171,7 @@ const EditDetectors = ({
                   : undefined
               return (
                 <TableRow
+                  id={`detector-${det.id}`}
                   key={det.id}
                   sx={{
                     position: 'relative',
