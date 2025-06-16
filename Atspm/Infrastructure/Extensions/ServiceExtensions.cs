@@ -161,6 +161,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Extensions
             services.AddScoped<IJurisdictionRepository, JurisdictionEFRepository>();
             services.AddScoped<ILocationRepository, LocationEFRepository>();
             services.AddScoped<ILocationTypeRepository, LocationTypeEFRepository>();
+            services.AddScoped<IMapLayerRepository, MapLayerEFRepository>();
             services.AddScoped<IMeasureCommentRepository, MeasureCommentEFRepository>();
             services.AddScoped<IMeasureOptionsRepository, MeasureOptionsEFRepository>();
             services.AddScoped<IMeasureOptionPresetRepository, MeasureOptionPresetEFRepository>();

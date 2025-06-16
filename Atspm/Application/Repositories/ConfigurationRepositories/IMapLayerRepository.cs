@@ -1,6 +1,6 @@
-﻿#region license
+#region license
 // Copyright 2024 Utah Departement of Transportation
-// for Application - Utah.Udot.Atspm.Repositories.ConfigurationRepositories/IEnhancedVehicleEventLogRepository.cs
+// for ApplicationCore - ATSPM.Application.Repositories.ConfigurationRepositories/IMapLayerRepository.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,21 @@
 // limitations under the License.
 #endregion
 
-using Utah.Udot.Atspm.Data.Models.EventLogModels;
-using Utah.Udot.Atspm.Repositories.EventLogRepositories;
+using Utah.Udot.NetStandardToolkit.Services;
 
 namespace Utah.Udot.Atspm.Repositories.ConfigurationRepositories
 {
     /// <summary>
-    /// Measure option preset repository
+    /// Map Layer Repository
     /// </summary>
-    public interface IEnhancedVehicleEventLogRepository : IEventLogRepository<EnhancedEventLog> { }
+    public interface IMapLayerRepository : IAsyncRepository<MapLayer>
+    {
+        #region ExtensionMethods
+
+        #endregion
+
+        #region Obsolete
+
+        #endregion
+    }
 }

@@ -14,6 +14,11 @@ namespace Utah.Udot.ATSPM.Infrastructure.Services.EventLogDecoders
             var response = rootStats.Select(visionCameraDetection =>
             {
                 var matchingDetector = list.Where(x => x.DectectorIdentifier == visionCameraDetection.zoneName).FirstOrDefault();
+                if (matchingDetector == null)
+                {
+                    // If no matching detector is found, skip this detection
+                    return null;
+                }
                 var timestamp = visionCameraDetection.time;
                 string detectorId = matchingDetector.Id.ToString();
                 var mph = (int)visionCameraDetection.speed;

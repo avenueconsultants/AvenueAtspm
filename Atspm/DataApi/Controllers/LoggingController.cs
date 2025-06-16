@@ -71,15 +71,8 @@ namespace Utah.Udot.Atspm.DataApi.Controllers
 
             var deviceIdList = deviceIds.Split(',').Select(int.Parse).ToList();
             var devices = _repository.GetList().Where(device => deviceIdList.Contains(device.Id)).ToList();
-            //var today = DateTime.Today;
-            //var startDate = DateOnly.FromDateTime(today);
-            //var endDate = DateOnly.FromDateTime(today);
-            //DateTime start = startDate.ToDateTime(TimeOnly.MinValue);
-            //DateTime end = endDate.ToDateTime(TimeOnly.MinValue);
-
-            var now = DateTime.Now;
-            DateTime start = now.AddHours(-1); // Start from 1 hour ago
-            DateTime end = now; // Up to now
+            DateTime end = DateTime.Now;
+            DateTime start = end.AddDays(-1);
 
             List<DeviceEventDownload> devicesEventDownload = new List<DeviceEventDownload>();
 

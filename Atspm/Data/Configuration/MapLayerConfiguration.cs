@@ -1,6 +1,6 @@
 ﻿#region license
 // Copyright 2024 Utah Departement of Transportation
-// for Application - Utah.Udot.Atspm.Repositories.ConfigurationRepositories/IEnhancedVehicleEventLogRepository.cs
+// for Data - Utah.Udot.Atspm.Data.Configuration/MapLayerConfiguration.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,13 +15,22 @@
 // limitations under the License.
 #endregion
 
-using Utah.Udot.Atspm.Data.Models.EventLogModels;
-using Utah.Udot.Atspm.Repositories.EventLogRepositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Utah.Udot.Atspm.Repositories.ConfigurationRepositories
+namespace Utah.Udot.Atspm.Data.Configuration
 {
     /// <summary>
-    /// Measure option preset repository
+    /// Map Layer configuration
     /// </summary>
-    public interface IEnhancedVehicleEventLogRepository : IEventLogRepository<EnhancedEventLog> { }
+    public class MapLayerConfiguration : IEntityTypeConfiguration<MapLayer>
+    {
+        /// <inheritdoc/>
+        public void Configure(EntityTypeBuilder<MapLayer> builder)
+        {
+            builder.ToTable(t => t.HasComment("Map Layer"));
+
+            builder.HasIndex(e => e.Name);
+        }
+    }
 }

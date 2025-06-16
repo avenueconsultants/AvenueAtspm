@@ -128,6 +128,9 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogImporters
 
                     foreach (var log in decodedLogs)
                     {
+                        if (log == null)
+                            continue;
+
                         if (IsAcceptableDateRange(log))
                         {
                             //TODO: add this back in
