@@ -3,11 +3,11 @@ import { useEffect, useState } from 'react'
 
 export type ItemStatus = 'pending' | 'ignored' | 'added' | 'deleted' | 'unsaved'
 
-interface Categories {
-  notFoundApproaches: { id: number; [key: string]: any }[]
+export interface LocationDiscrepancyReport {
+  notFoundApproaches: { id: number }[]
   notFoundDetectorChannels: string[]
   foundPhaseNumbers: number[]
-  foundDetectorChannels: string[]
+  foundDetectorChannels: number[]
 }
 
 interface Approach {
@@ -21,7 +21,7 @@ interface Approach {
 }
 
 const useDiscrepancyStatuses = (
-  categories: Categories,
+  categories: LocationDiscrepancyReport,
   approaches: Approach[]
 ) => {
   const [itemStatuses, setItemStatuses] = useState<Record<string, ItemStatus>>(

@@ -2,23 +2,16 @@ import { useGetLocationSyncLocationFromKey } from '@/api/config/aTSPMConfigurati
 import { AddButton } from '@/components/addButton'
 import ApproachesInfo from '@/features/locations/components/ApproachesInfo/approachesInfo'
 import ApproachesReconcilationReport from '@/features/locations/components/ApproachesReconcilationReport/ApproachesReconcilationReport'
+import { LocationDiscrepancyReport } from '@/features/locations/components/ApproachesReconcilationReport/useDiscrepancyStatuses'
 import { NavigationProvider } from '@/features/locations/components/Cell/CellNavigation'
 import DetectorsInfo from '@/features/locations/components/DetectorsInfo/detectorsInfo'
 import EditApproach from '@/features/locations/components/editApproach/EditApproach'
-import { ConfigApproach } from '@/features/locations/components/editLocation/editLocationConfigHandler'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import SyncIcon from '@mui/icons-material/Sync'
 import { LoadingButton } from '@mui/lab'
 import { Box, Button, Divider, Paper, Typography } from '@mui/material'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-
-export interface LocationDiscrepancyReport {
-  foundPhaseNumbers: number[]
-  notFoundApproaches: ConfigApproach[]
-  foundDetectorChannels: number[]
-  notFoundDetectorChannels: string[]
-}
 
 const ApproachOptions = () => {
   const {
