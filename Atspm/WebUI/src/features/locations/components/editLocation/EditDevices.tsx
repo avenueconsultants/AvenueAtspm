@@ -19,8 +19,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 const deviceEventResultsMock = [
   {
-    deviceId: 53356,
-    ipaddress: '10.210.14.39',
+    deviceId: 3921,
+    ipaddress: '10.201.8.143',
     deviceType: 1,
     beforeWorkflowEventCount: 610165,
     afterWorkflowEventCount: 610365, // +200
@@ -28,7 +28,7 @@ const deviceEventResultsMock = [
     ipModified: false,
   },
   {
-    deviceId: 55091,
+    deviceId: 6389,
     ipaddress: '127.0.0.1',
     deviceType: 1,
     beforeWorkflowEventCount: 720111,
@@ -89,28 +89,25 @@ const EditDevices = () => {
     { query: { enabled: false } }
   )
 
-  const handleResync = useCallback(
-    () => async () => {
-      try {
-        setIsFetchingEvents(true)
-        setMockEventData([])
+  const handleResync = useCallback(async () => {
+    try {
+      setIsFetchingEvents(true)
+      setMockEventData([])
 
-        await fetchDeviceEventResults()
+      await fetchDeviceEventResults()
 
-        await new Promise<void>((resolve) => {
-          setTimeout(() => {
-            setMockEventData(deviceEventResultsMock)
-            resolve()
-          }, 1500)
-        })
-      } catch (err) {
-        console.error('Failed to fetch device event data: ', err)
-      } finally {
-        setIsFetchingEvents(false)
-      }
-    },
-    [fetchDeviceEventResults]
-  )
+      await new Promise<void>((resolve) => {
+        setTimeout(() => {
+          setMockEventData(deviceEventResultsMock)
+          resolve()
+        }, 1500)
+      })
+    } catch (err) {
+      console.error('Failed to fetch device event data: ', err)
+    } finally {
+      setIsFetchingEvents(false)
+    }
+  }, [fetchDeviceEventResults])
 
   // ------------------------------------------------
   // 1) If the wizard says "READY_TO_RUN", open modal & run check
