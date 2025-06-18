@@ -75,9 +75,10 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             {
                 tasks.Add(Task.Run(async () =>
                 {
+                    var result = Enumerable.Empty<TurningMovementCountsLanesResult>();
                     try
                     {
-                        var result = await GetChartDataForLaneType(
+                        result = await GetChartDataForLaneType(
                             Location,
                             (LaneTypes)laneType,
                             parameter,
@@ -248,8 +249,10 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             }
 
             var results = await Task.WhenAll(tasks);
-
-            return results.Where(result => result != null).OrderBy(r => r.Direction).ThenBy(r => r.MovementType);
+            var notNullResults = results.Where(result => result != null).ToList();
+            var orderedResults = notNullResults.OrderBy(r => r.Direction).ThenBy(r => r.MovementType).ToList();
+            return orderedResults;
+            //return results.Where(result => result != null).OrderBy(r => r.Direction).ThenBy(r => r.MovementType);
         }
 
         private async Task<TurningMovementCountsLanesResult> GetChartDataByMovementType(
@@ -274,18 +277,25 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                     detector.GetOffset(),
                     detector.LatencyCorrection).ToList());
             }
-            var result = turningMovementCountsService.GetChartData(
-                detectors,
-                laneType,
-                movementType,
-                directionType,
-                options,
-                detectorEvents,
-                planEvents,
-                locationIdentifier,
-                LocationDescription);
+            try
+            {
+                var result = turningMovementCountsService.GetChartData(
+                                detectors,
+                                laneType,
+                                movementType,
+                                directionType,
+                                options,
+                                detectorEvents,
+                                planEvents,
+                                locationIdentifier,
+                                LocationDescription);
 
-            return await result;
+                return await result;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }
