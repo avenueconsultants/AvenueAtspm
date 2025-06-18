@@ -28,11 +28,9 @@ using Utah.Udot.Atspm.Infrastructure.Extensions;
 using Utah.Udot.Atspm.Infrastructure.Repositories;
 using Utah.Udot.Atspm.Infrastructure.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories;
-using Utah.Udot.Atspm.Infrastructure.Services.EmailServices;
 using Utah.Udot.Atspm.Services;
 using Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices;
 using Utah.Udot.ATSPM.WatchDog.Commands;
-using Utah.Udot.NetStandardToolkit.Configuration;
 
 
 
@@ -56,7 +54,6 @@ cmdBuilder.UseHost(hostBuilder =>
     .ConfigureServices((h, s) =>
     {
         s.AddEmailServices(h);
-        s.AddScoped<IEmailService, SmtpEmailService>();
         s.AddScoped<IWatchdogEmailService, WatchdogEmailService>();
 
 
@@ -77,7 +74,7 @@ cmdBuilder.UseHost(hostBuilder =>
         s.AddScoped<AnalysisPhaseCollectionService>();
         s.AddScoped<AnalysisPhaseService>();
         s.AddScoped<PhaseService>();
-        s.AddScoped<SegmentedErrorsService>(); 
+        s.AddScoped<SegmentedErrorsService>();
         s.AddScoped<IWatchDogIgnoreEventService, WatchDogIgnoreEventService>();
 
 
@@ -92,7 +89,7 @@ cmdBuilder.UseHost(hostBuilder =>
         s.AddOptions<WatchdogConfiguration>().Bind(h.Configuration.GetSection("WatchdogConfiguration"));
         s.AddHostedService<ScanHostedService>();
 
-        s.Configure<EmailConfiguration>(h.Configuration.GetSection("EmailConfiguration"));
+        //s.Configure<EmailConfiguration>(h.Configuration.GetSection("EmailConfiguration"));
 
     });
 },

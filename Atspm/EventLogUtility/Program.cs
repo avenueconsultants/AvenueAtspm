@@ -15,20 +15,13 @@
 // limitations under the License.
 #endregion
 
-using Google.Cloud.Diagnostics.Common;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using System.Threading.Tasks.Dataflow;
-using Utah.Udot.Atspm.Data.Enums;
 using Microsoft.Extensions.Logging;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
-using System.Reflection;
 using Utah.Udot.Atspm.EventLogUtility.Commands;
-using System.Threading.Tasks.Dataflow;
-using Utah.Udot.Atspm.Data.Enums;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
 
 //trick github
@@ -47,12 +40,6 @@ cmdBuilder.UseHost(a =>
 {
     return Host.CreateDefaultBuilder(a)
     //.UseConsoleLifetime()
-    .ConfigureAppConfiguration((h, c) =>
-    {
-        c.AddUserSecrets<Program>(optional: true); // Load secrets first
-        c.AddCommandLine(args);                    // Override with command-line args
-
-    })
     .ApplyVolumeConfiguration()
     .ConfigureLogging((h, l) =>
     {
@@ -72,17 +59,8 @@ cmdBuilder.UseHost(a =>
         //    Options = LoggingOptions.Create(LogLevel.Information, AppDomain.CurrentDomain.FriendlyName)
         //});
     })
-
     .ConfigureServices((h, s) =>
     {
-        //s.AddGoogleDiagnostics(loggingOptions: LoggingOptions.Create(LogLevel.Debug));
-
-        //s.AddDownloaderClients();
-        //s.AddDeviceDownloaders(h);
-        //s.AddEventLogDecoders();
-        //s.AddEventLogImporters(h);
-        //s.AddAtspmEFEventLogRepositories();
-
         //s.AddGoogleDiagnostics(loggingOptions: LoggingOptions.Create(LogLevel.Debug));
 
         s.AddAtspmDbContext(h);

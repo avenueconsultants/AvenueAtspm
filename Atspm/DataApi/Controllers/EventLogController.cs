@@ -18,8 +18,8 @@
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Utah.Udot.ATSPM.DataApi.Controllers;
 using Utah.Udot.Atspm.Extensions;
+using Utah.Udot.ATSPM.DataApi.Controllers;
 
 namespace Utah.Udot.Atspm.DataApi.Controllers
 {
@@ -212,7 +212,6 @@ namespace Utah.Udot.Atspm.DataApi.Controllers
         /// </summary>
         /// <param name="locationIdentifier">Location identifier</param>
         /// <param name="dataType">Type that inherits from <see cref="EventLogModelBase"/></param>
-        /// <param name="month" >Month to get days with event logs</param>
         /// <returns>A list of unique days with event logs.</returns>
         /// <response code="200">Call completed successfully</response>
         /// <response code="404">Resource not found</response>

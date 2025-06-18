@@ -1,6 +1,6 @@
 ﻿#region license
 // Copyright 2025 Utah Departement of Transportation
-// for ConfigApi - Utah.Udot.Atspm.ConfigApi.Models/RouteDto.cs
+// for ConfigApi - Utah.Udot.ATSPM.ConfigApi.DTO/RouteDto.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 
 using Utah.Udot.Atspm.Data.Enums;
 
-namespace Utah.Udot.Atspm.ValueObjects
+namespace Utah.Udot.ATSPM.ConfigApi.DTO
 {
     public class RouteIdDto
     {
