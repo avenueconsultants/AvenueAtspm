@@ -32,6 +32,7 @@ export enum PageNames {
   Routes = 'Routes',
   Users = ' Users',
   WatchdogDashboard = 'Watchdog Dashboard',
+  MapLayers = 'Map Layers',
 }
 
 const generalConfigListToLink: Map<string, string> = new Map([
@@ -47,6 +48,7 @@ const locationConfigListToLink: Map<string, string> = new Map([
   [PageNames.Routes, '/admin/routes'],
   [PageNames.Products, '/admin/products'],
   [PageNames.DeviceConfigurations, '/admin/device-configurations'],
+  [PageNames.MapLayers, '/admin/map-layers'],
 ])
 
 const userConfigToLink: Map<string, string> = new Map([

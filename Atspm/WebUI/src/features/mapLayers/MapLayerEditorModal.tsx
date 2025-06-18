@@ -1,7 +1,4 @@
-import {
-  MapLayer,
-  ServiceType,
-} from '@/api/config/aTSPMConfigurationApi.schemas'
+import { MapLayer } from '@/api/config/aTSPMConfigurationApi.schemas'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Box,
@@ -19,6 +16,11 @@ import {
 import { useEffect, useRef, useState } from 'react'
 import { Controller, SubmitHandler, useForm, useWatch } from 'react-hook-form'
 import { z } from 'zod'
+
+const ServiceType = {
+  FeatureServer: 'FeatureServer',
+  MapServer: 'MapServer',
+} as const
 
 const formatLabel = (value: string) => {
   return value.replace(/([a-z])([A-Z])/g, '$1 $2') // Insert space before uppercase letters
