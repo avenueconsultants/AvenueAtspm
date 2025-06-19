@@ -16,16 +16,24 @@
 #endregion
 
 using DatabaseInstaller.Commands;
+using DatabaseInstaller.Services;
+using Google.Apis.Auth.OAuth2;
+using Google.Cloud.BigQuery.V2;
+using Google.Cloud.Storage.V1;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
 using Utah.Udot.Atspm.Data;
 using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
+using Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories;
+using Utah.Udot.Atspm.Repositories.EventLogRepositories;
+using Utah.Udot.Atspm.ValueObjects;
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var rootCmd = new DatabaseInstallerCommands();
@@ -48,21 +56,42 @@ cmdBuilder.UseHost(hostBuilder =>
     //})
     .ConfigureServices((hostContext, services) =>
     {
-        // Core services
+        // Core ATSPM services
         services.AddAtspmDbContext(hostContext);
         services.AddAtspmEFConfigRepositories();
         services.AddAtspmEFEventLogRepositories();
+
         services.AddIdentity<ApplicationUser, IdentityRole>()
-        .AddEntityFrameworkStores<IdentityContext>()
-        .AddDefaultTokenProviders();
+            .AddEntityFrameworkStores<IdentityContext>()
+            .AddDefaultTokenProviders();
 
-
-        //// Optional: Register any core services your application might need here.
+        // Configuration bindings
         services.Configure<UpdateCommandConfiguration>(hostContext.Configuration.GetSection("CommandLineOptions"));
         services.Configure<TransferDailyToHourlyConfiguration>(hostContext.Configuration.GetSection(nameof(TransferDailyToHourlyConfiguration)));
         services.Configure<TransferCommandConfiguration>(hostContext.Configuration.GetSection(nameof(TransferCommandConfiguration)));
         services.Configure<TransferConfigCommandConfiguration>(hostContext.Configuration.GetSection(nameof(TransferConfigCommandConfiguration)));
+        services.Configure<BigQueryOptions>(hostContext.Configuration.GetSection("BigQuery"));
 
+        // Register BigQueryClient with credentials
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var opts = sp.GetRequiredService<IOptions<BigQueryOptions>>().Value;
+            var credentialsPath = config.GetValue<string>("BigQuery:CredentialsFile");
+
+            var credential = GoogleCredential.FromFile(credentialsPath);
+            return BigQueryClient.Create(opts.ProjectId, credential);
+        });
+
+        // Register Google Cloud StorageClient
+        services.AddSingleton(StorageClient.Create());
+
+        // BigQuery repositories
+        services.AddScoped<IIndianaEventLogBQRepository, IndianaEventLogBQRepository>();
+        services.AddScoped<ISpeedEventLogBQRepository, SpeedEventLogBQRepository>();
+
+        // Hosted services
+        services.AddHostedService<TransferIndianaRawEventsToBigQueryService>();
     });
 },
 host =>
