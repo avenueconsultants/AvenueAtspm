@@ -99,102 +99,108 @@ public class TransferIndianaRawEventsToBigQueryService : IHostedService
             var gcsFiles = new ConcurrentBag<string>();
             var batchId = Guid.NewGuid().ToString("N");
 
-            //await Parallel.ForEachAsync(locationIds, new ParallelOptions { MaxDegreeOfParallelism = 8 }, async (locationId, ct) =>
-            foreach (var locationId in locationIds)//.Take(2).ToList())
-            {
-                try
-                {
-                    var events = await _retryPolicy.ExecuteAsync(() => GetRawDailyEvents(locationId, currentDay.ToDateTime(TimeOnly.MinValue)));
-                    if (!events.Any())
-                    {
-                        await LogGapToBigQuery(locationId, currentDay);
-                        //return;
-                        continue;
-                    }
-
-                    var gcsObject = $"indiana/raw/{locationId}-{currentDay:yyyyMMdd}-{batchId}.ndjson.gz";
-                    var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(gcsObject));
-
-                    // Write compressed NDJSON file safely
-                    using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-                    using (var gzip = new GZipStream(fileStream, CompressionLevel.Optimal))
-                    using (var writer = new StreamWriter(gzip))
-                    {
-                        foreach (var evt in events)
-                        {
-                            var dto = new IndianaEventDto
-                            {
-                                LocationIdentifier = evt.SignalIdentifier.ToString(),
-                                Timestamp = evt.Timestamp,
-                                EventCode = (short)evt.EventCode,
-                                EventParam = (short)evt.EventParam
-                            };
-                            await writer.WriteLineAsync(JsonConvert.SerializeObject(dto));
-                        }
-                        await writer.FlushAsync();
-                    }
-
-                    await Task.Delay(100);
-                    await using var stream = await RetryOpenReadAsync(tempFilePath);
-                    await _storageClient.UploadObjectAsync(_bucket, gcsObject, "application/gzip", stream);
-                    gcsFiles.Add($"gs://{_bucket}/{gcsObject}");
-                    stream.Close();
-                    await RetryDeleteAsync(tempFilePath);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error processing location {LocationId} on {Date}", locationId, currentDay);
-                }
-            }//);
+            var tasks = locationIds.Select(id => ProcessLocationAsync(id, currentDay, batchId, gcsFiles));
+            await Task.WhenAll(tasks);
 
             if (!gcsFiles.Any())
             {
                 _logger.LogWarning("No events found for any location on {Date}", currentDay);
                 continue;
             }
-            var schema = new TableSchemaBuilder
-            {
-                { "LocationIdentifier", BigQueryDbType.String, BigQueryFieldMode.Required },
-                { "Timestamp", BigQueryDbType.DateTime, BigQueryFieldMode.Required },
-                { "EventCode", BigQueryDbType.Int64, BigQueryFieldMode.Required },
-                { "EventParam", BigQueryDbType.Int64, BigQueryFieldMode.Required }
-            }.Build();
 
-
-            var job = _client.CreateLoadJob(
-                gcsFiles,
-                new TableReference
-                {
-                    ProjectId = _client.ProjectId,
-                    DatasetId = "ATSPM",
-                    TableId = _table
-                },
-                schema: schema,
-                options: new CreateLoadJobOptions
-                {
-                    WriteDisposition = WriteDisposition.WriteAppend,
-                    SourceFormat = FileFormat.NewlineDelimitedJson,
-                    Autodetect = false
-                });
-
-
-            job = job.PollUntilCompleted();
-
-            if (job.Status.State == "DONE" && job.Status.ErrorResult == null)
-            {
-                _logger.LogInformation("BigQuery load succeeded for {Date}", currentDay);
-                foreach (var gcsPath in gcsFiles)
-                {
-                    var objectPath = gcsPath.Replace($"gs://{_bucket}/", "");
-                    await _storageClient.DeleteObjectAsync(_bucket, objectPath);
-                }
-            }
-            else
-            {
-                _logger.LogError("BigQuery load failed for {Date}: {Error}", currentDay, job.Status.ErrorResult?.Message);
-            }
+            await LoadToBigQueryAsync(gcsFiles, currentDay);
         }
     }
+
+    private async Task LoadToBigQueryAsync(ConcurrentBag<string> gcsFiles, DateOnly currentDay)
+    {
+        var schema = new TableSchemaBuilder
+    {
+        { "LocationIdentifier", BigQueryDbType.String, BigQueryFieldMode.Required },
+        { "Timestamp", BigQueryDbType.DateTime, BigQueryFieldMode.Required },
+        { "EventCode", BigQueryDbType.Int64, BigQueryFieldMode.Required },
+        { "EventParam", BigQueryDbType.Int64, BigQueryFieldMode.Required }
+    }.Build();
+
+        var job = _client.CreateLoadJob(
+            gcsFiles,
+            new TableReference
+            {
+                ProjectId = _client.ProjectId,
+                DatasetId = "ATSPM",
+                TableId = _table
+            },
+            schema: schema,
+            options: new CreateLoadJobOptions
+            {
+                WriteDisposition = WriteDisposition.WriteAppend,
+                SourceFormat = FileFormat.NewlineDelimitedJson,
+                Autodetect = false
+            });
+
+        job = job.PollUntilCompleted();
+
+        if (job.Status.State == "DONE" && job.Status.ErrorResult == null)
+        {
+            _logger.LogInformation("BigQuery load succeeded for {Date}", currentDay);
+            foreach (var gcsPath in gcsFiles)
+            {
+                var objectPath = gcsPath.Replace($"gs://{_bucket}/", "");
+                await _storageClient.DeleteObjectAsync(_bucket, objectPath);
+            }
+        }
+        else
+        {
+            _logger.LogError("BigQuery load failed for {Date}: {Error}", currentDay, job.Status.ErrorResult?.Message);
+        }
+    }
+
+
+    private async Task ProcessLocationAsync(string locationId, DateOnly currentDay, string batchId, ConcurrentBag<string> gcsFiles)
+    {
+        try
+        {
+            var events = await _retryPolicy.ExecuteAsync(() => GetRawDailyEvents(locationId, currentDay.ToDateTime(TimeOnly.MinValue)));
+            if (!events.Any())
+            {
+                await LogGapToBigQuery(locationId, currentDay);
+                return;
+            }
+
+            var gcsObject = $"indiana/raw/{locationId}-{currentDay:yyyyMMdd}-{batchId}.ndjson.gz";
+            var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(gcsObject));
+
+            using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var gzip = new GZipStream(fileStream, CompressionLevel.Optimal))
+            using (var writer = new StreamWriter(gzip))
+            {
+                foreach (var evt in events)
+                {
+                    var dto = new IndianaEventDto
+                    {
+                        LocationIdentifier = evt.SignalIdentifier.ToString(),
+                        Timestamp = evt.Timestamp,
+                        EventCode = (short)evt.EventCode,
+                        EventParam = (short)evt.EventParam
+                    };
+                    await writer.WriteLineAsync(JsonConvert.SerializeObject(dto));
+                }
+                await writer.FlushAsync();
+            }
+
+            await Task.Delay(100); // Ensure file flush completion
+            await using var stream = await RetryOpenReadAsync(tempFilePath);
+            await _storageClient.UploadObjectAsync(_bucket, gcsObject, "application/gzip", stream);
+            gcsFiles.Add($"gs://{_bucket}/{gcsObject}");
+            stream.Close();
+            await RetryDeleteAsync(tempFilePath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing location {LocationId} on {Date}", locationId, currentDay);
+        }
+    }
+
 
     private async Task LogGapToBigQuery(string locationId, DateOnly date)
     {
