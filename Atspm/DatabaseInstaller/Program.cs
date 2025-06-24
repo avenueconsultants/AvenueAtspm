@@ -91,7 +91,6 @@ cmdBuilder.UseHost(hostBuilder =>
         services.AddScoped<ISpeedEventLogBQRepository, SpeedEventLogBQRepository>();
 
         // Hosted services
-        services.AddHostedService<TransferIndianaRawEventsToBigQueryService>();
     });
 },
 host =>
