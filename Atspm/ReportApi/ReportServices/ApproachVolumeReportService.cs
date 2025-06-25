@@ -132,19 +132,20 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             List<Approach> opposingApproaches,
             DetectionType detectionType)
         {
-            if (primaryApproaches.IsNullOrEmpty() || opposingApproaches.IsNullOrEmpty())
-            {
-                return null;
-            }
+            //if (primaryApproaches.IsNullOrEmpty() || opposingApproaches.IsNullOrEmpty())
+            //{
+            //    throw new Exception("Approach Volume must have opposing approaches configured");
+            //    return null;
+            //}
             int primaryDistanceFromStopBar = 0;
             int opposingDistanceFromStopBar = 0;
             List<IndianaEvent> primaryDetectorEvents = GetDetectorEvents(options, out primaryDistanceFromStopBar, controllerEventLogs, primaryApproaches, detectionType);
             List<IndianaEvent> opposingDetectorEvents = GetDetectorEvents(options, out opposingDistanceFromStopBar, controllerEventLogs, opposingApproaches, detectionType);
-            if (primaryDetectorEvents.Count == 0 &&
-                opposingDetectorEvents.Count == 0)
-            {
-                return new ApproachVolumeResult(Location.LocationIdentifier, options.Start, options.End, primaryApproaches.FirstOrDefault().DirectionTypeId, opposingApproaches.FirstOrDefault().DirectionTypeId);
-            }
+            //if (primaryDetectorEvents.Count == 0 &&
+            //    opposingDetectorEvents.Count == 0)
+            //{
+            //    return new ApproachVolumeResult(Location.LocationIdentifier, options.Start, options.End, primaryApproaches.FirstOrDefault().DirectionTypeId, opposingApproaches.FirstOrDefault().DirectionTypeId);
+            //}
             ApproachVolumeResult viewModel = approachVolumeService.GetChartData(
                 options,
                 Location,
