@@ -104,10 +104,12 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
 
             _logger.LogInformation("Writing events to temporary file: {TempFilePath}", tempFilePath);
 
-            using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-            using (var gzip = new GZipStream(fileStream, CompressionLevel.Optimal))
-            using (var writer = new StreamWriter(gzip))
+            await _retryPolicy.ExecuteAsync(async () =>
             {
+                using var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None);
+                using var gzip = new GZipStream(fileStream, CompressionLevel.Optimal);
+                using var writer = new StreamWriter(gzip);
+
                 foreach (var evt in events)
                 {
                     var dto = new IndianaEventDto
@@ -119,20 +121,24 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
                     };
                     await writer.WriteLineAsync(JsonConvert.SerializeObject(dto));
                 }
+
                 await writer.FlushAsync();
-            }
+            });
 
-            await Task.Delay(100); // Ensure file is fully flushed
-            await using var stream = await RetryOpenReadAsync(tempFilePath);
+            await Task.Delay(100);
 
-            _logger.LogInformation("Uploading file to GCS: gs://{Bucket}/{Object}", _bucket, gcsObject);
-            await _storageClient.UploadObjectAsync(_bucket, gcsObject, "application/gzip", stream);
+            await _retryPolicy.ExecuteAsync(async () =>
+            {
+                await using var stream = await RetryOpenReadAsync(tempFilePath);
+                await _storageClient.UploadObjectAsync(_bucket, gcsObject, "application/gzip", stream);
+                stream.Close();
+            });
+
             gcsFiles.Add($"gs://{_bucket}/{gcsObject}");
 
             _logger.LogInformation("Upload complete: Location {LocationId} on {Date}, File: {File}, Event Count: {Count}",
                 locationId, currentDay, gcsObject, events.Count);
 
-            stream.Close();
             await RetryDeleteAsync(tempFilePath);
         }
         catch (Exception ex)
@@ -145,57 +151,60 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
     {
         _logger.LogInformation("Starting BigQuery load for {Date} with {FileCount} files", currentDay, gcsFiles.Count);
 
-        var schema = new TableSchemaBuilder
+        await _retryPolicy.ExecuteAsync(async () =>
         {
-            { "LocationIdentifier", BigQueryDbType.String, BigQueryFieldMode.Required },
-            { "Timestamp", BigQueryDbType.DateTime, BigQueryFieldMode.Required },
-            { "EventCode", BigQueryDbType.Int64, BigQueryFieldMode.Required },
-            { "EventParam", BigQueryDbType.Int64, BigQueryFieldMode.Required }
-        }.Build();
-
-        var job = _client.CreateLoadJob(
-            gcsFiles,
-            new TableReference
+            var schema = new TableSchemaBuilder
             {
-                ProjectId = _client.ProjectId,
-                DatasetId = "ATSPM",
-                TableId = _table
-            },
-            schema: schema,
-            options: new CreateLoadJobOptions
-            {
-                WriteDisposition = WriteDisposition.WriteAppend,
-                SourceFormat = FileFormat.NewlineDelimitedJson,
-                Autodetect = false
-            });
+                { "LocationIdentifier", BigQueryDbType.String, BigQueryFieldMode.Required },
+                { "Timestamp", BigQueryDbType.DateTime, BigQueryFieldMode.Required },
+                { "EventCode", BigQueryDbType.Int64, BigQueryFieldMode.Required },
+                { "EventParam", BigQueryDbType.Int64, BigQueryFieldMode.Required }
+            }.Build();
 
-        _logger.LogInformation("Created BigQuery load job: {JobId}", job.Reference.JobId);
-
-        job = job.PollUntilCompleted();
-
-        if (job.Status.State == "DONE" && job.Status.ErrorResult == null)
-        {
-            _logger.LogInformation("BigQuery load job {JobId} succeeded for {Date}", job.Reference.JobId, currentDay);
-
-            foreach (var gcsPath in gcsFiles)
-            {
-                var objectPath = gcsPath.Replace($"gs://{_bucket}/", "");
-                await _storageClient.DeleteObjectAsync(_bucket, objectPath);
-                _logger.LogInformation("Deleted GCS file: {File}", gcsPath);
-            }
-        }
-        else
-        {
-            _logger.LogError("BigQuery load job {JobId} failed for {Date}: {Error}", job.Reference.JobId, currentDay, job.Status.ErrorResult?.Message);
-
-            if (job.Status.Errors != null)
-            {
-                foreach (var error in job.Status.Errors)
+            var job = _client.CreateLoadJob(
+                gcsFiles,
+                new TableReference
                 {
-                    _logger.LogError("BigQuery error: {Reason} - {Message}", error.Reason, error.Message);
+                    ProjectId = _client.ProjectId,
+                    DatasetId = "ATSPM",
+                    TableId = _table
+                },
+                schema: schema,
+                options: new CreateLoadJobOptions
+                {
+                    WriteDisposition = WriteDisposition.WriteAppend,
+                    SourceFormat = FileFormat.NewlineDelimitedJson,
+                    Autodetect = false
+                });
+
+            _logger.LogInformation("Created BigQuery load job: {JobId}", job.Reference.JobId);
+
+            job = job.PollUntilCompleted();
+
+            if (job.Status.State == "DONE" && job.Status.ErrorResult == null)
+            {
+                _logger.LogInformation("BigQuery load job {JobId} succeeded for {Date}", job.Reference.JobId, currentDay);
+
+                foreach (var gcsPath in gcsFiles)
+                {
+                    var objectPath = gcsPath.Replace($"gs://{_bucket}/", "");
+                    await _storageClient.DeleteObjectAsync(_bucket, objectPath);
+                    _logger.LogInformation("Deleted GCS file: {File}", gcsPath);
                 }
             }
-        }
+            else
+            {
+                _logger.LogError("BigQuery load job {JobId} failed for {Date}: {Error}", job.Reference.JobId, currentDay, job.Status.ErrorResult?.Message);
+
+                if (job.Status.Errors != null)
+                {
+                    foreach (var error in job.Status.Errors)
+                    {
+                        _logger.LogError("BigQuery error: {Reason} - {Message}", error.Reason, error.Message);
+                    }
+                }
+            }
+        });
     }
 
     private async Task RetryDeleteAsync(string path)
@@ -245,7 +254,6 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
     }
 
     protected abstract Task<List<IndianaEventDto>> GetIndianaEventsAsync(string locationId, DateTime day);
-    
 }
 
 public class IndianaEventDto
@@ -270,5 +278,3 @@ public class ForceStringConverter : JsonConverter<string>
         return reader.Value?.ToString();
     }
 }
-
-
