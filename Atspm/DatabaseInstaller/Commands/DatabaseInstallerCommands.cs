@@ -45,8 +45,8 @@ namespace DatabaseInstaller.Commands
         public TranslateEventLogsCommand TranslateEventLogsCommand { get; set; } = new TranslateEventLogsCommand();
         public TransferDailyToHourlyEventLogsCommand TransferDailyToHourlyEventLogsCommand { get; set; } = new TransferDailyToHourlyEventLogsCommand();
         public SetupTestCommand SetupTestCommand { get; set; } = new SetupTestCommand();
-        public TransferIndianaEventsToBigQueryCommand TransferIndianaEventsToBigQueryCommand { get; set; } = new TransferIndianaEventsToBigQueryCommand();
-        public TransferIndianaRawEventsToBigQueryCommand TransferIndianaRawEventsToBigQueryCommand { get; set; } = new TransferIndianaRawEventsToBigQueryCommand();
+        public TransferCompressedIndianaEventsToBigQueryCommand TransferIndianaEventsToBigQueryCommand { get; set; } = new TransferCompressedIndianaEventsToBigQueryCommand();
+        public TransferRawIndianaEventsToBigQueryCommand TransferIndianaRawEventsToBigQueryCommand { get; set; } = new TransferRawIndianaEventsToBigQueryCommand();
         public TransferSpeedEventsToBigQueryCommand TransferSpeedEventsToBigQueryCommand { get; set; } = new TransferSpeedEventsToBigQueryCommand();
 
     }

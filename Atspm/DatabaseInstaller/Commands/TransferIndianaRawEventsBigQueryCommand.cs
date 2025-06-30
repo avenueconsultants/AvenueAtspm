@@ -7,10 +7,10 @@ using DatabaseInstaller.Services;
 
 namespace DatabaseInstaller.Commands
 {
-    public class TransferIndianaRawEventsToBigQueryCommand : Command, ICommandOption<TransferCommandConfiguration>
+    public class TransferRawIndianaEventsToBigQueryCommand : Command, ICommandOption<TransferCommandConfiguration>
     {
-        public TransferIndianaRawEventsToBigQueryCommand()
-            : base("transfer-indiana-raw-bq", "Transfer uncompressed IndianaEvent logs to BigQuery")
+        public TransferRawIndianaEventsToBigQueryCommand()
+            : base("transfer-raw-bq", "Transfer uncompressed IndianaEvent logs to BigQuery")
         {
             AddOption(StartOption);
             AddOption(EndOption);
@@ -37,7 +37,7 @@ namespace DatabaseInstaller.Commands
         {
             services.AddSingleton(GetOptionsBinder());
             services.AddOptions<TransferCommandConfiguration>().BindCommandLine();
-            services.AddHostedService<TransferIndianaRawEventsToBigQueryService>();
+            services.AddHostedService<TransferRawIndianaEventsToBigQueryService>();
         }
     }
 }

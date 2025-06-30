@@ -10,23 +10,24 @@ using Polly;
 using Polly.Retry;
 using System.Collections.Concurrent;
 using System.IO.Compression;
-using Utah.Udot.Atspm.Data.Models.EventLogModels;
 using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 
 namespace DatabaseInstaller.Services;
 
-public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
+public abstract class TransferEventLogsToBigQueryBase<T> : IHostedService where T : class
 {
     protected readonly BigQueryClient _client;
     protected readonly StorageClient _storageClient;
     protected readonly ILogger _logger;
     protected readonly ILocationRepository _locationRepository;
     protected readonly TransferCommandConfiguration _config;
-    protected readonly string _table = "IndianaEventLogs";
     protected readonly string _bucket = "salt-lake-mobility-event-uploads";
-    protected readonly string _gapTable = "IndianaEventLogGaps";
 
-    protected readonly AsyncRetryPolicy _retryPolicy = Polly.Policy
+    protected abstract string TableName { get; }
+    protected abstract TableSchema GetSchema();
+    protected abstract Task<List<T>> GetEventsAsync(string locationId, DateTime day);
+
+    protected readonly AsyncRetryPolicy _retryPolicy =Polly.Policy
         .Handle<Exception>()
         .WaitAndRetryAsync(new[]
         {
@@ -38,7 +39,7 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
             Console.WriteLine($"[Retry {retry}] Waiting {span.TotalMinutes:n1} min due to: {ex.Message}");
         });
 
-    protected TransferIndianaEventsToBigQueryBase(
+    protected TransferEventLogsToBigQueryBase(
         BigQueryClient client,
         StorageClient storageClient,
         ILogger logger,
@@ -87,19 +88,13 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
         {
             _logger.LogInformation("Starting processing for Location {LocationId} on {Date}", locationId, currentDay);
 
-            var events = await _retryPolicy.ExecuteAsync(() => GetIndianaEventsAsync
-                (locationId, currentDay.ToDateTime(TimeOnly.MinValue)));
+            var events = await _retryPolicy.ExecuteAsync(() => GetEventsAsync(locationId, currentDay.ToDateTime(TimeOnly.MinValue)));
 
             _logger.LogInformation("Retrieved {Count} events for Location {LocationId} on {Date}", events.Count, locationId, currentDay);
 
-            if (!events.Any())
-            {
-                _logger.LogWarning("No events found for Location {LocationId} on {Date}", locationId, currentDay);
-                await LogGapToBigQuery(locationId, currentDay);
-                return;
-            }
+            if (!events.Any()) return;
 
-            var gcsObject = $"indiana/raw/{locationId}-{currentDay:yyyyMMdd}-{batchId}.ndjson.gz";
+            var gcsObject = $"events/{typeof(T).Name.ToLowerInvariant()}/{locationId}-{currentDay:yyyyMMdd}-{batchId}.ndjson.gz";
             var tempFilePath = Path.Combine(Path.GetTempPath(), Path.GetFileName(gcsObject));
 
             _logger.LogInformation("Writing events to temporary file: {TempFilePath}", tempFilePath);
@@ -112,14 +107,7 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
 
                 foreach (var evt in events)
                 {
-                    var dto = new IndianaEventDto
-                    {
-                        LocationIdentifier = evt.LocationIdentifier.ToString(),
-                        Timestamp = evt.Timestamp,
-                        EventCode = evt.EventCode,
-                        EventParam = evt.EventParam
-                    };
-                    await writer.WriteLineAsync(JsonConvert.SerializeObject(dto));
+                    await writer.WriteLineAsync(JsonConvert.SerializeObject(evt));
                 }
 
                 await writer.FlushAsync();
@@ -129,7 +117,7 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
 
             await _retryPolicy.ExecuteAsync(async () =>
             {
-                await using var stream = await RetryOpenReadAsync(tempFilePath);
+                await using var stream = RetryOpenRead(tempFilePath);
                 await _storageClient.UploadObjectAsync(_bucket, gcsObject, "application/gzip", stream);
                 stream.Close();
             });
@@ -153,23 +141,15 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
 
         await _retryPolicy.ExecuteAsync(async () =>
         {
-            var schema = new TableSchemaBuilder
-            {
-                { "LocationIdentifier", BigQueryDbType.String, BigQueryFieldMode.Required },
-                { "Timestamp", BigQueryDbType.DateTime, BigQueryFieldMode.Required },
-                { "EventCode", BigQueryDbType.Int64, BigQueryFieldMode.Required },
-                { "EventParam", BigQueryDbType.Int64, BigQueryFieldMode.Required }
-            }.Build();
-
             var job = _client.CreateLoadJob(
                 gcsFiles,
                 new TableReference
                 {
                     ProjectId = _client.ProjectId,
                     DatasetId = "ATSPM",
-                    TableId = _table
+                    TableId = TableName
                 },
-                schema: schema,
+                schema: GetSchema(),
                 options: new CreateLoadJobOptions
                 {
                     WriteDisposition = WriteDisposition.WriteAppend,
@@ -224,7 +204,7 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
         throw new IOException($"Could not delete file after retries: {path}");
     }
 
-    private async Task<FileStream> RetryOpenReadAsync(string path)
+    private FileStream RetryOpenRead(string path)
     {
         for (int i = 0; i < 5; i++)
         {
@@ -234,26 +214,11 @@ public abstract class TransferIndianaEventsToBigQueryBase : IHostedService
             }
             catch (IOException) when (i < 4)
             {
-                await Task.Delay(100);
+                Thread.Sleep(100);
             }
         }
         throw new IOException($"Could not open file for reading after retries: {path}");
     }
-
-    private async Task LogGapToBigQuery(string locationId, DateOnly date)
-    {
-        var row = new BigQueryInsertRow
-        {
-            { "LocationIdentifier", locationId },
-            { "MissingDate", date.ToString("yyyy-MM-dd") },
-            { "LoggedAt", DateTime.UtcNow }
-        };
-
-        await _retryPolicy.ExecuteAsync(() =>
-            _client.InsertRowAsync("ATSPM", _gapTable, row));
-    }
-
-    protected abstract Task<List<IndianaEventDto>> GetIndianaEventsAsync(string locationId, DateTime day);
 }
 
 public class IndianaEventDto
