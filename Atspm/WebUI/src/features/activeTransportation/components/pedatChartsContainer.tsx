@@ -8,6 +8,7 @@ import HourlyPedVolByHourOfDayChart from './charts/HourlyPedVolByHourOfDayChart'
 import TimeSeriesByHourByLocationChart from './charts/TimeSeriesByHourByLocationChart'
 import TotalPedVolByLocationCharts from './charts/TotalPedVolByLocationCharts'
 import DescriptiveStatsByHourByLocationChart from './DescriptiveStatsByHourByLocationChart'
+import PedatMapContainer from './PedatMapContainer'
 import PedestrianVolumeTimeSeriesTable from './PedestrianVolumeTimeSeriesTable'
 
 const PedatChartsContainer: React.FC = () => {
@@ -44,7 +45,7 @@ const PedatChartsContainer: React.FC = () => {
 
       {tabIndex === 2 && (
         <Box sx={{ mb: 4 }}>
-          <Box sx={{ height: 400, backgroundColor: '#e0e0e0', mb: 3 }} />
+          <PedatMapContainer />
         </Box>
       )}
 
