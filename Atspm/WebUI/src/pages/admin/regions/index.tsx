@@ -1,21 +1,22 @@
-import {Region} from '@/features/regions/types/index'
+import { Region } from '@/features/regions/types/index'
 
+import {
+  useDeleteRegionFromKey,
+  useGetLocationLatestVersionOfAllLocations,
+  useGetRegion,
+  usePatchRegionFromKey,
+  usePostRegion,
+} from '@/api/config/aTSPMConfigurationApi'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
-import { useRegion } from '@/features/generic/api/getData'
 import {
   PageNames,
   useUserHasClaim,
   useViewPage,
 } from '@/features/identity/pagesCheck'
-import { useLatestVersionOfAllLocations } from '@/features/locations/api'
-import {
-  useCreateRegion,
-  useDeleteRegion,
-  useEditRegion,
-} from '@/features/region/api/regionApi'
 import RegionEditorModal from '@/features/regions/components/RegionEditorModal'
+import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, CircularProgress } from '@mui/material'
 
 const RegionsAdmin = () => {
@@ -25,14 +26,19 @@ const RegionsAdmin = () => {
     'LocationConfiguration:Delete'
   )
 
-  const { mutateAsync: createMutation } = useCreateRegion()
-  const { mutateAsync: deleteMutation } = useDeleteRegion()
-  const { mutateAsync: editMutation } = useEditRegion()
+  const { mutateAsync: createMutation } = usePostRegion()
+  const { mutateAsync: deleteMutation } = useDeleteRegionFromKey()
+  const { mutateAsync: editMutation } = usePatchRegionFromKey()
+  const { addNotification } = useNotificationStore()
 
-  const { data: locationsData } = useLatestVersionOfAllLocations()
+  const { data: locationsData } = useGetLocationLatestVersionOfAllLocations()
   const locations = locationsData?.value
 
-  const { data: regionData, isLoading, refetch: refetchRegions } = useRegion()
+  const {
+    data: regionData,
+    isLoading,
+    refetch: refetchRegions,
+  } = useGetRegion()
 
   const regions = regionData?.value
 
@@ -41,20 +47,37 @@ const RegionsAdmin = () => {
   }
   const HandleCreateRegion = async (regionData: Region) => {
     const { id, description } = regionData
+
     try {
-      await createMutation({ id, description })
+      await createMutation({ data: { id, description } })
       refetchRegions()
+      addNotification({
+        type: 'success',
+        title: 'Region created',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({
+        type: 'error',
+        title: 'Failed to create product',
+      })
     }
   }
 
   const HandleDeleteRegion = async (id: number) => {
     try {
-      await deleteMutation(id)
+      await deleteMutation({ key: id })
       refetchRegions()
+      addNotification({
+        type: 'success',
+        title: 'Region deleted',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({
+        type: 'error',
+        title: 'Failed to delete region',
+      })
     }
   }
 
@@ -63,11 +86,19 @@ const RegionsAdmin = () => {
     try {
       await editMutation({
         data: { id, description },
-        id,
+        key: id,
       })
       refetchRegions()
+      addNotification({
+        type: 'success',
+        title: 'Region updated',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({
+        type: 'error',
+        title: 'Failed to update region',
+      })
     }
   }
 
@@ -139,7 +170,7 @@ const RegionsAdmin = () => {
             id={0}
             name={''}
             objectType="Region"
-            deleteLabel={(selectedRow: typeof filteredData[number] ) =>
+            deleteLabel={(selectedRow: (typeof filteredData)[number]) =>
               selectedRow.description
             }
             open={false}
