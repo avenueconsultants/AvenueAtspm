@@ -1,12 +1,12 @@
 import {
   useDeleteApiV1RolesRoleName,
   useGetApiV1Roles,
+  usePostApiV1ClaimsAddRoleName,
   usePostApiV1Roles,
 } from '@/api/identity/atspmAuthenticationApi'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
-import { useAddRoleClaims } from '@/features/identity/api/addRoleClaims'
 import {
   PageNames,
   useUserHasClaim,
@@ -32,7 +32,7 @@ const RolesAdmin = () => {
 
   const { mutateAsync: createMutation } = usePostApiV1Roles()
   const { mutateAsync: deleteMutation } = useDeleteApiV1RolesRoleName()
-  const { mutateAsync: editMutation } = useAddRoleClaims()
+  const { mutateAsync: editMutation } = usePostApiV1ClaimsAddRoleName()
 
   const builtInRoles = [
     {
@@ -85,26 +85,26 @@ const RolesAdmin = () => {
 
   const HandleDeleteRole = async (roleName: string) => {
     if (protectedRoles.includes(roleName)) {
-      return;
+      return
     }
     try {
-      await deleteMutation({ roleName })
+      await deleteMutation({ roleName: roleName })
       refetchRoles()
       addNotification({ title: 'Role Deleted', type: 'success' })
     } catch (error) {
       console.error('Mutation Error:', error)
-      addNotification({ title: 'Delete role Unsuccessful', type: 'error' })
+      addNotification({ title: 'Failed to delete', type: 'error' })
     }
   }
 
   const HandleEditRole = async (roleData: {
-    roleName: string;
-    claims: string[];
+    roleName: string
+    claims: string[]
   }) => {
     try {
       await editMutation({
+        data: { claims: roleData.claims },
         roleName: roleData.roleName,
-        claims: roleData.claims,
       })
       refetchRoles()
       addNotification({
@@ -113,13 +113,13 @@ const RolesAdmin = () => {
       })
     } catch (error) {
       console.error('Mutation Error:', error)
-      addNotification({ title: ' Role update Unsuccessful', type: 'error' })
+      addNotification({ title: 'Failed to update role', type: 'error' })
     }
   }
 
   const HandleCreateRole = async (roleData: {
-    roleName: string;
-    claims: string[];
+    roleName: string
+    claims: string[]
   }) => {
     try {
       await createMutation({
@@ -131,7 +131,7 @@ const RolesAdmin = () => {
         await editMutation({
           roleName: roleData.roleName,
           claims: roleData.claims,
-        });
+        })
       }
       refetchRoles()
       addNotification({
@@ -140,28 +140,28 @@ const RolesAdmin = () => {
       })
     } catch (error) {
       console.error('Mutation Error:', error)
-      addNotification({ title: ' Role create Unsuccessful', type: 'error' })
+      addNotification({ title: 'Failed to create role', type: 'error' })
     }
   }
 
   if (pageAccess.isLoading) {
-    return;
+    return
   }
 
   const onModalClose = () => {
     //do something?? potentially just delete
-  };
+  }
 
   if (isLoading) {
     return (
       <Backdrop open>
         <CircularProgress color="inherit" />
       </Backdrop>
-    );
+    )
   }
 
   if (!roles) {
-    return <div>Error returning data</div>;
+    return <div>Error returning data</div>
   }
 
   const customRoleFilteredData = roles
@@ -240,7 +240,7 @@ const RolesAdmin = () => {
         }
       />
     </ResponsivePageLayout>
-  );
-};
+  )
+}
 
-export default RolesAdmin;
+export default RolesAdmin
