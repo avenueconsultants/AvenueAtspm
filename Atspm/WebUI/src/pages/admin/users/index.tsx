@@ -1,20 +1,23 @@
+import {
+  useDeleteApiV1UsersUserId,
+  useGetApiV1Users,
+  usePostApiV1UsersUpdate,
+} from '@/api/identity/atspmAuthenticationApi'
+import { UserDTO } from '@/api/identity/atspmAuthenticationApi.schemas'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
-import { useDeleteUser } from '@/features/identity/api/deleteUser'
-import { useEditUsers } from '@/features/identity/api/editUsers'
-import { useGetAllUsers } from '@/features/identity/api/getAllUsers'
 import UserModal from '@/features/identity/components/users/UserModal'
 import {
   CustomCellConfig,
   UserRolesCell,
+} from '@/features/identity/components/users/UserRolesCell'
 } from '@/features/identity/components/users/UserRolesCell'
 import {
   PageNames,
   useUserHasClaim,
   useViewPage,
 } from '@/features/identity/pagesCheck'
-import UserDto from '@/features/identity/types/userDto'
 import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, CircularProgress } from '@mui/material'
 
@@ -22,64 +25,69 @@ const UsersAdmin = () => {
   const pageAccess = useViewPage(PageNames.Users)
   const hasUserEditClaim = useUserHasClaim('User:Edit')
   const hasUserDeleteClaim = useUserHasClaim('User:Delete')
-
   const { addNotification } = useNotificationStore()
 
-  const { mutateAsync: deleteMutation } = useDeleteUser()
-  const { mutateAsync: editMutation } = useEditUsers()
+  const { mutateAsync: deleteMutation } = useDeleteApiV1UsersUserId()
+  const { mutateAsync: editMutation } = usePostApiV1UsersUpdate()
   const {
     data: allUserData,
     isLoading: usersIsLoading,
     refetch: refetchUsers,
-  } = useGetAllUsers()
+  } = useGetApiV1Users()
 
   const users = allUserData
+  const users = allUserData
 
-  const handleEditUser = async (userData) => {
+  const handleEditUser = async (userData: UserDTO) => {
     const { userId, firstName, lastName, agency, userName, email, roles } =
+      userData
       userData
     try {
       await editMutation({
-        userId,
-        firstName,
-        lastName,
-        agency,
-        email: email.toLowerCase(),
-        userName: userName.toLowerCase(),
-        roles,
-      })
-      addNotification({
-        title: `User updated successfully.`,
-        type: 'success',
+        data: {
+          userId,
+          firstName,
+          lastName,
+          agency,
+          email: email.toLowerCase(),
+          userName: userName.toLowerCase(),
+          roles,
+        },
       })
       refetchUsers()
+      addNotification({
+        title: 'User updated',
+        type: 'success',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
       addNotification({
-        title: `Error updating user: ${error.message}`,
+        title: 'Failed to update user',
         type: 'error',
       })
     }
   }
 
-  const handleDeleteUser = async (id: number) => {
+  const handleDeleteUser = async (id: string) => {
     try {
-      await deleteMutation(id)
+      await deleteMutation({ userId: id })
+      refetchUsers()
       addNotification({
-        title: `User deleted successfully.`,
+        title: 'User deleted',
         type: 'success',
       })
-      refetchUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
       addNotification({
-        title: `Error deleting user: ${error.message}`,
+        title: 'Failed to deleted user',
         type: 'error',
       })
     }
   }
+  }
 
   if (pageAccess.isLoading) {
+    return
     return
   }
 
@@ -95,7 +103,11 @@ const UsersAdmin = () => {
       roles: user.roles?.sort(),
     }
   })
+    }
+  })
 
+  const headers = ['Full Name', 'Username', 'Agency', 'Email', 'Roles']
+  const headerKeys = ['fullName', 'userName', 'agency', 'email', 'roles']
   const headers = ['Full Name', 'Username', 'Agency', 'Email', 'Roles']
   const headerKeys = ['fullName', 'userName', 'agency', 'email', 'roles']
 
@@ -105,19 +117,23 @@ const UsersAdmin = () => {
         <CircularProgress color="inherit" />
       </Backdrop>
     )
+    )
   }
 
   if (!allUserData) {
+    return <div>Error returning data</div>
     return <div>Error returning data</div>
   }
 
   const customCellRender: CustomCellConfig[] = [
     {
       headerKey: 'roles',
+      headerKey: 'roles',
       component: (value: string, row: string[]) => (
         <UserRolesCell value={value} row={row} headerKey="roles" />
       ),
     },
+  ]
   ]
 
   return (
@@ -137,6 +153,7 @@ const UsersAdmin = () => {
           <DeleteModal
             id={0}
             name={''}
+            name={''}
             deleteByKey="userId"
             objectType="User"
             deleteLabel={(selectedRow: UserDto) => selectedRow.fullName}
@@ -148,5 +165,8 @@ const UsersAdmin = () => {
     </ResponsivePageLayout>
   )
 }
+  )
+}
 
+export default UsersAdmin
 export default UsersAdmin
