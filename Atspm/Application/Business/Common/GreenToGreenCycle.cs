@@ -51,9 +51,9 @@ namespace Utah.Udot.Atspm.Business.Common
         public DateTime YellowEvent { get; }
 
 
-        public double TotalGreenTime => (YellowEvent - StartTime).TotalSeconds;
-        public double TotalYellowTime => (RedEvent - YellowEvent).TotalSeconds;
-        public double TotalRedTime => (EndTime - RedEvent).TotalSeconds;
+        public double TotalGreenTimeSeconds => (YellowEvent - StartTime).TotalSeconds;
+        public double TotalYellowTimeSeconds => (RedEvent - YellowEvent).TotalSeconds;
+        public double TotalRedTimeSeconds => (EndTime - RedEvent).TotalSeconds;
         public double TotalTime => (EndTime - StartTime).TotalSeconds;
         public double TotalGreenTimeMilliseconds => (YellowEvent - StartTime).TotalMilliseconds;
         public double TotalYellowTimeMilliseconds => (RedEvent - YellowEvent).TotalMilliseconds;

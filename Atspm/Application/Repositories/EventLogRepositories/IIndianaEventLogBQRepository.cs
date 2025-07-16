@@ -7,5 +7,6 @@ namespace Utah.Udot.Atspm.Repositories.EventLogRepositories
 {
     public interface IIndianaEventLogBQRepository : IBigQueryRepository<IndianaEvent>
     {
+        IReadOnlyList<IndianaEvent> GetByLocationAndTimeRange(string locationIdentifier, DateTime start, DateTime end);
     }
 }

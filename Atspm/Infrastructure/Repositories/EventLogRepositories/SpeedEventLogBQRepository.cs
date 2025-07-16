@@ -60,6 +60,11 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
             }).ToList();
         }
 
+        IReadOnlyList<IndianaEvent> IBigQueryRepository<SpeedEvent>.GetByLocationTimeAndEventCodes(string locationIdentifier, DateTime start, DateTime end, List<int> eventCodes)
+        {
+            throw new NotImplementedException();
+        }
+
         private BigQueryInsertRow MapToRow(SpeedEvent e) => new()
         {
             { "LocationIdentifier", e.LocationIdentifier },

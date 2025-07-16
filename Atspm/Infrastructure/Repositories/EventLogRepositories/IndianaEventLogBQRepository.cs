@@ -84,6 +84,58 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
             }).ToList();
         }
 
+        public IReadOnlyList<IndianaEvent> GetByLocationTimeAndEventCodes(
+            string locationIdentifier,
+            DateTime start,
+            DateTime end,
+            List<int> eventCodes)
+        {
+            if (eventCodes == null || eventCodes.Count == 0)
+                return Array.Empty<IndianaEvent>();
+
+            string sql = $@"
+    SELECT LocationIdentifier, Timestamp, EventCode, EventParam
+    FROM `{_projectId}.{_datasetId}.{_tableId}`
+    WHERE LocationIdentifier = @loc
+      AND Timestamp BETWEEN CAST(@start AS DATETIME) AND CAST(@end AS DATETIME)
+      AND EventCode IN UNNEST(@eventCodes)";
+
+
+            var parameters = new[]
+            {
+        new BigQueryParameter("loc", BigQueryDbType.String, locationIdentifier),
+        new BigQueryParameter("start", BigQueryDbType.Timestamp, DateTime.SpecifyKind(start, DateTimeKind.Utc)),
+        new BigQueryParameter("end", BigQueryDbType.Timestamp, DateTime.SpecifyKind(end, DateTimeKind.Utc)),
+        new BigQueryParameter("eventCodes", BigQueryDbType.Array, eventCodes.ToArray())
+    };
+
+            try
+            {
+                var results = _client.ExecuteQuery(sql, parameters);
+
+                return results.Select(r => new IndianaEvent
+                {
+                    LocationIdentifier = (string)r["LocationIdentifier"],
+                    Timestamp = (DateTime)r["Timestamp"],
+                    EventCode = Convert.ToInt16(r["EventCode"]),
+                    EventParam = Convert.ToInt16(r["EventParam"])
+                }).ToList();
+            }
+            catch (InvalidOperationException ex)
+            {
+                _log.LogError(ex, "BigQuery failed: {Message}", ex.Message);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _log.LogError(ex, "BigQuery failed: {Message}", ex.Message);
+                throw;
+            }
+        }
+
+
+
+
         private BigQueryInsertRow MapToRow(IndianaEvent e) => new()
         {
             { "LocationIdentifier", e.LocationIdentifier },

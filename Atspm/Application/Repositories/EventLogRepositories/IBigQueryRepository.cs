@@ -41,5 +41,6 @@ namespace Utah.Udot.Atspm.Repositories.EventLogRepositories
         /// Queries items by location identifier and time range
         /// </summary>
         IReadOnlyList<T> GetByLocationAndTimeRange(string locationIdentifier, DateTime start, DateTime end);
+        IReadOnlyList<IndianaEvent> GetByLocationTimeAndEventCodes(string locationIdentifier, DateTime start, DateTime end, List<int> eventCodes);
     }
 }

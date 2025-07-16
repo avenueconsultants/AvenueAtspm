@@ -139,7 +139,7 @@ namespace Utah.Udot.Atspm.Business.TimeSpaceDiagram
                 var phase = selectedSequence[i];
                 var percentileSplit = GetPercentileSplitCycle(options, controllerEventLogs, phase, useOverlap);
 
-                sumOfPercentileSplits += percentileSplit.TotalGreenTime + percentileSplit.TotalYellowTime;
+                sumOfPercentileSplits += percentileSplit.TotalGreenTimeSeconds + percentileSplit.TotalYellowTimeSeconds;
             }
 
             return sumOfPercentileSplits;
@@ -190,9 +190,9 @@ namespace Utah.Udot.Atspm.Business.TimeSpaceDiagram
                 return events;
             }
             var startTime = start.AddSeconds(startOfGreen);
-            var greenTime = percentileSplitCycle.TotalGreenTime;
-            var yellowTime = percentileSplitCycle.TotalYellowTime;
-            var redTime = cycleLength - (greenTime + yellowTime) > 0 ? cycleLength - (greenTime + yellowTime) : percentileSplitCycle.TotalRedTime;
+            var greenTime = percentileSplitCycle.TotalGreenTimeSeconds;
+            var yellowTime = percentileSplitCycle.TotalYellowTimeSeconds;
+            var redTime = cycleLength - (greenTime + yellowTime) > 0 ? cycleLength - (greenTime + yellowTime) : percentileSplitCycle.TotalRedTimeSeconds;
 
 
 
@@ -244,7 +244,7 @@ namespace Utah.Udot.Atspm.Business.TimeSpaceDiagram
             var events = TimeSpaceService.GetEvents(phaseToCalculateEventsFor, controllerEventLogs, cycleEventCodes);
             var cycles = _cycleService.GetGreenToGreenCycles(options.StartDate.ToDateTime(options.StartTime), options.EndDate.ToDateTime(options.EndTime), events);
 
-            cycles.Sort((x, y) => x.TotalGreenTime.CompareTo(y.TotalGreenTime));
+            cycles.Sort((x, y) => x.TotalGreenTimeSeconds.CompareTo(y.TotalGreenTimeSeconds));
 
             if (cycles.Count <= 0)
             {
@@ -265,7 +265,7 @@ namespace Utah.Udot.Atspm.Business.TimeSpaceDiagram
             {
                 return offset - programmedSplit;
             }
-            return offset - (percentileSplit.TotalGreenTime + percentileSplit.TotalYellowTime - programmedSplit);
+            return offset - (percentileSplit.TotalGreenTimeSeconds + percentileSplit.TotalYellowTimeSeconds - programmedSplit);
         }
     }
 }
