@@ -36,6 +36,7 @@ namespace DatabaseInstaller.Commands
             AddCommand(TransferIndianaRawEventsToBigQueryCommand);
             AddCommand(TransferSpeedEventsToBigQueryCommand);
             AddCommand(AggregateCyclesBigQueryCommand);
+            AddCommand(AggregatePedsBigQueryCommand);
         }
 
         public UpdateCommand UpdateCommand { get; set; } = new UpdateCommand();
@@ -50,6 +51,7 @@ namespace DatabaseInstaller.Commands
         public TransferRawIndianaEventsToBigQueryCommand TransferIndianaRawEventsToBigQueryCommand { get; set; } = new TransferRawIndianaEventsToBigQueryCommand();
         public TransferSpeedEventsToBigQueryCommand TransferSpeedEventsToBigQueryCommand { get; set; } = new TransferSpeedEventsToBigQueryCommand();
         public AggregateCyclesBigQueryCommand AggregateCyclesBigQueryCommand { get; set; } = new AggregateCyclesBigQueryCommand();
+        public AggregatePedsBigQueryCommand AggregatePedsBigQueryCommand { get; set; } = new AggregatePedsBigQueryCommand();
 
     }
 }
