@@ -32,6 +32,11 @@ namespace DatabaseInstaller.Commands
             AddCommand(TranslateEventLogsCommand);
             AddCommand(TransferDailyToHourlyEventLogsCommand);
             AddCommand(SetupTestCommand);
+            AddCommand(TransferIndianaEventsToBigQueryCommand);
+            AddCommand(TransferIndianaRawEventsToBigQueryCommand);
+            AddCommand(TransferSpeedEventsToBigQueryCommand);
+            AddCommand(AggregateCyclesBigQueryCommand);
+            AddCommand(AggregatePedsBigQueryCommand);
         }
 
         public UpdateCommand UpdateCommand { get; set; } = new UpdateCommand();
@@ -42,6 +47,11 @@ namespace DatabaseInstaller.Commands
         public TranslateEventLogsCommand TranslateEventLogsCommand { get; set; } = new TranslateEventLogsCommand();
         public TransferDailyToHourlyEventLogsCommand TransferDailyToHourlyEventLogsCommand { get; set; } = new TransferDailyToHourlyEventLogsCommand();
         public SetupTestCommand SetupTestCommand { get; set; } = new SetupTestCommand();
+        public TransferCompressedIndianaEventsToBigQueryCommand TransferIndianaEventsToBigQueryCommand { get; set; } = new TransferCompressedIndianaEventsToBigQueryCommand();
+        public TransferRawIndianaEventsToBigQueryCommand TransferIndianaRawEventsToBigQueryCommand { get; set; } = new TransferRawIndianaEventsToBigQueryCommand();
+        public TransferSpeedEventsToBigQueryCommand TransferSpeedEventsToBigQueryCommand { get; set; } = new TransferSpeedEventsToBigQueryCommand();
+        public AggregateCyclesBigQueryCommand AggregateCyclesBigQueryCommand { get; set; } = new AggregateCyclesBigQueryCommand();
+        public AggregatePedsBigQueryCommand AggregatePedsBigQueryCommand { get; set; } = new AggregatePedsBigQueryCommand();
 
     }
 }

@@ -20,7 +20,7 @@
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageTags>C#; .net standard; .net core</PackageTags>
 		<PackageId>$(AssemblyName)</PackageId>
-		<VersionPrefix>5.0.0</VersionPrefix>
+		<VersionPrefix>5.1.0</VersionPrefix>
 		<VersionSuffix></VersionSuffix>
 		<Version>$(VersionPrefix)$(VersionSuffix)</Version>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -51,6 +51,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Google.Cloud.BigQuery.V2" Version="3.11.0" />
 		<PackageReference Include="Google.Cloud.Diagnostics.Common" Version="5.2.0" />
 		<PackageReference Include="FluentFTP" Version="52.1.0" />
 		<PackageReference Include="Google.Cloud.Diagnostics.Common" Version="5.2.0" />
