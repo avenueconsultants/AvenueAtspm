@@ -39,10 +39,16 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
         /// <inheritdoc/>
         protected override Task<IEnumerable<PhaseSplitMonitorAggregation>> Process(Tuple<Location, IEnumerable<IndianaEvent>> input, CancellationToken cancelToken = default)
         {
+            return SplitMonitorAggregationCalculation(input);
+        }
+
+        private static Task<IEnumerable<PhaseSplitMonitorAggregation>> SplitMonitorAggregationCalculation(Tuple<Location, IEnumerable<IndianaEvent>> input)
+        {
             var phaseSplitMonitor = new List<PhaseSplitMonitorAggregation>();
             var location = input.Item1;
             var indianaEvents = input.Item2;
             var groupedIndianaEvents = indianaEvents
+                .Where(i => i.EventCode == 1 || i.EventCode == 8 || i.EventCode == 11)
                 .GroupBy(i => i.EventParam)
                 .ToDictionary(g => g.Key, g => g.ToList());
             var listPhaseInformation = new List<PhaseSplitMonitorDto>();

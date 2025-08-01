@@ -18,14 +18,8 @@
 using Google.Cloud.BigQuery.V2;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Utah.Udot.Atspm.Data.Models.EventLogModels;
-using Utah.Udot.Atspm.Repositories.EventLogRepositories;
 using Utah.Udot.Atspm.ValueObjects;
-using Utah.Udot.NetStandardToolkit.Services;
 
 namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
 {
@@ -66,7 +60,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
                 SELECT LocationIdentifier, Timestamp, EventCode, EventParam
                 FROM `{_projectId}.{_datasetId}.{_tableId}`
                 WHERE LocationIdentifier = @loc
-                  AND Timestamp BETWEEN @start AND @end";
+                  AND Timestamp BETWEEN CAST(@start AS DATETIME) AND CAST(@end AS DATETIME)";
 
             var results = _client.ExecuteQuery(sql, new[]
             {

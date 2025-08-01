@@ -32,11 +32,11 @@ namespace Utah.Udot.Atspm.Data.Models
     public abstract class AggregationModelBase : StartEndRange, ILocationLayer
     {
         ///<inheritdoc/>
-        [JsonIgnore]
+        //[JsonIgnore]
         public string LocationIdentifier { get; set; }
 
         [Obsolete("this has been replaced with StartEndRange")]
-        [JsonIgnore]
+        //[JsonIgnore]
         public DateTime BinStartTime { get; set; }
     }
 

@@ -39,6 +39,11 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
         /// <inheritdoc/>
         protected override Task<IEnumerable<ApproachSpeedAggregation>> Process(Tuple<Location, Tuple<IEnumerable<IndianaEvent>, IEnumerable<SpeedEvent>>> input, CancellationToken cancelToken = default)
         {
+            return SpeedAggregationCalculations(input);
+        }
+
+        private static Task<IEnumerable<ApproachSpeedAggregation>> SpeedAggregationCalculations(Tuple<Location, Tuple<IEnumerable<IndianaEvent>, IEnumerable<SpeedEvent>>> input)
+        {
             var location = input.Item1;
             var approaches = location?.Approaches.ToList();
             if (approaches == null || !approaches.Any())

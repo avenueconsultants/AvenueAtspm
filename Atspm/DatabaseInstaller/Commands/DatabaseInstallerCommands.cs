@@ -37,6 +37,9 @@ namespace DatabaseInstaller.Commands
             AddCommand(TransferSpeedEventsToBigQueryCommand);
             AddCommand(AggregateCyclesBigQueryCommand);
             AddCommand(AggregatePedsBigQueryCommand);
+            AddCommand(AggregateSpeedsBigQueryCommand);
+            AddCommand(AggregateSplitMonitorBigQueryCommand);
+            AddCommand(AggregateSplitFailBigQueryCommand);
         }
 
         public UpdateCommand UpdateCommand { get; set; } = new UpdateCommand();
@@ -52,6 +55,9 @@ namespace DatabaseInstaller.Commands
         public TransferSpeedEventsToBigQueryCommand TransferSpeedEventsToBigQueryCommand { get; set; } = new TransferSpeedEventsToBigQueryCommand();
         public AggregateCyclesBigQueryCommand AggregateCyclesBigQueryCommand { get; set; } = new AggregateCyclesBigQueryCommand();
         public AggregatePedsBigQueryCommand AggregatePedsBigQueryCommand { get; set; } = new AggregatePedsBigQueryCommand();
+        public AggregateSpeedsBigQueryCommand AggregateSpeedsBigQueryCommand { get; set; } = new AggregateSpeedsBigQueryCommand();
+        public AggregateSplitMonitorBigQueryCommand AggregateSplitMonitorBigQueryCommand { get; set; } = new AggregateSplitMonitorBigQueryCommand();
+        public AggregateSplitFailBigQueryCommand AggregateSplitFailBigQueryCommand { get; set; } = new AggregateSplitFailBigQueryCommand();
 
     }
 }

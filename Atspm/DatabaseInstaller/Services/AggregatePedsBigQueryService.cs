@@ -3,7 +3,6 @@
 using DatabaseInstaller.Commands;
 using Google.Apis.Bigquery.v2.Data;
 using Google.Cloud.BigQuery.V2;
-using Google.Cloud.Logging.V2;
 using Google.Cloud.Storage.V1;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -11,15 +10,9 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Collections.Concurrent;
 using System.IO.Compression;
-using System.Text.Json;
-using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Data.Models.EventLogModels;
-using Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories;
-using Utah.Udot.Atspm.Repositories.AggregationRepositories;
 using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.Repositories.EventLogRepositories;
-using Utah.Udot.Atspm.TempExtensions;
-using static Org.BouncyCastle.Math.EC.ECCurve;
 
 
 
@@ -75,13 +68,13 @@ public class AggregatePedestrianToBigQueryService : IHostedService
                     {
                         var binEnd = binStart.AddMinutes(15);
                         var binEvents = allEvents
-                            .Where(e => e.Timestamp >= binStart && e.Timestamp <= binEnd.AddMinutes(15))
+                            .Where(e => e.Timestamp >= binStart && e.Timestamp <= binEnd)
                             .ToList();
 
                         if (!binEvents.Any()) continue;
 
                         var phaseNumbers = allEvents.Where(e => e.EventCode != 90).Select(e => e.EventParam).Distinct().ToList();
-                        foreach (var phaseNumber in phaseNumbers) 
+                        foreach (var phaseNumber in phaseNumbers)
                         {
                             //var approach = location.Approaches.FirstOrDefault(a => a.ProtectedPhaseNumber == phaseNumber);
                             List<int> pedDetecotrs = new List<int> { phaseNumber };
@@ -93,14 +86,14 @@ public class AggregatePedestrianToBigQueryService : IHostedService
                             //}
                             //else
                             //{
-                                if (binEvents.Any(e => e.EventParam == phaseNumber && e.EventCode == 21 || e.EventCode == 22))
-                                {   
-                                    results.Add(GetPedPhaseAggregations(locationId, phaseNumber, pedDetecotrs, false, binStart, binEvents));
-                                }
-                                //if (binEvents.Any(e => e.EventParam == phaseNumber && e.EventCode == 67 || e.EventCode == 68))
-                                //{
-                                //    results.Add(GetPedPhaseAggregations(locationId, phaseNumber, pedDetecotrs, true, binStart, binEvents));
-                                //}
+                            if (binEvents.Any(e => e.EventParam == phaseNumber && e.EventCode == 21 || e.EventCode == 22))
+                            {
+                                results.Add(GetPedPhaseAggregations(locationId, phaseNumber, pedDetecotrs, false, binStart, binEvents));
+                            }
+                            //if (binEvents.Any(e => e.EventParam == phaseNumber && e.EventCode == 67 || e.EventCode == 68))
+                            //{
+                            //    results.Add(GetPedPhaseAggregations(locationId, phaseNumber, pedDetecotrs, true, binStart, binEvents));
+                            //}
                             //}
 
                             //results.Add(pedPhase);
@@ -211,11 +204,11 @@ public class AggregatePedestrianToBigQueryService : IHostedService
     public PhasePedAggregation GetPedPhaseAggregations(string locationIdentifier, int phaseNumber, List<int> detectorChannels, bool isPedestrianOverlap, DateTime bindStartTime, List<IndianaEvent> events)
     {
         if (!events.Any()) return null;
-        var phaseEventCodes = isPedestrianOverlap ? new List<int> { 45, 67, 68 } : new List<int> { 45, 21, 22};
+        var phaseEventCodes = isPedestrianOverlap ? new List<int> { 45, 67, 68 } : new List<int> { 45, 21, 22 };
         var phaseEvents = events.Where(e => phaseEventCodes.Contains(e.EventCode) && e.EventParam == phaseNumber).OrderBy(e => e.Timestamp).ToList();
         var detectorEvents = events.Where(e => e.EventCode == 90 && detectorChannels.Contains(e.EventParam)).OrderBy(e => e.Timestamp).ToList();
         var allEvents = phaseEvents.Concat(detectorEvents).OrderBy(e => e.Timestamp).ToList();
-        
+
 
         var beginWalkCode = isPedestrianOverlap ? 67 : 21;
         var beginClearanceCode = isPedestrianOverlap ? 68 : 22;
@@ -293,7 +286,7 @@ public static class PedDelayFunctions
                 cycleEvents[i + 2].EventCode == beginWalkCode)
             {
                 cycles.Add(new PedCycle(cycleEvents[i + 2].Timestamp, cycleEvents[i + 1].Timestamp));  // this is case 1
-                i++; 
+                i++;
             }
             else if (cycleEvents[i].EventCode == beginWalkCode &&
                      cycleEvents[i + 1].EventCode == 90 &&
@@ -329,48 +322,48 @@ public static class PedDelayFunctions
         //        PedBeginWalkEvents.Add(cycleEvents[cycleEvents.Count - 2]);
         //}
         return cycles;
-        }
+    }
 
-        public static (int total, int min, int max) GetDelayStats(List<PedCycle> cycles)
+    public static (int total, int min, int max) GetDelayStats(List<PedCycle> cycles)
+    {
+        if (cycles.Count == 0) return (0, 0, 0);
+        var total = (int)Math.Round(cycles.Sum(c => c.Delay));
+        var min = (int)Math.Round(cycles.Min(c => c.Delay));
+        var max = (int)Math.Round(cycles.Max(c => c.Delay));
+        return (total, min, max);
+    }
+
+    public static int CountUniquePedDetections(List<IndianaEvent> detections)
+    {
+        //var detections = events.Where(e => e.EventCode == 90).OrderBy(e => e.Timestamp).ToList();
+        if (!detections.Any()) return 0;
+
+        int count = 1;
+        var last = detections[0].Timestamp;
+
+        for (int i = 1; i < detections.Count; i++)
         {
-            if (cycles.Count == 0) return (0, 0, 0);
-            var total = (int)Math.Round(cycles.Sum(c => c.Delay));
-            var min = (int)Math.Round(cycles.Min(c => c.Delay));
-            var max = (int)Math.Round(cycles.Max(c => c.Delay));
-            return (total, min, max);
-        }
-
-        public static int CountUniquePedDetections(List<IndianaEvent> detections)
-        {
-            //var detections = events.Where(e => e.EventCode == 90).OrderBy(e => e.Timestamp).ToList();
-            if (!detections.Any()) return 0;
-
-            int count = 1;
-            var last = detections[0].Timestamp;
-
-            for (int i = 1; i < detections.Count; i++)
+            if ((detections[i].Timestamp - last).TotalSeconds >= 15)
             {
-                if ((detections[i].Timestamp - last).TotalSeconds >= 15)
-                {
-                    count++;
-                    last = detections[i].Timestamp;
-                }
+                count++;
+                last = detections[i].Timestamp;
             }
-            return count;
         }
+        return count;
+    }
 
-        public static int CountImputedPedCalls(List<IndianaEvent> events, int beginWalkCode)
+    public static int CountImputedPedCalls(List<IndianaEvent> events, int beginWalkCode)
+    {
+        int count = 0;
+        for (int i = 1; i < events.Count; i++)
         {
-            int count = 0;
-            for (int i = 1; i < events.Count; i++)
+            if (events[i].EventCode == 90 && events[i - 1].EventCode == beginWalkCode)
             {
-                if (events[i].EventCode == 90 && events[i - 1].EventCode == beginWalkCode)
-                {
-                    count++;
-                }
+                count++;
             }
-            return count;
         }
+        return count;
+    }
 }
 
 public class PhasePedAggregation

@@ -16,7 +16,6 @@
 #endregion
 
 using DatabaseInstaller.Commands;
-using DatabaseInstaller.Services;
 using Google.Apis.Auth.OAuth2;
 using Google.Cloud.BigQuery.V2;
 using Google.Cloud.Storage.V1;
@@ -84,7 +83,8 @@ cmdBuilder.UseHost(hostBuilder =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var opts = sp.GetRequiredService<IOptions<BigQueryOptions>>().Value;
-            var credentialsPath = config.GetValue<string>("BigQuery:CredentialsFile");
+            var credentialsPath2 = config.GetValue<string>("BigQuery:CredentialsFile");
+            var credentialsPath = config.GetValue<string>("GoogleApplicationCredentials");
             var credential = GoogleCredential.FromFile(credentialsPath);
             return BigQueryClient.Create(opts.ProjectId, credential);
         });
@@ -93,7 +93,8 @@ cmdBuilder.UseHost(hostBuilder =>
         services.AddSingleton(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
-            var credentialsPath = config.GetValue<string>("BigQuery:CredentialsFile");
+            var credentialsPath2 = config.GetValue<string>("BigQuery:CredentialsFile");
+            var credentialsPath = config.GetValue<string>("GoogleApplicationCredentials");
             var credential = GoogleCredential.FromFile(credentialsPath);
             return StorageClient.Create(credential);
         });
@@ -103,6 +104,9 @@ cmdBuilder.UseHost(hostBuilder =>
         services.AddScoped<IIndianaEventLogBQRepository, IndianaEventLogBQRepository>();
         services.AddScoped<ISpeedEventLogBQRepository, SpeedEventLogBQRepository>();
         services.AddScoped<CycleService>();
+        services.AddScoped<AggregateSplitMonitorToBigQueryService>();
+        services.AddScoped<AggregateSplitFailToBigQueryService>();
+        services.AddScoped<AggregateSpeedsToBigQueryService>();
 
         // Hosted services
     });
