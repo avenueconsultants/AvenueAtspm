@@ -59,6 +59,31 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
             }).ToList();
         }
 
+        public IReadOnlyList<SpeedEvent> GetByLocationsAndTimeRange(List<string> locationIds, DateTime start, DateTime end)
+        {
+            string sql = $@"
+                SELECT LocationIdentifier, Timestamp, DetectorId, Mph, Kph
+                FROM `{_projectId}.{_datasetId}.{_tableId}`
+                WHERE Timestamp BETWEEN CAST(@start AS DATETIME) AND CAST(@end AS DATETIME)
+                AND LocationIdentifier IN UNNEST(@locations)";
+
+            var results = _client.ExecuteQuery(sql, new[]
+            {
+                new BigQueryParameter("locations", BigQueryDbType.Array, locationIds),
+                new BigQueryParameter("start", BigQueryDbType.Timestamp, start),
+                new BigQueryParameter("end", BigQueryDbType.Timestamp, end)
+            });
+
+            return results.Select(r => new SpeedEvent
+            {
+                LocationIdentifier = (string)r["LocationIdentifier"],
+                Timestamp = (DateTime)r["Timestamp"],
+                DetectorId = (string)r["DetectorId"],
+                Mph = Convert.ToInt32(r["Mph"]),
+                Kph = Convert.ToInt32(r["Kph"])
+            }).ToList();
+        }
+
         IReadOnlyList<IndianaEvent> IBigQueryRepository<SpeedEvent>.GetByLocationTimeAndEventCodes(string locationIdentifier, DateTime start, DateTime end, List<int> eventCodes)
         {
             throw new NotImplementedException();

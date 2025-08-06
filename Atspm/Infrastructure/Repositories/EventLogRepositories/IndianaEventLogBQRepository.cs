@@ -78,6 +78,30 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.EventLogRepositories
             }).ToList();
         }
 
+        public IReadOnlyList<IndianaEvent> GetByLocationsAndTimeRange(List<string> locationIds, DateTime start, DateTime end)
+        {
+            string sql = $@"
+                SELECT LocationIdentifier, Timestamp, EventCode, EventParam
+                FROM `{_projectId}.{_datasetId}.{_tableId}`
+                WHERE Timestamp BETWEEN CAST(@start AS DATETIME) AND CAST(@end AS DATETIME)
+                AND LocationIdentifier IN UNNEST(@locations)";
+
+            var results = _client.ExecuteQuery(sql, new[]
+            {
+                new BigQueryParameter("locations", BigQueryDbType.Array, locationIds),
+                new BigQueryParameter("start", BigQueryDbType.Timestamp, start),
+                new BigQueryParameter("end", BigQueryDbType.Timestamp, end)
+            });
+
+            return results.Select(r => new IndianaEvent
+            {
+                LocationIdentifier = (string)r["LocationIdentifier"],
+                Timestamp = (DateTime)r["Timestamp"],
+                EventCode = Convert.ToInt16(r["EventCode"]),
+                EventParam = Convert.ToInt16(r["EventParam"])
+            }).ToList();
+        }
+
         public IReadOnlyList<IndianaEvent> GetByLocationTimeAndEventCodes(
             string locationIdentifier,
             DateTime start,

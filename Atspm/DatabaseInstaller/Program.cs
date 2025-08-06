@@ -109,6 +109,11 @@ cmdBuilder.UseHost(hostBuilder =>
         services.AddScoped<AggregateSpeedsToBigQueryService>();
 
         // Hosted services
+        services.AddScoped<AnalysisPhaseCollectionService>();
+        services.AddScoped<AnalysisPhaseService>();
+        services.AddScoped<CycleService>();
+        services.AddScoped<PhaseService>();
+        services.AddScoped<PlanService>();
     });
 },
 host =>
