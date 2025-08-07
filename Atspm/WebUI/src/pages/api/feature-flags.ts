@@ -21,6 +21,8 @@ export default function handler(
   res: NextApiResponse<Flags>
 ) {
   res.status(200).json({
-    speedManagementTool: Boolean(process.env.ENABLE_SPEED_MANAGEMENT_TOOL),
+    speedManagementTool: Boolean(
+      process.env.ENABLE_SPEED_MANAGEMENT_TOOL === 'true'
+    ),
   })
 }

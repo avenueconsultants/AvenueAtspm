@@ -4,64 +4,76 @@ import {
   usePostApiV1ImpactType,
   usePutApiV1ImpactTypeId,
 } from '@/api/speedManagement/aTSPMSpeedManagementApi'
-import GenericAdminChart, {
-  pageNameToHeaders,
-} from '@/components/GenericAdminChart'
+import AdminTable from '@/components/AdminTable'
+import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
-import { PageNames } from '@/features/identity/pagesCheck'
+import {
+  PageNames,
+  useUserHasClaim,
+  useViewPage,
+} from '@/features/identity/pagesCheck'
+import ImpactTypeEditorModal from '@/features/speedManagementTool/components/ImpactTypesEditorModal'
 import { ImpactType } from '@/features/speedManagementTool/types/impact'
 import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, CircularProgress } from '@mui/material'
-import { GridColDef } from '@mui/x-data-grid'
 
 const ImpactTypeAdmin = () => {
-  //   const pageAccess = useViewPage(PageNames.ImpactTypes)
+  const pageAccess = useViewPage(PageNames.ImpactTypes)
+
+  const hasLocationsEditClaim = useUserHasClaim('LocationConfiguration:Edit')
+  const hasLocationsDeleteClaim = useUserHasClaim(
+    'LocationConfiguration:Delete'
+  )
+
   const { addNotification } = useNotificationStore()
 
-  const headers: GridColDef[] = pageNameToHeaders.get(
-    PageNames.ImpactTypes
-  ) as GridColDef[]
+  const { mutateAsync: createImpactType } = usePostApiV1ImpactType()
+  const { mutateAsync: deleteImpactType } = useDeleteApiV1ImpactTypeId()
+  const { mutateAsync: updateImpactType } = usePutApiV1ImpactTypeId()
 
-  const createMutation = usePostApiV1ImpactType()
-  const deleteMutation = useDeleteApiV1ImpactTypeId()
-  const editMutation = usePutApiV1ImpactTypeId()
+  const {
+    data: impactTypesData,
+    isLoading,
+    refetch: refetchImpactTypes,
+  } = useGetApiV1ImpactType()
 
-  const { data: impactTypesData, isLoading } = useGetApiV1ImpactType()
+  if (pageAccess.isLoading) return null
 
-  const handleCreateImpactType = async (impactType: ImpactType) => {
-    const { name, description } = impactType
-    const response = await createMutation.mutateAsync({
-      data: { name, description },
-    })
-
-    if (response) {
-      addNotification({
-        title: 'Impact Type created successfully',
-        type: 'success',
-      })
+  const handleCreateImpactType = async (data: ImpactType) => {
+    const { name, description } = data
+    try {
+      await createImpactType({ data: { name, description } })
+      await refetchImpactTypes()
+      addNotification({ title: 'Impact Type Created', type: 'success' })
+    } catch {
+      addNotification({ title: 'Error Creating Impact Type', type: 'error' })
     }
   }
 
-  const handleDeleteImpactType = async (impactType: ImpactType) => {
-    const { id } = impactType
+  const handleEditImpactType = async (data: ImpactType) => {
+    const { id, name, description } = data
     if (!id) return
-
-    await deleteMutation.mutateAsync(
-      { id },
-      {
-        onSuccess: () =>
-          addNotification({
-            title: 'Impact Type deleted successfully',
-            type: 'success',
-          }),
-      }
-    )
+    try {
+      await updateImpactType({ id, data: { name, description } })
+      await refetchImpactTypes()
+      addNotification({ title: 'Impact Type Updated', type: 'success' })
+    } catch {
+      addNotification({ title: 'Error Updating Impact Type', type: 'error' })
+    }
   }
 
-  const handleEditImpactType = async (impactType: ImpactType) => {
-    const { id, name, description } = impactType
-    console.log('impactType', impactType)
-    if (id) editMutation.mutateAsync({ id, data: { name, description } })
+  const handleDeleteImpactType = async (id: number) => {
+    try {
+      await deleteImpactType({ id })
+      await refetchImpactTypes()
+      addNotification({ title: 'Impact Type Deleted', type: 'success' })
+    } catch {
+      addNotification({ title: 'Error Deleting Impact Type', type: 'error' })
+    }
+  }
+
+  const onModalClose = () => {
+    // custom modal close logic (optional)
   }
 
   if (isLoading) {
@@ -76,31 +88,48 @@ const ImpactTypeAdmin = () => {
     return <div>Error returning data</div>
   }
 
-  const filteredData = impactTypesData.map((obj: ImpactType) => {
-    return {
-      id: obj.id,
-      name: obj.name,
-      description: obj.description,
-    }
-  })
+  const filteredData = impactTypesData.map((obj: ImpactType) => ({
+    id: obj.id,
+    name: obj.name,
+    description: obj.description,
+  }))
 
-  const baseType = {
-    description: '',
-    name: '',
-  }
+  const headers = ['Name', 'Description']
+  const headerKeys = ['name', 'description']
 
   return (
-    <ResponsivePageLayout title={'Impact Types'} noBottomMargin>
-      <GenericAdminChart
-        pageName={PageNames.ImpactTypes}
+    <ResponsivePageLayout title="Impact Types" noBottomMargin>
+      <AdminTable
+        pageName="Impact Type"
         headers={headers}
+        headerKeys={headerKeys}
         data={filteredData}
-        baseRowType={baseType}
-        onDelete={handleDeleteImpactType}
-        onEdit={handleEditImpactType}
-        onCreate={handleCreateImpactType}
-        hasEditPrivileges={true}
-        hasDeletePrivileges={true}
+        hasEditPrivileges={hasLocationsEditClaim}
+        hasDeletePrivileges={hasLocationsDeleteClaim}
+        editModal={
+          <ImpactTypeEditorModal
+            isOpen={true}
+            onSave={handleEditImpactType}
+            onClose={onModalClose}
+          />
+        }
+        createModal={
+          <ImpactTypeEditorModal
+            isOpen={true}
+            onSave={handleCreateImpactType}
+            onClose={onModalClose}
+          />
+        }
+        deleteModal={
+          <DeleteModal
+            id={0}
+            name={''}
+            objectType="Impact Type"
+            open={false}
+            onClose={() => {}}
+            onConfirm={handleDeleteImpactType}
+          />
+        }
       />
     </ResponsivePageLayout>
   )
