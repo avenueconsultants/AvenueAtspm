@@ -32,12 +32,18 @@ export enum PageNames {
   Routes = 'Routes',
   Users = ' Users',
   WatchdogDashboard = 'Watchdog Dashboard',
+  Impacts = 'Impacts',
+  ImpactTypes = 'Impact Types',
+  Segments = 'Segments',
 }
 
 const generalConfigListToLink: Map<string, string> = new Map([
   [PageNames.FAQs, '/admin/faq'],
   [PageNames.MenuItems, '/admin/menu-items'],
   [PageNames.MeasureDefaults, '/admin/measure-defaults'],
+  [PageNames.Impacts, '/admin/impacts'],
+  [PageNames.ImpactTypes, '/admin/impact-types'],
+  [PageNames.Segments, '/admin/segments'],
 ])
 const locationConfigListToLink: Map<string, string> = new Map([
   [PageNames.Areas, '/admin/areas'],

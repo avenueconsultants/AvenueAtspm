@@ -1,3 +1,4 @@
+import { useFlags } from '@/feature-flags/FeatureFlagContext'
 import { PageNames, useGetAdminPagesList } from '@/features/identity/pagesCheck'
 import { Box, Button, Divider, Menu, MenuItem, Typography } from '@mui/material'
 import { ArrowDropDownIcon } from '@mui/x-date-pickers'
@@ -16,13 +17,20 @@ const GROUPS: Record<string, PageNames[]> = {
     PageNames.Region,
     PageNames.Jurisdiction,
   ],
+  'Speed Management': [
+    PageNames.Segments,
+    PageNames.Impacts,
+    PageNames.ImpactTypes,
+  ],
   'User Management': [PageNames.Users, PageNames.Roles],
   Other: [PageNames.FAQs, PageNames.MenuItems, PageNames.MeasureDefaults],
 }
 
 const AdminMenu = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const { speedManagementTool } = useFlags()
   const pagesToLinks = useGetAdminPagesList()
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(e.currentTarget)
@@ -66,37 +74,41 @@ const AdminMenu = () => {
           },
         }}
       >
-        {Object.entries(GROUPS).map(([label, keys], idx) => {
-          const items = keys.filter((k) => pagesToLinks.has(k))
-          if (!items.length) return null
-
-          return (
-            <Box key={label}>
-              {idx !== 0 && <Divider sx={{ my: 1 }} />}
-              <Box sx={{ px: 2 }}>
-                {/* gap between groups */}
-                <Typography
-                  variant="subtitle2"
-                  color="primary"
-                  sx={{ fontSize: '0.8rem' }}
-                >
-                  {label}
-                </Typography>
-                {items.map((k) => (
-                  <MenuItem
-                    key={k}
-                    component={NextLink}
-                    href={pagesToLinks.get(k) as string}
-                    onClick={handleClose}
-                    sx={{ pl: 1 }}
-                  >
-                    {k}
-                  </MenuItem>
-                ))}
-              </Box>
-            </Box>
+        {Object.entries(GROUPS)
+          .filter(
+            ([label]) => label !== 'Speed Management' || speedManagementTool
           )
-        })}
+          .map(([label, keys], idx) => {
+            const items = keys.filter((k) => pagesToLinks.has(k))
+            if (!items.length) return null
+
+            return (
+              <Box key={label}>
+                {idx !== 0 && <Divider sx={{ my: 1 }} />}
+                <Box sx={{ px: 2 }}>
+                  {/* gap between groups */}
+                  <Typography
+                    variant="subtitle2"
+                    color="primary"
+                    sx={{ fontSize: '0.8rem' }}
+                  >
+                    {label}
+                  </Typography>
+                  {items.map((k) => (
+                    <MenuItem
+                      key={k}
+                      component={NextLink}
+                      href={pagesToLinks.get(k) as string}
+                      onClick={handleClose}
+                      sx={{ pl: 1 }}
+                    >
+                      {k}
+                    </MenuItem>
+                  ))}
+                </Box>
+              </Box>
+            )
+          })}
       </Menu>
     </>
   )

@@ -53,7 +53,7 @@ export const initializeAxiosInstances = async () => {
     dataAxios = createAxiosInstance(env.DATA_URL + BASE_PATH)
   }
   if (env.SPEED_URL) {
-    speedAxios = createAxiosInstance(env.SPEED_URL + BASE_PATH)
+    speedAxios = createAxiosInstance(env.SPEED_URL)
   }
 }
 
