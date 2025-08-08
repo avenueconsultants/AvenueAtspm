@@ -26,6 +26,7 @@
     "@mui/x-data-grid": "^7.27.3",
     "@mui/x-date-pickers": "^6.19.2",
     "@tanstack/react-query-devtools": "^4.29.17",
+    "@turf/turf": "^7.2.0",
     "@types/esri-leaflet": "^3.0.3",
     "@types/node": "20.3.1",
     "@types/react": "18.2.13",
