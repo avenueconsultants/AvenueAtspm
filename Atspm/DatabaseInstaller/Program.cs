@@ -85,7 +85,7 @@ cmdBuilder.UseHost(hostBuilder =>
             var opts = sp.GetRequiredService<IOptions<BigQueryOptions>>().Value;
             var credentialsPath2 = config.GetValue<string>("BigQuery:CredentialsFile");
             var credentialsPath = config.GetValue<string>("GoogleApplicationCredentials");
-            var credential = GoogleCredential.FromFile(credentialsPath);
+            var credential = GoogleCredential.FromFile(credentialsPath2);
             return BigQueryClient.Create(opts.ProjectId, credential);
         });
 
@@ -95,7 +95,7 @@ cmdBuilder.UseHost(hostBuilder =>
             var config = sp.GetRequiredService<IConfiguration>();
             var credentialsPath2 = config.GetValue<string>("BigQuery:CredentialsFile");
             var credentialsPath = config.GetValue<string>("GoogleApplicationCredentials");
-            var credential = GoogleCredential.FromFile(credentialsPath);
+            var credential = GoogleCredential.FromFile(credentialsPath2);
             return StorageClient.Create(credential);
         });
 

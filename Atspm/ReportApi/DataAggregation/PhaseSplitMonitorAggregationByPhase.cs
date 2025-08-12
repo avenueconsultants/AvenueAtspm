@@ -67,8 +67,8 @@ namespace Utah.Udot.Atspm.ReportApi.DataAggregation
                             {
                                 case SplitMonitorDataTypes.EightyFifthPercentileSplit:
                                     terminationCount =
-                                        splitFails.Where(s => s.Start >= bin.Start && s.Start < bin.End)
-                                            .Sum(s => s.EightyFifthPercentileSplit);
+                                       Convert.ToInt32( Math.Round(splitFails.Where(s => s.Start >= bin.Start && s.Start < bin.End)
+                                            .Sum(s => s.EightyFifthPercentileSplit)));
                                     break;
                                 case SplitMonitorDataTypes.SkippedCount:
                                     terminationCount =

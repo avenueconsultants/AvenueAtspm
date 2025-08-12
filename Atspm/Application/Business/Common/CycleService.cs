@@ -231,19 +231,20 @@ namespace Utah.Udot.Atspm.Business.Common
 
         public List<CycleSplitFail> GetSplitFailCycles(SplitFailOptions options, IReadOnlyList<IndianaEvent> cycleEvents, IReadOnlyList<IndianaEvent> terminationEvents)
         {
-            var cycles = Enumerable.Range(0, cycleEvents.Count - 3)
-                .Where(i => GetEventType(cycleEvents[i].EventCode) == RedToRedCycle.EventType.ChangeToGreen &&
-                            GetEventType(cycleEvents[i + 1].EventCode) == RedToRedCycle.EventType.ChangeToYellow &&
-                            GetEventType(cycleEvents[i + 2].EventCode) == RedToRedCycle.EventType.ChangeToRed &&
-                            (GetEventType(cycleEvents[i + 3].EventCode) == RedToRedCycle.EventType.ChangeToGreen ||
-                            cycleEvents[i + 3].EventCode == 66))
+            var uniqueCycleEvents = cycleEvents.Distinct().OrderBy(c => c.Timestamp).ToList();
+            var cycles = Enumerable.Range(0, uniqueCycleEvents.Count - 3)
+                .Where(i => GetEventType(uniqueCycleEvents[i].EventCode) == RedToRedCycle.EventType.ChangeToGreen &&
+                            GetEventType(uniqueCycleEvents[i + 1].EventCode) == RedToRedCycle.EventType.ChangeToYellow &&
+                            GetEventType(uniqueCycleEvents[i + 2].EventCode) == RedToRedCycle.EventType.ChangeToRed &&
+                            (GetEventType(uniqueCycleEvents[i + 3].EventCode) == RedToRedCycle.EventType.ChangeToGreen ||
+                            uniqueCycleEvents[i + 3].EventCode == 66))
                 .Select(i =>
                 {
-                    var termEvent = GetTerminationTypeBetweenStartAndEnd(cycleEvents[i].Timestamp, cycleEvents[i + 3].Timestamp, terminationEvents);
-                    return new CycleSplitFail(cycleEvents[i].Timestamp, cycleEvents[i + 2].Timestamp, cycleEvents[i + 1].Timestamp,
-                                              cycleEvents[i + 3].Timestamp, termEvent, options.FirstSecondsOfRed);
+                    var termEvent = GetTerminationTypeBetweenStartAndEnd(uniqueCycleEvents[i].Timestamp, uniqueCycleEvents[i + 3].Timestamp, terminationEvents);
+                    return new CycleSplitFail(uniqueCycleEvents[i].Timestamp, uniqueCycleEvents[i + 2].Timestamp, uniqueCycleEvents[i + 1].Timestamp,
+                                              uniqueCycleEvents[i + 3].Timestamp, termEvent, options.FirstSecondsOfRed);
                 })
-                .Where(c => c.EndTime >= options.Start && c.EndTime <= options.End || c.StartTime <= options.End && c.StartTime >= options.Start)
+                .Where(c => c.EndTime > options.Start && c.StartTime < options.End && c.StartTime >= options.Start)
                 .ToList();
 
             return cycles;
