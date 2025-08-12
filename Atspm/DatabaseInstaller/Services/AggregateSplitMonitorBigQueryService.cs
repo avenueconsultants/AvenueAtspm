@@ -202,6 +202,10 @@ public class AggregateSplitMonitorToBigQueryService : IHostedService
             new() { Name = "DurrationInSeconds", Type = "FLOAT", Mode = "REQUIRED" },
             new() { Name = "PhaseCount", Type = "INTEGER", Mode = "REQUIRED" },
             new() { Name = "MaxCycles", Type = "INTEGER", Mode = "REQUIRED" },
+            new() { Name = "MaxOuts", Type = "FLOAT", Mode = "REQUIRED" },
+            new() { Name = "GapOuts", Type = "FLOAT", Mode = "REQUIRED" },
+            new() { Name = "ForceOffs", Type = "FLOAT", Mode = "REQUIRED" },
+            new() { Name = "AverageSplits", Type = "FLOAT", Mode = "REQUIRED" },
             new() { Name = "Start", Type = "DATETIME", Mode = "REQUIRED" },
             new() { Name = "End", Type = "DATETIME", Mode = "REQUIRED" }
         }
@@ -395,6 +399,10 @@ public class AggregateSplitMonitorToBigQueryService : IHostedService
         aggregatedPhaseSplitMonitor.End = input.Item4;
         aggregatedPhaseSplitMonitor.MaxCycles = highCycleCount;
         aggregatedPhaseSplitMonitor.EightyFifthPercentileSplit = GetPercentSplit(highCycleCount, .85, cycles);
+        aggregatedPhaseSplitMonitor.GapOuts = highCycleCount > 0 ? Convert.ToDouble(cycles.Count(c => c.TerminationEvent == 4)) / highCycleCount : 0;
+        aggregatedPhaseSplitMonitor.MaxOuts = GetPercentMaxOuts(cycles, highCycleCount);
+        aggregatedPhaseSplitMonitor.ForceOffs = GetPercentForceOffs(cycles, highCycleCount);
+        aggregatedPhaseSplitMonitor.AverageSplits = cycles.Count > 0 ? Convert.ToDouble(cycles.Sum(c => c.Duration.TotalSeconds)) / cycles.Count : 0;
         aggregatedPhaseSplitMonitor.SkippedCount = skippedPhases;
         aggregatedPhaseSplitMonitor.PhaseCount = cycles.Count;
         aggregatedPhaseSplitMonitor.DurrationInSeconds = cycles.Sum(c => c.Duration.TotalSeconds);
@@ -445,6 +453,18 @@ public class AggregateSplitMonitorToBigQueryService : IHostedService
         }
     }
 
+    private static double GetPercentForceOffs(List<AnalysisPhaseCycle> cycles, double highCycleCounts)
+    {
+        var test = Convert.ToDouble(cycles.Count(c => c.TerminationEvent == 6));
+        return highCycleCounts > 0 ? Convert.ToDouble(cycles.Count(c => c.TerminationEvent == 6)) / highCycleCounts : 0;
+    }
+
+    private static double GetPercentMaxOuts(List<AnalysisPhaseCycle> cycles, double highCycleCount)
+    {
+        var test = Convert.ToDouble(cycles.Count(c => c.TerminationEvent == 5));
+        return highCycleCount > 0 ? Convert.ToDouble(cycles.Count(c => c.TerminationEvent == 5)) / highCycleCount : 0;
+    }
+
     internal class PhaseSplitMonitorDto
     {
         public int PhaseNumber { get; set; }
@@ -464,5 +484,9 @@ public class AggregateSplitMonitorToBigQueryService : IHostedService
         public int PhaseCount { get; set; }
         public double DurrationInSeconds { get; set; }
         public int MaxCycles { get; set; }
+        public double MaxOuts { get; set; }
+        public double GapOuts { get; set; }
+        public double ForceOffs { get; set; }
+        public double AverageSplits { get; set; }
     }
 }
