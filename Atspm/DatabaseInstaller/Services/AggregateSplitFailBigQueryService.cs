@@ -52,7 +52,7 @@ public class AggregateSplitFailToBigQueryService : IHostedService
         _logger = logger;
         _eventRepo = eventRepo;
         _config = config.Value;
-        _serviceProvider = serviceProvider; 
+        _serviceProvider = serviceProvider;
 
     }
 
@@ -60,8 +60,8 @@ public class AggregateSplitFailToBigQueryService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        // var stringLocations = "2335,1109,1019,1094,1151,1096,1097,7124,1169,7252,1026,1067,1076,1162,1103,1065,1066,1068,1069,1070,1071,1072,1073,1074,1075,1077,1078,1079,1080,1081,1082,1083,1085,1086,1087,1088,1089,1090,1091,1093,1095,1098,1099,1100,1101,1102,1104,1105,1106,1107,1110,1111,1112,1116,1117,1118,1119,1120,1121,1124,1125,1127,1128,1129,1131,1132,1133,1134,1135,1136,1138,1139,1141,1142,1153,1223,1224,1225,1226,1227,1228,1229,1801,7216,7217,7218,7219,7220,7222,7223,7241,7251,7366,7367,7368,7369,7370,7371,7372,7474,7503,7642,1032,1033,1034,1035,1037,1046,1047,1048,1049,1051,1052,1053,1054,1055,1058,1059,1060,1061,1062,1063,1163,1164,1165,1166,1202,1221,1222,1013,1017,1018,1020,1021,1022,1024,1025,1029,1031,7069,7122,7123,7125,7127,7128,7130,7132,7133,7135,7136,7137,7138,7139,7140,7141,7143,7144,7145,7146,7147,7148,7149,7150,7151,7254,7270,7274,7342,7619,1084,7221,7475,7633,7647,1056,1057,7129,7618,1146,1147,1148,1149,1150,1157,7224,7242,7243,7244,7245,7246,7247,7248,7249,7250,7635,1036,1038,1039,1040,1041,1042,1043,1044,1045,1168,1177,1178,1203,1205,1208,1220,1014,1015,1016,1023,1027,1028,1030,7126,7131,7134,7142,7180,7181,7182,7183,7184,7185,7186,7187,7253,7255,7271,7272,7273,1825,1826,1827,1155,1803,1805,1806,1807,1809,1810,1812,1154,1802,1804,1820,1172,1064,1822,7648,1204,7494,7466,7495,7444\r\n ";
-        var stringLocations = "1205\r\n ";
+        var stringLocations = "2335,1109,1019,1094,1151,1096,1097,7124,1169,7252,1026,1067,1076,1162,1103,1065,1066,1068,1069,1070,1071,1072,1073,1074,1075,1077,1078,1079,1080,1081,1082,1083,1085,1086,1087,1088,1089,1090,1091,1093,1095,1098,1099,1100,1101,1102,1104,1105,1106,1107,1110,1111,1112,1116,1117,1118,1119,1120,1121,1124,1125,1127,1128,1129,1131,1132,1133,1134,1135,1136,1138,1139,1141,1142,1153,1223,1224,1225,1226,1227,1228,1229,1801,7216,7217,7218,7219,7220,7222,7223,7241,7251,7366,7367,7368,7369,7370,7371,7372,7474,7503,7642,1032,1033,1034,1035,1037,1046,1047,1048,1049,1051,1052,1053,1054,1055,1058,1059,1060,1061,1062,1063,1163,1164,1165,1166,1202,1221,1222,1013,1017,1018,1020,1021,1022,1024,1025,1029,1031,7069,7122,7123,7125,7127,7128,7130,7132,7133,7135,7136,7137,7138,7139,7140,7141,7143,7144,7145,7146,7147,7148,7149,7150,7151,7254,7270,7274,7342,7619,1084,7221,7475,7633,7647,1056,1057,7129,7618,1146,1147,1148,1149,1150,1157,7224,7242,7243,7244,7245,7246,7247,7248,7249,7250,7635,1036,1038,1039,1040,1041,1042,1043,1044,1045,1168,1177,1178,1203,1205,1208,1220,1014,1015,1016,1023,1027,1028,1030,7126,7131,7134,7142,7180,7181,7182,7183,7184,7185,7186,7187,7253,7255,7271,7272,7273,1825,1826,1827,1155,1803,1805,1806,1807,1809,1810,1812,1154,1802,1804,1820,1172,1064,1822,7648,1204,7494,7466,7495,7444\r\n ";
+        //var stringLocations = "1205\r\n ";
         //var stringLocations = "7183, 1022";
         var locations = stringLocations.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToList();
 
@@ -85,15 +85,14 @@ public class AggregateSplitFailToBigQueryService : IHostedService
                 {
                     var location = locationRepository.GetLatestVersionOfLocation(locationId, startOfDay);
                     if (location == null) return;
-                    var allEvents = eventRepo.GetByLocationAndTimeRange(locationId, startOfDay, endOfDay).ToList();
-                    //var allEvents = _eventRepo.GetByLocationTimeAndEventCodes(locationId, startOfDay, endOfDay, _cycleEventCodes).ToList();
+                    var allEvents = eventRepo.GetByLocationAndTimeRange(locationId, startOfDay.AddHours(-1), endOfDay.AddHours(1)).ToList();
                     var phaseDetails = phaseService.GetPhases(location);
 
                     for (var binStart = startOfDay; binStart < endOfDay; binStart += TimeSpan.FromMinutes(15))
                     {
                         var binEnd = binStart.AddMinutes(15);
                         var binEvents = allEvents
-                            .Where(e => e.Timestamp >= binStart.AddSeconds(-900) && e.Timestamp <= binEnd.AddSeconds(900))
+                            .Where(e => e.Timestamp >= binStart.AddHours(-1) && e.Timestamp <= binEnd.AddHours(1))
                             .ToList();
 
                         if (!binEvents.Any()) continue;
@@ -229,11 +228,11 @@ public class AggregateSplitFailToBigQueryService : IHostedService
         //    phaseDetail.PhaseNumber,
         //    phaseDetail.UseOverlap,
         //    start,
-        //    end);
+        //    end).Distinct().ToList();
 
         //Trying to copy what the plans does
         var cycleEvents = indianaEvents.GetEventsByEventCodes(
-                start,
+                start.AddSeconds(-900),
                 end.AddSeconds(900),
                 Utah.Udot.Atspm.TempExtensions.IndianaEventExtensions.GetCycleEventCodes(phaseDetail.UseOverlap),
                 phaseDetail.PhaseNumber).OrderBy(e => e.Timestamp).ToList();
@@ -241,7 +240,7 @@ public class AggregateSplitFailToBigQueryService : IHostedService
         if (cycleEvents.IsNullOrEmpty())
             return null;
         var terminationEvents = indianaEvents.GetEventsByEventCodes(
-             start,
+             start.AddSeconds(-900),
              end.AddSeconds(900),
              new List<short> { 4, 5, 6 },
              phaseDetail.PhaseNumber);
@@ -276,8 +275,8 @@ public class AggregateSplitFailToBigQueryService : IHostedService
         var tempDetectorEvents = indianaEvents.GetDetectorEvents(
                12,
                phaseDetail.Approach,
-               input.Item4,
-               input.Item5,
+               input.Item4.AddHours(-1),
+               input.Item5.AddHours(1),
                true,
                true,
                stopbarDetector).Distinct().ToList();
