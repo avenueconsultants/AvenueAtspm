@@ -287,8 +287,6 @@ export const useMapClickHandler = (
 
       const features = fc?.features ?? []
 
-      console.log('isInitialPolyline', isInitialPolyline)
-
       if (polylineCoordinates.length === 0 || isInitialPolyline) {
         await handleFirstClick(pt, features)
       } else {

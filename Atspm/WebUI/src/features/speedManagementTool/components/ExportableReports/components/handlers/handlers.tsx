@@ -106,7 +106,6 @@ export const useERMonthlyReportHandler = (props: Props) => {
     isCancelledRef.current = false
     setHasError(false)
     const options = getExportableReportOptions()
-    console.log('submitReportRequest', options)
     try {
       const routeSpeedResultData = await routeSpeedResult.mutateAsync({
         data: getRouteSpeedOptions(options),

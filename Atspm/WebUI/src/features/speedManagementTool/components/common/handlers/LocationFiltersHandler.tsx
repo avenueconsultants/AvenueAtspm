@@ -110,7 +110,6 @@ export const useLocationFiltersHandler = (): LocationFiltersHandler => {
       setCity(cities?.length === 0 ? null : cities)
     },
     updateCounty(counties: string[]) {
-      console.log(counties)
       setCounty(counties?.length === 0 ? null : counties)
     },
     updateRegion(regions: string[]) {
