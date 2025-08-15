@@ -11,9 +11,16 @@ export enum PALETTE {
   GreenHover = '#84A247',
   Purple = '#986ba1',
   PurpleHover = '#6A4A70',
+  Gray = 'lightgrey',
 }
 
-export type RouteType = 'Lrs' | 'Draft' | 'Nearby' | 'ClearGuide'
+export type RouteType =
+  | 'Lrs'
+  | 'Draft'
+  | 'Nearby'
+  | 'ClearGuide'
+  | 'Default'
+  | 'Selected'
 
 // Main and hover colors for each route type
 export interface RouteColors {
@@ -37,5 +44,13 @@ export const ROUTE_COLORS: Record<RouteType, RouteColors> = {
   ClearGuide: {
     main: PALETTE.LightGreen,
     hover: PALETTE.GreenHover,
+  },
+  Default: {
+    main: PALETTE.Gray,
+    hover: PALETTE.Gray,
+  },
+  Selected: {
+    main: PALETTE.Blue,
+    hover: PALETTE.BlueHover,
   },
 }

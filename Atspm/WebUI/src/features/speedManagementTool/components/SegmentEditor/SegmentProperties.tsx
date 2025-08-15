@@ -266,7 +266,12 @@ const SegmentProperties = forwardRef((_, ref) => {
           render={({ field }) => (
             <FormControl sx={{ flex: '1 1 45%' }}>
               <InputLabel id="polarity-label">Polarity</InputLabel>
-              <Select labelId="polarity-label" label="Polarity" {...field}>
+              <Select
+                labelId="polarity-label"
+                label="Polarity"
+                {...field}
+                value={field.value}
+              >
                 <MenuItem value="PM">PM</MenuItem>
                 <MenuItem value="NM">NM</MenuItem>
               </Select>
@@ -365,23 +370,20 @@ const SegmentProperties = forwardRef((_, ref) => {
           name="region"
           control={control}
           render={({ field }) => (
-            <Autocomplete
+            <TextField
               {...field}
-              options={regionNames}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="Region"
-                  required
-                  error={!!errors.region}
-                />
-              )}
+              label="Region"
+              select
               sx={{ flex: '1 1 45%' }}
-              value={field.value || ''}
-              onChange={(_, newValue) => {
-                field.onChange(newValue)
-              }}
-            />
+              value={regionNames.find((name) => name === field.value) ?? ''}
+              onChange={(e) => field.onChange(e.target.value)}
+            >
+              {regionNames.map((name) => (
+                <MenuItem key={name} value={name}>
+                  {name}
+                </MenuItem>
+              ))}
+            </TextField>
           )}
         />
 

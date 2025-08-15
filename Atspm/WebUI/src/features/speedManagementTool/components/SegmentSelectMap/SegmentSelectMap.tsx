@@ -1,6 +1,7 @@
 import { Segment } from '@/api/speedManagement/aTSPMSpeedManagementApi.schemas'
-import { ROUTE_COLORS } from '@/features/speedManagementTool/components/SegmentEditor/SegmentEditorMap/utils/colors'
 import { useSegmentEditorStore } from '@/features/speedManagementTool/components/SegmentEditor/segmentEditorStore'
+import { SegmentSelectMapProps } from '@/features/speedManagementTool/components/SegmentSelectMap'
+import SegmentPolylines from '@/features/speedManagementTool/components/SegmentSelectMap/SegmentPolylines'
 import { getEnv } from '@/utils/getEnv'
 import {
   Alert,
@@ -14,108 +15,25 @@ import {
 } from '@mui/material'
 import L, { Map as LeafletMap } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useRouter } from 'next/router'
-import React, { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { MapContainer, Polyline, TileLayer } from 'react-leaflet'
+import { memo, useEffect, useMemo, useState } from 'react'
+import { MapContainer, TileLayer } from 'react-leaflet'
 
-interface SegmentPolylinesProps {
-  segments: Segment[]
-  selectedSegmentIds: string[]
-  onSegmentSelect: (segment: Segment) => void
-  zoomLevel: number
-  setHoveredSegment: (segment: Segment | null) => void
-}
-
-const getPolylineWeight = (zoom: number) => {
-  if (zoom >= 18) return 5
-  if (zoom >= 15) return 3
-  if (zoom >= 12) return 2
-  if (zoom >= 10) return 1
-  return 2
-}
-
-const SegmentPolylines: React.FC<SegmentPolylinesProps> = memo(
-  function SegmentPolylines({
-    segments,
-    onSegmentSelect,
-    zoomLevel,
-    setHoveredSegment,
-  }) {
-    const baseWeight = getPolylineWeight(zoomLevel)
-
-    return (
-      <>
-        {segments.map((segment, index) => {
-          if (!segment.geometry?.coordinates) return null
-          return (
-            <React.Fragment key={`segment-${segment.id}-${index}`}>
-              <Polyline
-                key={`segment-${segment.id}-main${segment.properties.udotRouteNumber}`}
-                pathOptions={{
-                  color: ROUTE_COLORS.Draft.main,
-                  weight: baseWeight,
-                  lineCap: 'round',
-                  opacity: 1,
-                }}
-                smoothFactor={0}
-                positions={segment.geometry.coordinates}
-                eventHandlers={{
-                  click: () => onSegmentSelect(segment),
-                  mouseover: (e) => {
-                    setHoveredSegment(segment)
-                    e.target.bringToFront()
-                    e.target.setStyle({
-                      weight: getPolylineWeight(zoomLevel) + 3,
-                      color: ROUTE_COLORS.Draft.hover,
-                    })
-                  },
-                  mouseout: (e) => {
-                    setHoveredSegment(null)
-                    e.target.setStyle({
-                      weight: getPolylineWeight(zoomLevel),
-                      color: ROUTE_COLORS.Draft.main,
-                    })
-                  },
-                }}
-              />
-            </React.Fragment>
-          )
-        })}
-      </>
-    )
-  }
-)
-
-const SegmentSelectMap: React.FC = () => {
+const SegmentSelectMap = ({
+  segments,
+  onSegmentSelect,
+  selectedSegmentIds,
+}: SegmentSelectMapProps) => {
   const {
-    allSegments,
+    allSegments: storedSegments,
     associatedEntityIds,
-    setAssociatedEntityIds,
-    reset,
     isLoadingSegments,
     mapCenter,
     setMapCenter,
   } = useSegmentEditorStore()
-  const router = useRouter()
+
+  const allSegments = segments ?? storedSegments
   const [mapRef, setMapRef] = useState<LeafletMap | null>(null)
   const [hoveredSegment, setHoveredSegment] = useState<Segment | null>(null)
-
-  // Fallback coordinates if env is not set
-  const FALLBACK_CENTER: { lat: number; lng: number; zoom: number } = {
-    lat: 40.7608,
-    lng: -111.891,
-    zoom: 10,
-  }
-
-  const handleSegmentClick = useCallback(
-    (segment: Segment) => {
-      reset()
-      router.push({
-        pathname: `/admin/segments/${segment.id}`,
-      })
-    },
-    [router, setAssociatedEntityIds, reset]
-  )
 
   // Invalidate map size on mount and resize
   useEffect(() => {
@@ -185,29 +103,28 @@ const SegmentSelectMap: React.FC = () => {
           const newCenter: { lat: number; lng: number; zoom: number } = {
             lat: parseFloat(env?.MAP_DEFAULT_LATITUDE),
             lng: parseFloat(env?.MAP_DEFAULT_LONGITUDE),
-            zoom:
-              parseInt(env?.MAP_DEFAULT_ZOOM_LEVEL, 10) || FALLBACK_CENTER.zoom,
+            zoom: parseInt(env?.MAP_DEFAULT_ZOOM, 10) || 10,
           }
           setMapCenter(newCenter)
         } catch (error) {
           console.error('Failed to fetch env:', error)
-          setMapCenter(FALLBACK_CENTER)
         }
       }
     }
     initializeMap()
-  }, [allSegments, mapRef])
+  }, [])
 
   const memoizedSegmentPolylines = useMemo(
     () => (
       <SegmentPolylines
         segments={allSegments || []}
-        onSegmentSelect={handleSegmentClick}
-        zoomLevel={mapCenter?.zoom || FALLBACK_CENTER.zoom}
+        onSegmentSelect={onSegmentSelect}
+        selectedSegmentIds={selectedSegmentIds}
+        zoomLevel={mapCenter?.zoom}
         setHoveredSegment={setHoveredSegment}
       />
     ),
-    [allSegments, handleSegmentClick, mapCenter?.zoom, FALLBACK_CENTER.zoom]
+    [allSegments, onSegmentSelect, mapCenter?.zoom, selectedSegmentIds]
   )
 
   if (!mapCenter) {

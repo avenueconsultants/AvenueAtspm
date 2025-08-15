@@ -1,3 +1,4 @@
+import { Segment } from '@/api/speedManagement/aTSPMSpeedManagementApi.schemas'
 import { Box } from '@mui/material'
 import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
@@ -7,14 +8,26 @@ const SegmentSelectMap = dynamic(() => import('./SegmentSelectMap'), {
   ssr: false,
 })
 
-const SegmentSelectMapWrapper: React.FC = () => {
+export interface SegmentSelectMapProps {
+  segments?: Segment[]
+  selectedSegmentIds?: string[]
+  onSegmentSelect?: (segment: Segment) => void
+}
+
+const SegmentSelectMapWrapper = ({
+  segments,
+  selectedSegmentIds,
+  onSegmentSelect,
+}: SegmentSelectMapProps) => {
   return (
     <Box sx={{ height: '100%', width: '100%' }}>
-      <SegmentSelectMap />
+      <SegmentSelectMap
+        segments={segments}
+        selectedSegmentIds={selectedSegmentIds}
+        onSegmentSelect={onSegmentSelect}
+      />
     </Box>
   )
 }
-
-SegmentSelectMapWrapper.displayName = 'SegmentSelectMapWrapper'
 
 export default memo(SegmentSelectMapWrapper)

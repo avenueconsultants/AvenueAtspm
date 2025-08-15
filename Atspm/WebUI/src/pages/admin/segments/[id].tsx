@@ -452,7 +452,6 @@ const SegmentAdminPage = () => {
     if (polylineCoordinates.length < 2) return
 
     fetchedOriginalRef.current = true
-    console.log('useEffect 3a: ')
     handleGetEntities(polylineCoordinates) // full-line query, no auto-link
   }, [segmentData, polylineCoordinates])
 
@@ -461,8 +460,7 @@ const SegmentAdminPage = () => {
     /* ───────── NEW SEGMENT ───────── */
     if (router.query.id === 'new') {
       if (polylineCoordinates.length >= 2 && activeTab == 1)
-        console.log('useEffect 4: ')
-      handleGetEntities(polylineCoordinates)
+        handleGetEntities(polylineCoordinates)
       return
     }
 
@@ -499,7 +497,6 @@ const SegmentAdminPage = () => {
     }
 
     if (added.length < 2) return
-    console.log('useEffect 4:  added length is great than 2')
     setIsLoadingEntities(true)
     // handleGetEntities(added)
     getNearByEntities({
@@ -521,7 +518,6 @@ const SegmentAdminPage = () => {
         const newIds = newlyWithin.map((e) => e.id)
         if (newIds.length) {
           setAssociatedEntityIds([...associatedEntityIds, ...newIds])
-          console.log('Should be new total of all ids: ', associatedEntityIds)
         }
       })
       .catch(() =>

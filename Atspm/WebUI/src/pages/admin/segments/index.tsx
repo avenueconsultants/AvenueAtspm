@@ -30,7 +30,7 @@ const SegmentsAdmin = () => {
     if (fetchedSegments) {
       setAllSegments(fetchedSegments)
     }
-  }, [fetchedSegments])
+  }, [fetchedSegments, setAllSegments])
 
   const handleSegmentSelect = useCallback(
     (segment: Segment | null) => {
@@ -76,7 +76,11 @@ const SegmentsAdmin = () => {
             height: 'auto',
           }}
         >
-          <SegmentSelectMapWrapper />
+          <SegmentSelectMapWrapper
+            segments={fetchedSegments}
+            selectedSegmentIds={[]}
+            onSegmentSelect={handleSegmentSelect}
+          />
         </Paper>
       </Box>
     </ResponsivePageLayout>
