@@ -3,7 +3,6 @@ import {
   useGetApiV1Users,
   usePostApiV1UsersUpdate,
 } from '@/api/identity/atspmAuthenticationApi'
-import { UserDTO } from '@/api/identity/atspmAuthenticationApi.schemas'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
@@ -11,7 +10,6 @@ import UserModal from '@/features/identity/components/users/UserModal'
 import {
   CustomCellConfig,
   UserRolesCell,
-} from '@/features/identity/components/users/UserRolesCell'
 } from '@/features/identity/components/users/UserRolesCell'
 import {
   PageNames,
@@ -36,11 +34,9 @@ const UsersAdmin = () => {
   } = useGetApiV1Users()
 
   const users = allUserData
-  const users = allUserData
 
-  const handleEditUser = async (userData: UserDTO) => {
+  const handleEditUser = async (userData) => {
     const { userId, firstName, lastName, agency, userName, email, roles } =
-      userData
       userData
     try {
       await editMutation({
@@ -61,21 +57,13 @@ const UsersAdmin = () => {
       })
     } catch (error) {
       console.error('Mutation Error:', error)
-      addNotification({
-        title: 'Failed to update user',
-        type: 'error',
-      })
     }
   }
 
-  const handleDeleteUser = async (id: string) => {
+  const handleDeleteUser = async (id: number) => {
     try {
-      await deleteMutation({ userId: id })
+      await deleteMutation(id)
       refetchUsers()
-      addNotification({
-        title: 'User deleted',
-        type: 'success',
-      })
     } catch (error) {
       console.error('Error deleting user:', error)
       addNotification({
@@ -84,10 +72,8 @@ const UsersAdmin = () => {
       })
     }
   }
-  }
 
   if (pageAccess.isLoading) {
-    return
     return
   }
 
@@ -103,11 +89,7 @@ const UsersAdmin = () => {
       roles: user.roles?.sort(),
     }
   })
-    }
-  })
 
-  const headers = ['Full Name', 'Username', 'Agency', 'Email', 'Roles']
-  const headerKeys = ['fullName', 'userName', 'agency', 'email', 'roles']
   const headers = ['Full Name', 'Username', 'Agency', 'Email', 'Roles']
   const headerKeys = ['fullName', 'userName', 'agency', 'email', 'roles']
 
@@ -117,23 +99,19 @@ const UsersAdmin = () => {
         <CircularProgress color="inherit" />
       </Backdrop>
     )
-    )
   }
 
   if (!allUserData) {
-    return <div>Error returning data</div>
     return <div>Error returning data</div>
   }
 
   const customCellRender: CustomCellConfig[] = [
     {
       headerKey: 'roles',
-      headerKey: 'roles',
       component: (value: string, row: string[]) => (
         <UserRolesCell value={value} row={row} headerKey="roles" />
       ),
     },
-  ]
   ]
 
   return (
@@ -153,7 +131,6 @@ const UsersAdmin = () => {
           <DeleteModal
             id={0}
             name={''}
-            name={''}
             deleteByKey="userId"
             objectType="User"
             deleteLabel={(selectedRow: UserDto) => selectedRow.fullName}
@@ -165,8 +142,5 @@ const UsersAdmin = () => {
     </ResponsivePageLayout>
   )
 }
-  )
-}
 
-export default UsersAdmin
 export default UsersAdmin

@@ -20,12 +20,16 @@ import { Backdrop, CircularProgress } from '@mui/material'
 const ProductsAdmin = () => {
   const pageAccess = useViewPage(PageNames.Products)
   const { addNotification } = useNotificationStore()
+  const { addNotification } = useNotificationStore()
 
   const hasLocationsEditClaim = useUserHasClaim('LocationConfiguration:Edit')
   const hasLocationsDeleteClaim = useUserHasClaim(
     'LocationConfiguration:Delete'
   )
 
+  const { mutateAsync: createMutation } = usePostProduct()
+  const { mutateAsync: deleteMutation } = useDeleteProductFromKey()
+  const { mutateAsync: editMutation } = usePatchProductFromKey()
   const { mutateAsync: createMutation } = usePostProduct()
   const { mutateAsync: deleteMutation } = useDeleteProductFromKey()
   const { mutateAsync: editMutation } = usePatchProductFromKey()
@@ -63,8 +67,16 @@ const ProductsAdmin = () => {
         type: 'success',
         title: 'Product created',
       })
+      addNotification({
+        type: 'success',
+        title: 'Product created',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({
+        type: 'error',
+        title: 'Failed to create product',
+      })
       addNotification({
         type: 'error',
         title: 'Failed to create product',
@@ -75,13 +87,22 @@ const ProductsAdmin = () => {
   const HandleDeleteProduct = async (id: number) => {
     try {
       await deleteMutation({ key: id })
+      await deleteMutation({ key: id })
       refetchProducts()
+      addNotification({
+        type: 'success',
+        title: 'Product deleted',
+      })
       addNotification({
         type: 'success',
         title: 'Product deleted',
       })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({
+        type: 'error',
+        title: 'Failed to delete product',
+      })
       addNotification({
         type: 'error',
         title: 'Failed to delete product',
@@ -95,14 +116,23 @@ const ProductsAdmin = () => {
       await editMutation({
         data: { manufacturer, model, webPage, notes },
         key: id,
+        key: id,
       })
       refetchProducts()
       addNotification({
         type: 'success',
         title: 'Product updated',
       })
+      addNotification({
+        type: 'success',
+        title: 'Product updated',
+      })
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({
+        type: 'error',
+        title: 'Failed to update product',
+      })
       addNotification({
         type: 'error',
         title: 'Failed to update product',
