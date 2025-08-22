@@ -68,7 +68,8 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
                 foreach (var result in aggregatedEvents)
                 {
                     if (result == null) continue;
-                    result.BinStartTime = binStart;
+                    result.Start = binStart;
+                    result.End = binEnd;
                     result.LocationIdentifier = location.LocationIdentifier;
                     results.Add(result);
                 }
@@ -124,28 +125,6 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
             }
         }
 
-        public static IEnumerable<DateTime> GetMonthsInRange(DateTime start, DateTime end)
-        {
-            var current = new DateTime(start.Year, start.Month, 1);
-
-            while (current <= end)
-            {
-                yield return current;
-                current = current.AddMonths(1);
-            }
-        }
-
-        public static IEnumerable<DateOnly> GetDaysInMonth(DateTime monthStart)
-        {
-            var start = DateOnly.FromDateTime(monthStart);
-            var daysInMonth = DateTime.DaysInMonth(monthStart.Year, monthStart.Month);
-
-            for (int day = 0; day < daysInMonth; day++)
-            {
-                yield return start.AddDays(day);
-            }
-        }
-
         private IEnumerable<ApproachSpeedAggregation> SpeedAggregationCalculations(Tuple<PhaseDetail, IEnumerable<IndianaEvent>, IEnumerable<SpeedEvent>, DateTime, DateTime> input)
         {
             var phaseDetail = input.Item1;
@@ -177,14 +156,16 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
                 start,
                 end);
 
-            var aggregatedSpeedEvents = GetAggregateSpeedEvents(input, cycleEvents, speedEvents, detector);
+            var aggregatedSpeedEvents = GetAggregateSpeedEvents(input, detector);
             approachSpeeds.Add(aggregatedSpeedEvents);
 
             return approachSpeeds;
         }
 
-        private ApproachSpeedAggregation GetAggregateSpeedEvents(Tuple<PhaseDetail, IEnumerable<IndianaEvent>, IEnumerable<SpeedEvent>, DateTime, DateTime> input, IReadOnlyList<IndianaEvent> cycleEvents, IEnumerable<SpeedEvent> speedEvents, Detector detector)
+        private ApproachSpeedAggregation GetAggregateSpeedEvents(Tuple<PhaseDetail, IEnumerable<IndianaEvent>, IEnumerable<SpeedEvent>, DateTime, DateTime> input, Detector detector)
         {
+            var speedEvents = input.Item3;
+            var cycleEvents = input.Item2;
             var speedEventsForDetector = speedEvents.Where(d => d.DetectorId == detector.DectectorIdentifier && d.Timestamp >= input.Item4 && d.Timestamp < input.Item5).ToList();
             var speedDetector = GetSpeedDetector(
                 input.Item4,
@@ -214,7 +195,8 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
 
             var aggregatedSpeed = new ApproachSpeedAggregation
             {
-                BinStartTime = input.Item4,
+                Start = input.Item4,
+                End = input.Item5,
                 ApproachId = input.Item1.Approach.Id,
                 SummedSpeed = averageSpeeds.Sum(),
                 SpeedVolume = averageSpeeds.Count,
