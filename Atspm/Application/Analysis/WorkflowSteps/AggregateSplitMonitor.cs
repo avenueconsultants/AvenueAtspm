@@ -62,7 +62,8 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
             foreach (var result in aggregatedEvents)
             {
                 if (result == null) continue;
-                result.BinStartTime = binStart;
+                result.Start = binStart;
+                result.End = binEnd;
                 result.LocationIdentifier = location.LocationIdentifier;
                 results.Add(result);
             }
