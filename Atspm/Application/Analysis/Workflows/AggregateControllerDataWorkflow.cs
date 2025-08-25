@@ -15,6 +15,7 @@
 // limitations under the License.
 #endregion
 
+using Microsoft.Extensions.DependencyInjection;
 using System.Threading.Tasks.Dataflow;
 using Utah.Udot.Atspm.Analysis.Plans;
 using Utah.Udot.Atspm.Data.Models.EventLogModels;
@@ -47,16 +48,49 @@ namespace Utah.Udot.Atspm.Analysis.Workflows
         }
     }
 
+    public class DetectorHourlySpeedAggregationWorkflow : WorkflowBase<List<Tuple<Guid, Detector, List<SpeedEvent>, List<IndianaEvent>>>, DetectorSpeedAggregation>
+    {
+        private readonly IServiceScopeFactory _services;
+        private readonly int _parallelProcesses;
+        private readonly CancellationToken _cancellationToken;
+        /// <summary>
+        /// Download, import, deocde and compresses <see cref="EventLogModelBase"/> objects from <see cref="Device"/>
+        /// </summary>
+        /// <param name="services">Used for getting scoped services</param>
+        /// <param name="parallelProcesses"><inheritdoc cref="DeviceEventLoggingConfiguration.ParallelProcesses"/></param>
+        /// <param name="cancellationToken"></param>
+        public DetectorHourlySpeedAggregationWorkflow(IServiceScopeFactory services, int parallelProcesses = 50, CancellationToken cancellationToken = default)
+        {
+            _services = services;
+            _parallelProcesses = parallelProcesses;
+            _cancellationToken = cancellationToken;
+        }
 
+        public CalculateHourlyDetectorAggregation CalculateHourSpeedData { get; private set; } //Pass in the bin size
+        public SaveHourlySpeedAggregations SaveSpeedAggregation { get; private set; }
 
+        /// <inheritdoc/>
+        protected override void AddStepsToTracker()
+        {
+            Steps.Add(CalculateHourSpeedData);
+            Steps.Add(SaveSpeedAggregation);
+        }
 
+        /// <inheritdoc/>
+        protected override void InstantiateSteps()
+        {
+            CalculateHourSpeedData = new(new ExecutionDataflowBlockOptions() { MaxDegreeOfParallelism = _parallelProcesses, CancellationToken = _cancellationToken });
+            SaveSpeedAggregation = new(_services, new ExecutionDataflowBlockOptions() { MaxDegreeOfParallelism = _parallelProcesses, CancellationToken = _cancellationToken });
 
+        }
 
-
-
-
-
-
+        /// <inheritdoc/>
+        protected override void LinkSteps()
+        {
+            Input.LinkTo(CalculateHourSpeedData, new DataflowLinkOptions() { PropagateCompletion = true });
+            CalculateHourSpeedData.LinkTo(SaveSpeedAggregation, new DataflowLinkOptions() { PropagateCompletion = true });
+        }
+    }
 
     public class UnboxArchivedEvents : TransformProcessStepBase<Tuple<Location, IEnumerable<CompressedEventLogBase>>, Tuple<Location, IEnumerable<EventLogModelBase>>>
     {
