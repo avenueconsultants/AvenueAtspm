@@ -21,6 +21,7 @@ const GROUPS: Record<string, PageNames[]> = {
     PageNames.Segments,
     PageNames.Impacts,
     PageNames.ImpactTypes,
+    PageNames.UpdateNewEntityVersion,
   ],
   'User Management': [PageNames.Users, PageNames.Roles],
   Other: [PageNames.FAQs, PageNames.MenuItems, PageNames.MeasureDefaults],

@@ -35,6 +35,7 @@ export enum PageNames {
   Impacts = 'Impacts',
   ImpactTypes = 'Impact Types',
   Segments = 'Segments',
+  UpdateNewEntityVersion = 'Add Entity Version',
 }
 
 const generalConfigListToLink: Map<string, string> = new Map([
@@ -44,6 +45,7 @@ const generalConfigListToLink: Map<string, string> = new Map([
   [PageNames.Impacts, '/admin/impacts'],
   [PageNames.ImpactTypes, '/admin/impact-types'],
   [PageNames.Segments, '/admin/segments'],
+  [PageNames.UpdateNewEntityVersion, '/admin/upload-new-entity-version'],
 ])
 const locationConfigListToLink: Map<string, string> = new Map([
   [PageNames.Areas, '/admin/areas'],
