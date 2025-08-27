@@ -127,15 +127,9 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.DeviceDownloaders
                 {
                     try
                     {
-                        int port;
-                        if (deviceProperties.Count > 0 && deviceProperties.ContainsKey(IpPort))
-                        {
-                            port = (int)deviceProperties.GetValueOrDefault(IpPort);
-                        }
-                        else
-                        {
-                            port = parameter.DeviceConfiguration.Port;
-                        }
+                        int port = deviceProperties.TryGetValue(IpPort, out var value)
+                            ? Convert.ToInt32(value)
+                            : parameter.DeviceConfiguration.Port;
                         var connection = new IPEndPoint(ipaddress, port);
                         var credentials = new NetworkCredential(user, password, ipaddress.ToString());
 
