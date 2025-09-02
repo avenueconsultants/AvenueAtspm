@@ -1,0 +1,1787 @@
+[
+  {
+    "eventType": "Active Phase Events",
+    "code": "0",
+    "descriptor": "Phase On",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when NEMA Phase On becomes active, either upon start of green or walk interval, whichever occurs first."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "1",
+    "descriptor": "Phase Begin Green",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when either solid or flashing green indication has begun. Do not set repeatedly during flashing operation."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "2",
+    "descriptor": "Phase Check",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when a conflicting call is registered against the active phase. (Marks beginning of MAX timing)"
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "3",
+    "descriptor": "Phase Min Complete",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase min timer expires."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "4",
+    "descriptor": "Phase Gap Out",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase gaps out, but may not necessarily occur upon phase termination. Event may be set multiple times within a single green under simultaneous gap out."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "5",
+    "descriptor": "Phase Max Out",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase MAX timer expires, but may not necessarily occur upon phase termination due to last car passage or other features."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "6",
+    "descriptor": "Phase Force Off",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase force off is applied to the active green phase."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "7",
+    "descriptor": "Phase Green Termination",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase green indications are terminated into either yellow clearance or permissive (FYA) movement."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "8",
+    "descriptor": "Phase Begin Yellow Clearance",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase yellow indication becomes active and clearance timer begins."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "9",
+    "descriptor": "Phase End Yellow Clearance",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase yellow indication becomes inactive."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "10",
+    "descriptor": "Phase Begin Red Clearance",
+    "parameter": "Phase # (1-16)",
+    "description": "Set only if phase red clearance is served. Set when red clearance timing begins."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "11",
+    "descriptor": "Phase End Red Clearance",
+    "parameter": "Phase # (1-16)",
+    "description": "Set only if phase red clearance is served. Set when red clearance timing concludes. This may not necessarily coincide with completion of the phase, especially during clearance of trailing overlaps, red revert timing, red rest, or delay for other ring terminations."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "12",
+    "descriptor": "Phase Inactive",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when the phase is no longer active within the ring, including completion of any trailing overlaps or end of barrier delays for adjacent ring termination."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "13",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "14",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "15",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "16",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "17",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "18",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "19",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Phase Events",
+    "code": "20",
+    "descriptor": "Phase events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "21",
+    "descriptor": "Pedestrian Begin Walk",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when walk indication becomes active."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "22",
+    "descriptor": "Pedestrian Begin Clearance",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when flashing don't walk indication becomes active."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "23",
+    "descriptor": "Pedestrian Begin Solid Don't Walk",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when don't walk indication becomes solid (non flashing) from either termination of ped clearance, or head illumination after a ped dark interval."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "24",
+    "descriptor": "Pedestrian Dark",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when the pedestrian outputs are set off."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "25",
+    "descriptor": "Pedestrian events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "26",
+    "descriptor": "Pedestrian events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "27",
+    "descriptor": "Pedestrian events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "28",
+    "descriptor": "Pedestrian events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "29",
+    "descriptor": "Pedestrian events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Active Pedestrian Events",
+    "code": "30",
+    "descriptor": "Pedestrian events reserved for future use.",
+    "parameter": "Phase # (1-16)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "31",
+    "descriptor": "Barrier Termination",
+    "parameter": "Barrier # (1-8)",
+    "description": "Set when all active phases become inactive in the ring and cross barrier phases are next to be served."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "32",
+    "descriptor": "FYA – Begin Permissive",
+    "parameter": "FYA # (1-4)",
+    "description": "Set when flashing yellow arrow becomes active."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "33",
+    "descriptor": "FYA – End Permissive",
+    "parameter": "FYA # (1-4)",
+    "description": "Set when flashing yellow arrow becomes inactive through either clearance of the permissive movement or transition into a protected movement."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "34",
+    "descriptor": "Barrier events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "35",
+    "descriptor": "Barrier events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "36",
+    "descriptor": "Barrier events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "37",
+    "descriptor": "Barrier events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "38",
+    "descriptor": "Barrier events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "39",
+    "descriptor": "Barrier events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Barrier / Ring Events",
+    "code": "40",
+    "descriptor": "Barrier events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "41",
+    "descriptor": "Phase Hold Active",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase hold is applied by the coordinator, preemptor, or external logic. Phase does not necessarily need to be actively timing for this event to occur."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "42",
+    "descriptor": "Phase Hold Released",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase hold is released by the coordinator, preemptor, or external logic. Phase does not necessarily need to be actively timing for this event to occur."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "43",
+    "descriptor": "Phase Call Registered",
+    "parameter": "Phase # (1-16)",
+    "description": "Call to service on a phase is registered by vehicular demand. This event will not be set if a recall exists on the phase."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "44",
+    "descriptor": "Phase Call Dropped",
+    "parameter": "Phase # (1-16)",
+    "description": "Call to service on a phase is cleared by either service of the phase or removal of call."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "45",
+    "descriptor": "Pedestrian Call Registered",
+    "parameter": "Phase # (1-16)",
+    "description": "Call to service on a phase is registered by pedestrian demand. This event will not be set if a recall exists on the phase."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "46",
+    "descriptor": "Phase Omit On",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase omit is applied by the coordinator, preemptor, or other dynamic sources. Phase does not necessarily need to be actively timing for this event to occur. This event is not set when phase is removed from the active sequence or other configuration-level change has occurred."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "47",
+    "descriptor": "Phase Omit Off",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when phase omit is released by the coordinator, preemptor, or other dynamic sources. Phase does not necessarily need to be actively timing for this event to occur. This event is not set when phase is added from the active sequence or other configuration-level change has occurred."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "48",
+    "descriptor": "Pedestrian Omit On",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when ped omit is applied by the coordinator, preemptor, or other dynamic sources. Phase does not necessarily need to be actively timing for this event to occur. This event is not set when phase is removed from the active sequence or other configuration-level change has occurred."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "49",
+    "descriptor": "Pedestrian Omit Off",
+    "parameter": "Phase # (1-16)",
+    "description": "Set when ped omit is released by the coordinator, preemptor, or other dynamic sources. Phase does not necessarily need to be actively timing for this event to occur. This event is not set when phase is added from the active sequence or other configuration-level change has occurred."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "50",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "51",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "52",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "53",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "54",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "55",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "56",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "57",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "58",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "59",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Phase Control Events",
+    "code": "60",
+    "descriptor": "Phase Control Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "61",
+    "descriptor": "Overlap Begin Green",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when overlap becomes green. Do not set repeatedly when overlap is flashing green. Note that overlap colors are consistent to the GYR intervals resultant from the controller programming and may not be indicative of actual signal head colors."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "62",
+    "descriptor": "Overlap Begin Trailing Green (Extension)",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when overlap is green and extension timers begin timing."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "63",
+    "descriptor": "Overlap Begin Yellow",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when overlap is in a yellow clearance state. Note that overlaps which drive yellow field indications during a dwell state may be reported as green or inactive. (common to mid-block signals)"
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "64",
+    "descriptor": "Overlap Begin Red Clearance",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when overlap begins timing red clearance intervals."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "65",
+    "descriptor": "Overlap Off (Inactive with red indication)",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when overlap has completed all timing, allowing any conflicting phase next to begin service."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "66",
+    "descriptor": "Overlap Dark",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when overlap head is set dark (no active outputs). The end of this interval shall be recorded by either an overlap off state or other active overlap state."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "67",
+    "descriptor": "Pedestrian Overlap Begin Walk",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when walk indication becomes active."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "68",
+    "descriptor": "Pedestrian Overlap Begin Clearance",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when flashing don't walk indication becomes active."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "69",
+    "descriptor": "Pedestrian Overlap Begin Solid Don't Walk",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when don't walk indication becomes solid (non flashing) from either termination of ped clearance, or head illumination after a ped dark interval."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "70",
+    "descriptor": "Pedestrian Overlap Dark",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Set when the pedestrian outputs are set off."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "71",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "72",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "73",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "74",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "75",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "76",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "77",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "78",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "79",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Overlap Events",
+    "code": "80",
+    "descriptor": "Overlap events reserved for future use.",
+    "parameter": "Overlap # (as number A=1 B=2, etc)",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "81",
+    "descriptor": "Detector Off",
+    "parameter": "DET Channel # (1-64)",
+    "description": "Detector on and off events shall be triggered post any detector delay/extension processing."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "82",
+    "descriptor": "Detector On",
+    "parameter": "DET Channel # (1-64)",
+    "description": ""
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "83",
+    "descriptor": "Detector Restored",
+    "parameter": "DET Channel # (1-64)",
+    "description": "Detector restored to non-failed state by either manual restoration or re-enabling via continued diagnostics."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "84",
+    "descriptor": "Detector Fault - Other",
+    "parameter": "DET Channel # (1-64)",
+    "description": "Detector failure logged upon local controller diagnostics only (not system diagnostics)."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "85",
+    "descriptor": "Detector Fault - Watchdog Fault",
+    "parameter": "DET Channel # (1-64)",
+    "description": "Detector failure logged upon local controller diagnostics only (not system diagnostics)."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "86",
+    "descriptor": "Detector Fault - Open Loop Fault",
+    "parameter": "DET Channel # (1-64)",
+    "description": "Detector failure logged upon local controller diagnostics only (not system diagnostics)."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "87",
+    "descriptor": "Detector Fault - Shorted Loop Fault",
+    "parameter": "DET Channel # (1-64)",
+    "description": "Detector failure logged upon local controller diagnostics only (not system diagnostics)."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "88",
+    "descriptor": "Detector Fault - Excessive Change Fault",
+    "parameter": "DET Channel # (1-64)",
+    "description": "Detector failure logged upon local controller diagnostics only (not system diagnostics)."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "89",
+    "descriptor": "PedDetector Off",
+    "parameter": "DET Channel # (1-16)",
+    "description": "Ped detector events shall be triggered post any detector delay/extension processing and may be set multiple times for a single pedestrian call. (with future intent to eventually support ped presence and volume)"
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "90",
+    "descriptor": "PedDetector On",
+    "parameter": "DET Channel # (1-16)",
+    "description": ""
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "91",
+    "descriptor": "Pedestrian Detector Failed",
+    "parameter": "Ped Det # (1-16)",
+    "description": "Detector failure logged upon local controller diagnostics only (not system diagnostics)."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "92",
+    "descriptor": "Pedestrian Detector Restored",
+    "parameter": "Ped Det # (1-16)",
+    "description": "Detector failure logged upon local controller diagnostics only (not system diagnostics)."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "93",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "94",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "95",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "96",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "97",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "98",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "99",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Detector Events",
+    "code": "100",
+    "descriptor": "Detector events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "101",
+    "descriptor": "Preempt Advance Warning Input",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when preemption advance warning input is activated."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "102",
+    "descriptor": "Preempt (Call) Input On",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when preemption input is activated (prior to preemption delay timing). May be set multiple times if input is intermittent during preemption service."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "103",
+    "descriptor": "Preempt Gate Down Input Received",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when gate down input is received by the controller (if available)."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "104",
+    "descriptor": "Preempt (Call) Input Off",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when preemption input is de-activated. May be set multiple times if input is intermittent during preemption service."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "105",
+    "descriptor": "Preempt Entry Started",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when preemption delay expires and controller begins transition timing (force off) to serve preemption."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "106",
+    "descriptor": "Preemption Begin Track Clearance",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when track clearance phases are green and track clearance timing begins."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "107",
+    "descriptor": "Preemption Begin Dwell Service",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when preemption dwell or limited service begins or minimum dwell timer is reset due to call drop and reapplication."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "108",
+    "descriptor": "Preemption Link Active On",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when linked preemptor input is applied from active preemptor."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "109",
+    "descriptor": "Preemption Link Active Off",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when linked preemptor input is dropped from active preemptor."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "110",
+    "descriptor": "Preemption Max Presence Exceeded",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when preemption max presence timer is exceeded and preemption input is released from service."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "111",
+    "descriptor": "Preemption Begin Exit Interval",
+    "parameter": "Preempt # (1-10)",
+    "description": "Set when preemption exit interval phases are green and exit timing begins."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "112",
+    "descriptor": "TSP Check In",
+    "parameter": "TSP # (1-10)",
+    "description": "Set when request for priority is received."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "113",
+    "descriptor": "TSP Adjustment to Early Green",
+    "parameter": "TSP # (1-10)",
+    "description": "Set when controller is adjusting active cycle to accommodate early service to TSP phases."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "114",
+    "descriptor": "TSP Adjustment to Extend Green",
+    "parameter": "TSP # (1-10)",
+    "description": "Set when controller is adjusting active cycle to accommodate extended service to TSP phases."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "115",
+    "descriptor": "TSP Check Out",
+    "parameter": "TSP # (1-10)",
+    "description": "Set when request for priority is retracted."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "116",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "117",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "118",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "119",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "120",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "121",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "122",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "123",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "124",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "125",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "126",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "127",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "128",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "129",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Preemption Events",
+    "code": "130",
+    "descriptor": "Preemption Events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "131",
+    "descriptor": "Coord Pattern Change",
+    "parameter": "Pattern # (0-255)",
+    "description": "Coordination pattern that is actively running in the controller. (Highest priority of TOD, System or manual command). This event will not be reapplied if coordination is temporarily suspended for preemption or other external control."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "132",
+    "descriptor": "Cycle Length Change",
+    "parameter": "Seconds (0-255)",
+    "description": "This event shall be populated upon selection of a new coordination pattern change that selects a new cycle length. Cycle lengths in excess of 255 shall record this event with a 255 parameter, requiring controller database lookup for this actual value."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "133",
+    "descriptor": "Offset Length Change",
+    "parameter": "Seconds (0-255)",
+    "description": "This event shall be populated upon selection of a new coordination pattern change that selects a new offset length. Offsets in excess of 255 shall record this event with a 255 parameter, requiring controller database lookup for this actual value."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "134",
+    "descriptor": "Split 1 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": "Split change events shall be populated upon selection of a new coordination pattern as well as during a split change to an active pattern via ACS Lite or other adaptive control system."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "135",
+    "descriptor": "Split 2 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "136",
+    "descriptor": "Split 3 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "137",
+    "descriptor": "Split 4 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "138",
+    "descriptor": "Split 5 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "139",
+    "descriptor": "Split 6 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "140",
+    "descriptor": "Split 7 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "141",
+    "descriptor": "Split 8 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "142",
+    "descriptor": "Split 9 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "143",
+    "descriptor": "Split 10 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "144",
+    "descriptor": "Split 11 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "145",
+    "descriptor": "Split 12 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "146",
+    "descriptor": "Split 13 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "147",
+    "descriptor": "Split 14 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "148",
+    "descriptor": "Split 15 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "149",
+    "descriptor": "Split 16 Change",
+    "parameter": "New Split Time in Seconds (0-255)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "150",
+    "descriptor": "Coord cycle state change",
+    "parameter": "Parameter (0-6)",
+    "description": "0 = Free; 1 = In Step; 2 = Transition - Add; 3 = Transition - Subtract; 4 = Transition - Dwell; 5 = Local Zero; 6 = Begin Pickup."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "151",
+    "descriptor": "Coordinated phase yield point",
+    "parameter": "Phase # (1-16)",
+    "description": ""
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "152",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "153",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "154",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "155",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "156",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "157",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "158",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "159",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "160",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "161",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "162",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "163",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "164",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "165",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "166",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "167",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "168",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "169",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Coordination Events",
+    "code": "170",
+    "descriptor": "Coordination events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "171",
+    "descriptor": "Test Input on",
+    "parameter": "Test Input # (as number A=1 B=2, etc)",
+    "description": "Cabinet test or special function input as defined by the local controller."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "172",
+    "descriptor": "Test Input off",
+    "parameter": "Test Input # (as number A=1 B=2, etc)",
+    "description": "Cabinet test or special function input as defined by the local controller."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "173",
+    "descriptor": "Unit Flash Status change",
+    "parameter": "NTCIP Flash state # (0-255)",
+    "description": "See NTCIP 1202 2.4.5 for definition."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "174",
+    "descriptor": "Unit Alarm Status 1 change",
+    "parameter": "NTCIP Alarm Status 1# (0-255)",
+    "description": "See NTCIP 1202 2.4.8 for definition."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "175",
+    "descriptor": "Alarm Group State Change",
+    "parameter": "NTCIP Alarm Group State (0-255)",
+    "description": "See NTCIP 1202 2.4.12.2 for definition."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "176",
+    "descriptor": "Special Function Output on",
+    "parameter": "Special Function # (0-255)",
+    "description": "Special function output as defined by the local controller."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "177",
+    "descriptor": "Special Function Output off",
+    "parameter": "Special Function # (0-255)",
+    "description": "Special function output as defined by the local controller."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "178",
+    "descriptor": "Manual control enable off/on",
+    "parameter": "Manual control enable off/on # (0,1)",
+    "description": ""
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "179",
+    "descriptor": "Interval Advance off/on",
+    "parameter": "Interval Advance off/on # (0,1)",
+    "description": "leading edge on (1), lagging edge (0) optional"
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "180",
+    "descriptor": "Stop Time Input off/on",
+    "parameter": "Stop Time Input Advance off/on # (0,1)",
+    "description": "Set when stop time input is applied or removed, regardless of source of stop."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "181",
+    "descriptor": "Controller Clock Updated",
+    "parameter": "Optional parameter: Time correction in Seconds (0-255)",
+    "description": "Set when the controller OS clock is adjusted via communications, OS command, or external input."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "182",
+    "descriptor": "Power Failure Detected",
+    "parameter": "True (1)",
+    "description": "Line voltage drops between 0–89 volts AC for more than 100 ms."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "184",
+    "descriptor": "Power Restored",
+    "parameter": "True (1)",
+    "description": "Line voltage applied/reapplied greater than 98 volts AC."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "185",
+    "descriptor": "Vendor Specific Alarm",
+    "parameter": "Vendor defined parameter",
+    "description": "Placeholder for generic failure/alarm types as defined by vendor."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "186",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "187",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "188",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "189",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "190",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "191",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "192",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "193",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "194",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "195",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "196",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "197",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "198",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "199",
+    "descriptor": "Cabinet/System events reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "200",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "201",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "202",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "203",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "204",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "205",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "206",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "207",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "208",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "209",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "210",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "211",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "212",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "213",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "214",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "215",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "216",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "217",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "218",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "219",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "220",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "221",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "222",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "223",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "224",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "225",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "226",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "227",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "228",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "229",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "230",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "231",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "232",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "233",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "234",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "235",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "236",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "237",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "238",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "239",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "240",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "241",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "242",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "243",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "244",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "245",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "246",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "247",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "248",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "249",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "250",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "251",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "252",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "253",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "254",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  },
+  {
+    "eventType": "Cabinet / System Events",
+    "code": "255",
+    "descriptor": "Reserved for future use.",
+    "parameter": "",
+    "description": "Reserved for future use."
+  }
+]

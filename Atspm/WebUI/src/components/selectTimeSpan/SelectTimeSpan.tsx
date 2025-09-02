@@ -218,8 +218,12 @@ export default function SelectDateTime({
             </>
           )}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={handleSameDay}>Same Day</Button>
-            <Button onClick={handleResetDate}>Reset</Button>
+            {!startDateOnly && (
+              <>
+                <Button onClick={handleSameDay}>Same Day</Button>
+                <Button onClick={handleResetDate}>Reset</Button>
+              </>
+            )}
           </Box>
           {!noCalendar && calendarLocation === 'bottom' && (
             <Box mx={-3}>{displayCalendarContainer()}</Box>

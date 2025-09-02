@@ -1,6 +1,9 @@
 import { Location } from '@/api/config'
+import EventCodesPanel from '@/components/EventCodePanel'
+import { EventCodesInput } from '@/components/EventCodesInput'
 import OptionsWrapper from '@/components/OptionsWrapper'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
+import RightSidebar from '@/components/RightSidebar'
 import SelectDateTime from '@/components/selectTimeSpan'
 import { ResponseFormat, useEventLogs } from '@/features/data/api/getEventLogs'
 import SelectDataType, {
@@ -10,20 +13,27 @@ import { useGetAggData } from '@/features/data/exportData/api/getAggData'
 import SelectLocation from '@/features/locations/components/selectLocation'
 import useMissingDays from '@/hooks/useMissingDays'
 import Authorization from '@/lib/Authorization'
+import indianaHighRezDataEnumerations from '@/lib/indianaHighResDataEnumerations.json'
+import { useSidebarStore } from '@/stores/sidebar'
 import { dateToTimestamp } from '@/utils/dateTime'
 import DownloadIcon from '@mui/icons-material/Download'
 import { LoadingButton } from '@mui/lab'
 import {
   Alert,
   Box,
+  Button,
   List,
   ListItemButton,
   ListItemText,
   Paper,
+  TextField,
+  Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material'
+import { createFilterOptions } from '@mui/material/Autocomplete'
 import {
+  addDays,
   endOfMonth,
   endOfWeek,
   isValid,
@@ -32,12 +42,40 @@ import {
   startOfTomorrow,
   startOfWeek,
 } from 'date-fns'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+
+type EventItem = {
+  eventType: string
+  code: string
+  descriptor: string
+  parameter: string
+  description: string
+}
+
+const allEvents = indianaHighRezDataEnumerations as EventItem[]
 
 const options = ['csv', 'json']
 
 const ExportData = () => {
   const theme = useTheme()
+  const { openRightSidebar } = useSidebarStore()
+
+  const [eventCodes, setEventCodes] = useState<string[]>([])
+
+  // codes to list as options
+  const codeOptions = useMemo(() => allEvents.map((e) => e.code), [])
+  const codeToDescriptor = useMemo(
+    () =>
+      allEvents.reduce<Record<string, string>>((acc, e) => {
+        acc[e.code] = e.descriptor || 'Reserved for future use'
+        return acc
+      }, {}),
+    []
+  )
+
+  const filterOptions = createFilterOptions<string>({
+    stringify: (code) => `${code} ${codeToDescriptor[code] ?? ''}`,
+  })
 
   const [location, setLocation] = useState<Location | null>(null)
   const [error, setError] = useState(false)
@@ -62,7 +100,9 @@ const ExportData = () => {
   const { refetch: refetchEventLogs } = useEventLogs({
     locationIdentifier: location?.locationIdentifier || '',
     start: isValid(startDateTime) ? dateToTimestamp(startDateTime) : '',
-    end: isValid(endDateTime) ? dateToTimestamp(endDateTime) : '',
+    end: isValid(addDays(endDateTime, 1))
+      ? dateToTimestamp(addDays(endDateTime, 1))
+      : '',
     dataType: selectedOption.name,
     ResponseFormat: downloadFormat,
   })
@@ -81,6 +121,8 @@ const ExportData = () => {
     calendarEndDate
     // selectedOption.type === 'aggregation'
   )
+
+  console.log('options', location?.locationIdentifier, selectedOption)
 
   const handleStartDateTimeChange = (date: Date) => setStartDateTime(date)
   const handleEndDateTimeChange = (date: Date) => setEndDateTime(date)
@@ -201,7 +243,7 @@ const ExportData = () => {
                 setSelectedDataType={setSelectedOption}
               />
               <Box display="flex" flexDirection="column">
-                <OptionsWrapper header="Export Options">
+                <OptionsWrapper header="Export Options" noPadding>
                   <Box sx={{ overflow: 'auto' }}>
                     <List sx={{ marginTop: '-8px' }}>
                       {options.map((opt, index) => (
@@ -220,9 +262,50 @@ const ExportData = () => {
                   </Box>
                 </OptionsWrapper>
               </Box>
+              <Box display="flex" flexDirection="column">
+                <OptionsWrapper header="Filters" noPadding>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 2,
+                      p: 2,
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography
+                        variant="subtitle2"
+                        sx={{ flex: 1, color: 'text.secondary' }}
+                      >
+                        Narrow results by event code/params
+                      </Typography>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={openRightSidebar}
+                      >
+                        List of event codes
+                      </Button>
+                    </Box>
+
+                    <EventCodesInput
+                      EventCodes={eventCodes ?? []}
+                      setEventCodes={setEventCodes}
+                      label="Event Codes"
+                      placeholder="e.g., 1,3,5-8,12"
+                    />
+
+                    <TextField label="Event Params" />
+                  </Box>
+                </OptionsWrapper>
+              </Box>
             </Box>
           </Box>
         </Box>
+
+        <RightSidebar>
+          <EventCodesPanel />
+        </RightSidebar>
 
         <Box sx={{ display: 'flex', gap: '10px', mt: '10px', mb: '120px' }}>
           <LoadingButton

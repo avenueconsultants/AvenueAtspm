@@ -207,6 +207,56 @@ namespace Utah.Udot.Atspm.DataApi.Controllers
             return Ok(result);
         }
 
+        ///// <summary>
+        ///// Get all event logs for location by date, device id and datatype filtered by event codes and/or event params
+        ///// </summary>
+        ///// <param name="locationIdentifier">Location identifier</param>
+        ///// <param name="deviceId">Deivce id events came from</param>
+        ///// <param name="dataType">Type that inherits from <see cref="EventLogModelBase"/></param>
+        ///// <param name="start">Archive date of event to start with</param>
+        ///// <param name="end">Archive date of event to end with</param>
+        ///// <param name="eventCodes">List of event codes to filter by</param>
+        ///// <param name="eventParams">List of event params to filter by</param>
+        ///// <returns></returns>
+        ///// <response code="200">Call completed successfully</response>
+        ///// <response code="400">Invalid request (date)</response>
+        ///// <response code="404">Resource not found</response>
+        //[HttpGet("[Action]/{locationIdentifier}/{deviceId:int}/{dataType}")]
+        //[Produces("application/json", "application/xml")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status400BadRequest)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //public IActionResult GetArchivedEventsWithFilters(string locationIdentifier, int deviceId, string dataType, DateTime start, DateTime end, [FromRouteAttribute]List<int> eventCodes, List<int> eventParams)
+        //{
+        //    if (start == DateTime.MinValue || end == DateTime.MinValue || end < start)
+        //        return BadRequest("Invalid date range");
+
+        //    if (deviceId == 0)
+        //        return BadRequest("Invalid device id");
+
+        //    Type type;
+
+        //    try
+        //    {
+        //        type = Type.GetType($"{typeof(EventLogModelBase).Namespace}.{dataType}, {typeof(EventLogModelBase).Assembly}", true);
+        //    }
+        //    catch (Exception)
+        //    {
+        //        return BadRequest("Invalid data type");
+        //    }
+
+        //    var result = _repository.GetArchivedEvents(locationIdentifier, start, end, type, deviceId);
+
+        //    if (result.Count == 0)
+        //        return NotFound();
+
+        //    HttpContext.Response.Headers.Add("X-Total-Count", result.Count.ToString());
+
+        //    return Ok(result);
+        //}
+    
+
+
         /// <summary>
         /// Get all days that have event logs for a given location.
         /// </summary>
