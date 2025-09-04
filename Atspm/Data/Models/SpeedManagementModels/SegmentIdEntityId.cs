@@ -1,4 +1,4 @@
-﻿namespace Utah.Udot.SpeedManagement.Data.Models.SpeedManagementModels.Config
+﻿namespace Utah.Udot.Atspm.Data.Models.SpeedManagementModels
 {
     public class SegmentIdEntityId
     {
@@ -12,4 +12,3 @@
         public virtual Entity? Entity { get; set; } = null;
     }
 }
-

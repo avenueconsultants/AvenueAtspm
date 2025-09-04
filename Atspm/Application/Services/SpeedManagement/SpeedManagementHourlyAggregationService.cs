@@ -2,9 +2,9 @@
 using System.Threading.Tasks.Dataflow;
 using Utah.Udot.Atspm.Analysis.Workflows;
 using Utah.Udot.Atspm.Data.Models.EventLogModels;
+using Utah.Udot.Atspm.Data.Models.SpeedManagementModels;
 using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.Repositories.EventLogRepositories;
-using Utah.Udot.SpeedManagement.Data.Models.SpeedManagementModels.Config;
 
 namespace Utah.Udot.Atspm.Services.SpeedManagement
 {
