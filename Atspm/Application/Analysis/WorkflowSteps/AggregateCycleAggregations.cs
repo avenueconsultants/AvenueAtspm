@@ -25,7 +25,7 @@ using RedToRedCycle = Utah.Udot.Atspm.Business.Common.RedToRedCycle;
 namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
 {
     /// <summary>
-    /// Transforms <see cref="IndianaEvent"/> into <see cref="DetectorEventCountAggregation"/>
+    /// Transforms <see cref="IndianaEvent"/> into <see cref="AggregateCycleAggregations"/>
     /// where <see cref="IndianaEvent.EventCode"/> equals <see cref="IndianaEnumerations.VehicleDetectorOn"/>
     /// and <see cref="IndianaEvent.EventParam"/> equals <see cref="Detector.DetectorChannel"/>.
     /// </summary>
