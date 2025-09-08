@@ -54,6 +54,7 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
             DateTime binEnd = indianaEvents.Select(i => i.Timestamp).OrderBy(i => i).LastOrDefault();
             var phaseGroups = indianaEvents.GroupBy(e => e.EventParam).ToList();
             var phaseDetails = GetPhases(location);
+            var phaseBeginCount = indianaEvents.Count(i => i.EventCode == 0);
 
             var results = new ConcurrentBag<PhaseCycleAggregation>();
             Parallel.ForEach(phaseGroups, group =>
@@ -84,7 +85,8 @@ namespace Utah.Udot.Atspm.Analysis.WorkflowSteps
                         YellowTime = yellowTime,
                         GreenTime = greenTime,
                         TotalRedToRedCycles = totalRedToRedCycles,
-                        TotalGreenToGreenCycles = totalGreenToGreenCycles
+                        TotalGreenToGreenCycles = totalGreenToGreenCycles,
+                        PhaseBeginCount = phaseBeginCount
                     });
                 }
 
