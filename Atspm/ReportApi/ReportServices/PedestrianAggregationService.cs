@@ -68,6 +68,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             {
                 var phasePedAggEvent = _PhasePedAggregationRepository.GetAggregationsBetweenDates(location.LocationIdentifier, parameter.StartDate, parameter.EndDate);
                 var phaseCycleAggEvent = _PhaseCycleAggregationRepository.GetAggregationsBetweenDates(location.LocationIdentifier, parameter.StartDate, parameter.EndDate);
+
                 if (parameter.Phase != null)
                 {
                     phaseCycleAggEvent = phaseCycleAggEvent.Where(i => i.PhaseNumber == parameter.Phase).ToList();
@@ -184,34 +185,23 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
 
             double count = values.Sum(i => i);
 
-            double mean = values.Average();
-            double std = Math.Sqrt(values.Sum(v => Math.Pow(v - mean, 2)) / count);
-            double min = values.First();
-            double max = values.Last();
-
-            double Percentile(List<double> sortedValues, double p)
-            {
-                if (sortedValues.Count == 0) return double.NaN;
-                double pos = (sortedValues.Count - 1) * p;
-                int index = (int)pos;
-                double frac = pos - index;
-                if (index + 1 < sortedValues.Count)
-                    return sortedValues[index] + frac * (sortedValues[index + 1] - sortedValues[index]);
-                return sortedValues[index];
-            }
+            double mean = AtspmMath.Mean(values);
+            double std = AtspmMath.SampleStandardDeviation(values);
+            double min = AtspmMath.Min(values);
+            double max = AtspmMath.Max(values);
 
             return new StatisticsDataPoint
             {
                 Events = rawData.Count(),
                 Count = count,
                 MissingCount = 0,
-                Mean = Math.Round(mean),
-                Std = Math.Round(std),
-                Min = Math.Round(min),
-                Max = Math.Round(max),
-                TwentyFifthPercentile = Math.Round(Percentile(values, 0.25)),
-                FiftyithPercentile = Math.Round(Percentile(values, 0.5)),
-                SeventyFifthPercentile = Math.Round(Percentile(values, 0.75))
+                Mean = mean,
+                Std = std,
+                Min = min,
+                Max = max,
+                TwentyFifthPercentile = Math.Round(AtspmMath.Percentile(values, 0.25)),
+                FiftyithPercentile = Math.Round(AtspmMath.Percentile(values, 0.5)),
+                SeventyFifthPercentile = Math.Round(AtspmMath.Percentile(values, 0.75))
             };
         }
 
