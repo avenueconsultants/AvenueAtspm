@@ -141,6 +141,7 @@ namespace Utah.Udot.Atspm.Data.Models
         public int GreenTime { get; set; }
         public int TotalRedToRedCycles { get; set; }
         public int TotalGreenToGreenCycles { get; set; }
+        public int PhaseBeginCount { get; set; }
     }
 
     public partial class PhaseLeftTurnGapAggregation : AggregationModelBase, ILocationApproachLayer, ILocationPhaseLayer
@@ -178,9 +179,9 @@ namespace Utah.Udot.Atspm.Data.Models
         public double PedDelay { get; set; }
         public double MinPedDelay { get; set; }
         public double MaxPedDelay { get; set; }
-        public int ImputedPedCallsRegistered { get; set; }
-        public int UniquePedDetections { get; set; }
-        public int PedBeginWalkCount { get; set; }
+        public int ImputedPedCallsRegistered { get; set; } // Recall 45's //45B
+        public int UniquePedDetections { get; set; } //90C
+        public int PedBeginWalkCount { get; set; } //The 21's for recall  (PedBeginWalkCount >= ImputedPedCallsRegistered then that means that is is recall is true)
         public int PedCallsRegisteredCount { get; set; }
         public int PedRequests { get; set; }
 
