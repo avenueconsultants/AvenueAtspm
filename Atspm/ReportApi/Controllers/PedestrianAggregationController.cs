@@ -1,16 +1,17 @@
 ﻿#region license
 // Copyright 2025 Utah Departement of Transportation
-// for ReportApi - Utah.Udot.Atspm.ReportApi.Controllers/WaitTimeController.cs
+// for ReportApi - Utah.Udot.Atspm.ReportApi.Controllers/PedestrianAggregationController.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 // 
-// http://www.apache.org/licenses/LICENSE-2.
+// http://www.apache.org/licenses/LICENSE-2.0
 // 
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+// either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #endregion
@@ -19,17 +20,28 @@ using Asp.Versioning;
 using AutoFixture;
 using Microsoft.AspNetCore.Mvc;
 using Utah.Udot.Atspm.Data.Models.AggregationModels;
+using Utah.Udot.Atspm.ReportApi.ReportServices;
 
 namespace Utah.Udot.Atspm.ReportApi.Controllers
 {
     /// <summary>
-    /// Wait time report controller
+    /// pedat report controller
     /// </summary>
     [ApiVersion(1.0)]
     [ApiController]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class PedestrianAggregationController : ControllerBase
     {
+        private readonly PedestrianAggregationService _pedestrianAggregationService;
+
+        /// <summary>
+        /// Constructor with DI
+        /// </summary>
+        public PedestrianAggregationController(PedestrianAggregationService pedestrianAggregationService)
+        {
+            _pedestrianAggregationService = pedestrianAggregationService;
+        }
+
         /// <summary>
         /// Get example data for testing
         /// </summary>
@@ -50,45 +62,14 @@ namespace Utah.Udot.Atspm.ReportApi.Controllers
         [HttpPost("get-data")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<PedatLocationData>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<IEnumerable<PedatLocationData>> GetLocationData([FromBody] PedatLocationDataQuery query)
+        public async Task<ActionResult<IEnumerable<PedatLocationData>>> GetLocationData([FromBody] PedatLocationDataQuery query)
         {
             if (query == null || query.LocationIdentifiers == null || query.LocationIdentifiers.Count == 0)
                 return BadRequest("Invalid query parameters.");
 
-            // TODO: Replace this with real service/repository call
-            var exampleData = new List<PedatLocationData>
-            {
-                new PedatLocationData
-                {
-                    LocationIdentifier = "123",
-                    TotalVolume = 6500,
-                    AverageDailyVolume = 55,
-                    AverageVolumeByHourOfDay = new List<IndexedVolume>
-                    {
-                        new IndexedVolume { Index = 0, Volume = 1 },
-                        new IndexedVolume { Index = 1, Volume = 5 },
-                        // ... continue up to Index 23 if needed
-                    },
-                    AverageVolumeByDayOfWeek = new List<IndexedVolume>
-                    {
-                        new IndexedVolume { Index = 1, Volume = 65 }, // Monday
-                        new IndexedVolume { Index = 2, Volume = 72 },
-                    },
-                    AverageVolumeByMonthOfYear = new List<IndexedVolume>
-                    {
-                        new IndexedVolume { Index = 1, Volume = 300 }, // January
-                        new IndexedVolume { Index = 2, Volume = 250 }, // February
-                    },
-                    RawData = new List<RawDataPoint>
-                    {
-                        new RawDataPoint { },
-                        new RawDataPoint { }
-                    }
-                }
-            };
+            var result = await _pedestrianAggregationService.ExecuteAsync(query, null);
 
-            return Ok(exampleData);
+            return Ok(result);
         }
-
     }
 }

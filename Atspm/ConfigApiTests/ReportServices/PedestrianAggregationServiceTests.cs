@@ -24,16 +24,11 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices.Tests
             _mockLocationRepo = new Mock<ILocationRepository>();
             _mockPedRepo = new Mock<IPhasePedAggregationRepository>();
             _mockCycleRepo = new Mock<IPhaseCycleAggregationRepository>();
-            _mockEventRepo = new Mock<IIndianaEventLogRepository>();
-            _mockPhaseService = new Mock<PhaseService>();
 
             _service = new PedestrianAggregationService(
-                null, // LocationPhaseService not used in ExecuteAsync
                 _mockLocationRepo.Object,
                 _mockPedRepo.Object,
-                _mockCycleRepo.Object,
-                _mockEventRepo.Object,
-                _mockPhaseService.Object
+                _mockCycleRepo.Object
             );
         }
 
@@ -421,6 +416,165 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices.Tests
             Assert.IsTrue(stats.Mean > 0, "StatisticData.Mean should be positive");
             Assert.IsTrue(stats.Min >= 0, "StatisticData.Min should not be negative");
             Assert.IsTrue(stats.Max >= stats.Min, "Max should be >= Min");
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsync_FiltersByPhaseNumber_ReturnsOnlySelectedPhase()
+        {
+            // Arrange
+            string locationId = "LOC-PHASE";
+            DateTime start = new DateTime(2025, 9, 1, 6, 0, 0);
+            DateTime end = start.AddHours(2);
+
+            _mockLocationRepo.Setup(x => x.GetLatestVersionOfLocation(locationId, start))
+                .Returns(new Location
+                {
+                    LocationIdentifier = locationId,
+                    PrimaryName = "PhaseTest",
+                    SecondaryName = "Intersection",
+                    Latitude = 40.1,
+                    Longitude = -111.2
+                });
+
+            // Two pedestrian aggregations: one Phase 1, one Phase 2
+            _mockPedRepo.Setup(x => x.GetAggregationsBetweenDates(locationId, start, end))
+                .Returns(new List<PhasePedAggregation>
+                {
+            new PhasePedAggregation
+            {
+                Start = start,
+                End = start.AddMinutes(30),
+                PhaseNumber = 1,
+                PedBeginWalkCount = 5,
+                ImputedPedCallsRegistered = 5,
+                UniquePedDetections = 3
+            },
+            new PhasePedAggregation
+            {
+                Start = start.AddHours(1),
+                End = start.AddHours(1).AddMinutes(30),
+                PhaseNumber = 2,
+                PedBeginWalkCount = 10,
+                ImputedPedCallsRegistered = 10,
+                UniquePedDetections = 8
+            }
+                });
+
+            // Cycle data for both phases
+            _mockCycleRepo.Setup(x => x.GetAggregationsBetweenDates(locationId, start, end))
+                .Returns(new List<PhaseCycleAggregation>
+                {
+            new PhaseCycleAggregation
+            {
+                Start = start,
+                End = start.AddMinutes(30),
+                PhaseNumber = 1,
+                PhaseBeginCount = 2
+            },
+            new PhaseCycleAggregation
+            {
+                Start = start.AddHours(1),
+                End = start.AddHours(1).AddMinutes(30),
+                PhaseNumber = 2,
+                PhaseBeginCount = 4
+            }
+                });
+
+            var query = new PedatLocationDataQuery
+            {
+                LocationIdentifiers = new List<string> { locationId },
+                StartDate = start,
+                EndDate = end,
+                TimeUnit = PedestrianTimeUnit.Hour,
+                Phase = 1 // <-- Select only Phase 1
+            };
+
+            // Act
+            var result = await _service.ExecuteAsync(query, null);
+            var data = result.First();
+
+            // Assert: Ensure only Phase 1 data is present
+            Assert.IsNotNull(data);
+            Assert.AreEqual(locationId, data.LocationIdentifier);
+            Assert.IsTrue(data.TotalVolume > 0);
+
+            // Check raw data only contains phase 1 results
+            Assert.AreEqual(1, data.RawData.Count, "Only Phase 1 should be included in RawData");
+            var raw = data.RawData.First();
+            Assert.AreEqual(start, raw.TimeStamp, "Phase 1 timestamp expected");
+
+            // Make sure Phase 2 did not sneak in
+            Assert.AreEqual(data.TotalVolume, raw.PedestrianCount, "TotalVolume should equal Phase 1 pedestrian count");
+            Assert.IsTrue(data.TotalVolume < 15, "Phase 2 contribution must not be included");
+        }
+
+        [TestMethod]
+        public async Task ExecuteAsync_SelectedPhaseNotInEvents_ReturnsEmptyData()
+        {
+            // Arrange
+            string locationId = "LOC-MISSINGPHASE";
+            DateTime start = new DateTime(2025, 9, 1, 6, 0, 0);
+            DateTime end = start.AddHours(2);
+
+            _mockLocationRepo.Setup(x => x.GetLatestVersionOfLocation(locationId, start))
+                .Returns(new Location
+                {
+                    LocationIdentifier = locationId,
+                    PrimaryName = "MissingPhase",
+                    SecondaryName = "Intersection",
+                    Latitude = 40.5,
+                    Longitude = -111.5
+                });
+
+            // Repository only contains Phase 1 data
+            _mockPedRepo.Setup(x => x.GetAggregationsBetweenDates(locationId, start, end))
+                .Returns(new List<PhasePedAggregation>
+                {
+            new PhasePedAggregation
+            {
+                Start = start,
+                End = start.AddMinutes(30),
+                PhaseNumber = 1,
+                PedBeginWalkCount = 5,
+                ImputedPedCallsRegistered = 5,
+                UniquePedDetections = 3
+            }
+                });
+
+            _mockCycleRepo.Setup(x => x.GetAggregationsBetweenDates(locationId, start, end))
+                .Returns(new List<PhaseCycleAggregation>
+                {
+            new PhaseCycleAggregation
+            {
+                Start = start,
+                End = start.AddMinutes(30),
+                PhaseNumber = 1,
+                PhaseBeginCount = 2
+            }
+                });
+
+            var query = new PedatLocationDataQuery
+            {
+                LocationIdentifiers = new List<string> { locationId },
+                StartDate = start,
+                EndDate = end,
+                TimeUnit = PedestrianTimeUnit.Hour,
+                Phase = 99 // <-- Phase 99 does not exist
+            };
+
+            // Act
+            var result = await _service.ExecuteAsync(query, null);
+            var data = result.First();
+
+            // Assert: No data should be included for Phase 99
+            Assert.IsNotNull(data);
+            Assert.AreEqual(locationId, data.LocationIdentifier);
+            Assert.AreEqual(0, data.TotalVolume, "TotalVolume should be 0 because selected phase does not exist");
+            Assert.AreEqual(0, data.RawData.Sum(r => r.PedestrianCount ?? 0), "RawData pedestrian count sum should be 0");
+            Assert.IsTrue(data.RawData.All(r => r.PedestrianCount == 0 || r.PedestrianCount == null), "All RawData counts should be zero or null");
+
+            // Statistics should handle empty input gracefully
+            Assert.AreEqual(null, data.StatisticData.Count);
         }
 
 

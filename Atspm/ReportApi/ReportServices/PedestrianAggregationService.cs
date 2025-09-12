@@ -27,24 +27,17 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
         private readonly ILocationRepository _LocationRepository;
         private readonly IPhasePedAggregationRepository _PhasePedAggregationRepository;
         private readonly IPhaseCycleAggregationRepository _PhaseCycleAggregationRepository;
-        private readonly IIndianaEventLogRepository _controllerEventLogRepository;
-        private readonly PhaseService _phaseService;
 
         /// <inheritdoc/>
         public PedestrianAggregationService(
-            LocationPhaseService LocationPhaseService,
             ILocationRepository LocationRepository,
             IPhasePedAggregationRepository PhasePedAggregationRepository,
-            IPhaseCycleAggregationRepository PhaseCycleAggregationRepository,
-            IIndianaEventLogRepository controllerEventLogRepository,
-            PhaseService phaseService
-            )
+            IPhaseCycleAggregationRepository PhaseCycleAggregationRepository
+        )
         {
             _LocationRepository = LocationRepository;
-            _controllerEventLogRepository = controllerEventLogRepository;
             _PhaseCycleAggregationRepository = PhaseCycleAggregationRepository;
             _PhasePedAggregationRepository = PhasePedAggregationRepository;
-            _phaseService = phaseService;
         }
 
         /// <inheritdoc/>
@@ -64,7 +57,8 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             foreach (var locationId in parameter.LocationIdentifiers)
             {
                 Location location = _LocationRepository.GetLatestVersionOfLocation(locationId, parameter.StartDate);
-                locations.Add(location);
+                if (location != null)
+                    locations.Add(location);
             }
             if (locations.IsNullOrEmpty())
             {
@@ -74,6 +68,11 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             {
                 var phasePedAggEvent = _PhasePedAggregationRepository.GetAggregationsBetweenDates(location.LocationIdentifier, parameter.StartDate, parameter.EndDate);
                 var phaseCycleAggEvent = _PhaseCycleAggregationRepository.GetAggregationsBetweenDates(location.LocationIdentifier, parameter.StartDate, parameter.EndDate);
+                if (parameter.Phase != null)
+                {
+                    phaseCycleAggEvent = phaseCycleAggEvent.Where(i => i.PhaseNumber == parameter.Phase).ToList();
+                    phasePedAggEvent = phasePedAggEvent.Where(i => i.PhaseNumber == parameter.Phase).ToList();
+                }
 
                 var cycleDict = phaseCycleAggEvent
                     .GroupBy(c => new DateTime(c.Start.Year, c.Start.Month, c.Start.Day, c.Start.Hour, 0, 0))

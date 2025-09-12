@@ -45,6 +45,7 @@ using Utah.Udot.Atspm.Business.TurningMovementCounts;
 using Utah.Udot.Atspm.Business.WaitTime;
 using Utah.Udot.Atspm.Business.Watchdog;
 using Utah.Udot.Atspm.Business.YellowRedActivations;
+using Utah.Udot.Atspm.Data.Models.AggregationModels;
 using Utah.Udot.Atspm.ReportApi.DataAggregation;
 using Utah.Udot.Atspm.ReportApi.ReportServices;
 using Utah.Udot.ATSPM.Infrastructure.Services.WatchDogServices;
@@ -141,7 +142,7 @@ builder.Host
     //report services
     s.AddScoped<IReportService<AggregationOptions, IEnumerable<AggregationResult>>, AggregationReportService>();
     s.AddScoped<IReportService<ApproachDelayOptions, IEnumerable<ApproachDelayResult>>, ApproachDelayReportService>();
-    //s.AddScoped<IReportService<PedatLocationDataQuery, IEnumerable<PedatLocationData>>, PedestrianAggregationService>();
+    s.AddScoped<IReportService<PedatLocationDataQuery, IEnumerable<PedatLocationData>>, PedestrianAggregationService>();
     s.AddScoped<IReportService<ApproachSpeedOptions, IEnumerable<ApproachSpeedResult>>, ApproachSpeedReportService>();
     s.AddScoped<IReportService<ApproachVolumeOptions, IEnumerable<ApproachVolumeResult>>, ApproachVolumeReportService>();
     s.AddScoped<IReportService<ArrivalOnRedOptions, IEnumerable<ArrivalOnRedResult>>, ArrivalOnRedReportService>();
@@ -177,6 +178,7 @@ builder.Host
 
     //AggregationResult Services
     s.AddScoped<AggregationReportService>();
+    s.AddScoped<PedestrianAggregationService>();
     s.AddScoped<ApproachDelayService>();
     s.AddScoped<ApproachSpeedService>();
     s.AddScoped<ApproachVolumeService>();
