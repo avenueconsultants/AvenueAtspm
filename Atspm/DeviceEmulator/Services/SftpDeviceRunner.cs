@@ -1,5 +1,4 @@
 ﻿using DeviceEmulator.Models;
-using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace DeviceEmulator.Services
@@ -16,7 +15,7 @@ namespace DeviceEmulator.Services
             _device = device;
             _logger = logger;
             _config = config;
-            _deviceDirectory = Path.Combine("data", _device.DeviceIdentifier);
+            _deviceDirectory = Path.Combine("/data", _device.DeviceIdentifier);
 
             Directory.CreateDirectory(_deviceDirectory);
         }

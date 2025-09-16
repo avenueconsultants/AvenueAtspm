@@ -1,6 +1,4 @@
 ﻿using DeviceEmulator.Models;
-using Microsoft.Extensions.Logging;
-using System.IO.Compression;
 using System.Text;
 
 namespace DeviceEmulator.Services

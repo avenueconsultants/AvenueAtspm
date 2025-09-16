@@ -1,5 +1,4 @@
 ﻿using DeviceEmulator.Models;
-using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Text;
 using System.Xml;
@@ -16,9 +15,9 @@ namespace DeviceEmulator.Services
         {
             _device = device;
             _logger = logger;
-            _logFilePath = Path.Combine("data", _device.DeviceIdentifier, $"eventlog_{DateTime.UtcNow:yyyy-MM-dd}.xml");
+            _logFilePath = Path.Combine("/data", _device.DeviceIdentifier, $"eventlog_{DateTime.UtcNow:yyyy-MM-dd}.xml");
 
-            Directory.CreateDirectory(Path.Combine("data", _device.DeviceIdentifier));
+            Directory.CreateDirectory(Path.Combine("/data", _device.DeviceIdentifier));
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
