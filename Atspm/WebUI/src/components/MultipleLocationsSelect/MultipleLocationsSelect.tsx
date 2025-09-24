@@ -27,11 +27,13 @@ interface MultipleLocationsSelectProps {
   zoom?: number
   mapHeight?: number | string
   route?: number[][]
+  removeRouteSelect?: boolean
 }
 
 const MultipleLocationsSelect = ({
   selectedLocations,
   setLocations,
+  removeRouteSelect,
 }: MultipleLocationsSelectProps) => {
   const { data: routesData } = useGetRoute({ expand: 'routeLocations' })
   const { data: locationsData } = useGetLocationLatestVersionOfAllLocations()
@@ -114,6 +116,7 @@ const MultipleLocationsSelect = ({
 
   return (
     <Box>
+      {!removeRouteSelect && (
       <Box
         sx={{
           display: 'flex',
@@ -146,9 +149,33 @@ const MultipleLocationsSelect = ({
           sx={{ ml: 2, width: 100 }}
           disabled={!selectedRoute?.routeLocations}
         >
-          Add
-        </Button>
-      </Box>
+          <FormControl fullWidth>
+            <InputLabel htmlFor="route-select">Route</InputLabel>
+            <Select
+              label="Route"
+              variant="outlined"
+              fullWidth
+              value={selectedRoute?.id || ''}
+              onChange={onRouteChange}
+              inputProps={{ id: 'route-select' }}
+            >
+              {routes?.map((route) => (
+                <MenuItem key={route.id} value={route.id}>
+                  {route.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={onAddRoute}
+            sx={{ ml: 2, width: 100 }}
+          >
+            Add
+          </Button>
+        </Box>
+      )}
       <Box
         sx={{
           display: 'flex',
