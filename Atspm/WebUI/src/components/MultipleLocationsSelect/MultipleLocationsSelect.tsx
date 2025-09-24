@@ -145,30 +145,6 @@ const MultipleLocationsSelect = ({
           </FormControl>
           <Button
             variant="contained"
-            endIcon={<ChevronRight />}
-            onClick={onAddRoute}
-            sx={{ ml: 2, width: 100 }}
-            disabled={!selectedRoute?.routeLocations}
-          />
-          <FormControl fullWidth>
-            <InputLabel htmlFor="route-select">Route</InputLabel>
-            <Select
-              label="Route"
-              variant="outlined"
-              fullWidth
-              value={selectedRoute?.id || ''}
-              onChange={onRouteChange}
-              inputProps={{ id: 'route-select' }}
-            >
-              {routes?.map((route) => (
-                <MenuItem key={route.id} value={route.id}>
-                  {route.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Button
-            variant="contained"
             startIcon={<AddIcon />}
             onClick={onAddRoute}
             sx={{ ml: 2, width: 100 }}

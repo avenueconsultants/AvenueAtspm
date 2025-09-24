@@ -8,7 +8,6 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload'
 import RouteOutlinedIcon from '@mui/icons-material/RouteOutlined'
 import ShowChartOutlinedIcon from '@mui/icons-material/ShowChartOutlined'
 import SignalCellularAltOutlinedIcon from '@mui/icons-material/SignalCellularAltOutlined'
-import TransferWithinAStationIcon from '@mui/icons-material/TransferWithinAStation'
 import { Box, Drawer, List, useTheme } from '@mui/material'
 import Image from 'next/image'
 import React from 'react'
@@ -30,6 +29,7 @@ export default function Sidebar() {
       text: 'Transit Signal Priority',
       url: '/reports/transit-signal-priority',
     },
+    { text: 'Active Transportation', url: '/reports/active-transportation' },
   ]
   if (hasLTGRPermission) {
     reportsList.push({ text: 'Left Turn Gap', url: '/reports/left-turn-gap' })
@@ -91,16 +91,11 @@ export default function Sidebar() {
               text={'Link Pivot'}
               url={'/link-pivot'}
             />
-            <NavItem
-              icon={<TransferWithinAStationIcon />}
-              text={'Active Transportation'}
-              url={'/active-transportation'}
-            />
-            {hasLTGRPermission && (
-              <NavItem
-                icon={<ForkLeftIcon />}
-                text={'Left Turn Gap Report'}
-                url={'/reports/left-turn-gap'}
+            {reportsList.length > 0 && (
+              <NavItemWithSubMenu
+                icon={<DescriptionOutlinedIcon />}
+                text="Reports"
+                subItems={reportsList}
               />
             )}
             <NavItem

@@ -1,7 +1,8 @@
-// ActiveTransportation.tsx
+import { useGetPedestrianAggregationLocationData } from '@/api/reports'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import { ActiveTransportationOptions } from '@/features/activeTransportation/components/activeTransportationOptions'
 import PedatChartsContainer from '@/features/activeTransportation/components/pedatChartsContainer'
+import { dateToTimestamp } from '@/utils/dateTime'
 import { DropResult } from '@hello-pangea/dnd'
 import { zodResolver } from '@hookform/resolvers/zod'
 import PlayArrowIcon from '@mui/icons-material/PlayArrow'
@@ -52,6 +53,9 @@ export type ATErrorState =
   | { type: 'UNKNOWN'; message: string }
 
 const ActiveTransportation = () => {
+  const { mutateAsync: fetchPedestrianData } =
+    useGetPedestrianAggregationLocationData()
+
   const form = useForm<ActiveTransportationForm>({
     resolver: zodResolver(activeTransportationSchema),
     defaultValues: {
@@ -166,7 +170,7 @@ const ActiveTransportation = () => {
     }
   }
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
     const formData = form.getValues()
     if (formData.locations.length === 0) {
       setErrorState({ type: 'NO_LOCATIONS' })
@@ -183,8 +187,22 @@ const ActiveTransportation = () => {
       return
     }
     setErrorState({ type: 'NONE' })
-    console.log('Generate report with:', formData)
-    // TODO: Add API call here with formData
+
+    const charts = await fetchPedestrianData({
+      data: {
+        locationIdentifiers: formData.locations.map((l) => l.id),
+        startDate: dateToTimestamp(formData.startDate),
+        endDate: dateToTimestamp(formData.endDate),
+        timeUnit: 0,
+        // startTime: formData.startTime,
+        // endTime: formData.endTime,
+        // daysOfWeek: formData.daysOfWeek,
+      },
+    })
+
+    // setMockData(charts)
+
+    console.log('charts', charts)
   }
 
   return (
@@ -217,7 +235,7 @@ const ActiveTransportation = () => {
             startIcon={<PlayArrowIcon />}
             variant="contained"
             sx={{ padding: '10px', mb: 2 }}
-            onClick={getMockData}
+            onClick={handleGenerateReport}
           >
             Generate Report
           </LoadingButton>
