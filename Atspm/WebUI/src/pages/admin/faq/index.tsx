@@ -1,10 +1,10 @@
 import {
+  Faq,
   useDeleteFaqFromKey,
   useGetFaq,
   usePatchFaqFromKey,
   usePostFaq,
-} from '@/api/config/aTSPMConfigurationApi'
-import { Faq } from '@/api/config/aTSPMConfigurationApi.schemas'
+} from '@/api/config'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'

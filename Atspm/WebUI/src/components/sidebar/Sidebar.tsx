@@ -1,9 +1,10 @@
+import NavItemWithSubMenu from '@/components/sidebar/NavItemWithSubMenu'
 import { topbarHeight } from '@/components/topbar'
 import { useSideBarPermission } from '@/features/identity/pagesCheck'
 import { useSidebarStore } from '@/stores/sidebar'
 import AddchartOutlinedIcon from '@mui/icons-material/AddchartOutlined'
+import DescriptionOutlinedIcon from '@mui/icons-material/DescriptionOutlined'
 import FileDownloadIcon from '@mui/icons-material/FileDownload'
-import ForkLeftIcon from '@mui/icons-material/ForkLeft'
 import RouteOutlinedIcon from '@mui/icons-material/RouteOutlined'
 import ShowChartOutlinedIcon from '@mui/icons-material/ShowChartOutlined'
 import SignalCellularAltOutlinedIcon from '@mui/icons-material/SignalCellularAltOutlined'
@@ -23,6 +24,16 @@ export default function Sidebar() {
   const hasDataViewPermission = useSideBarPermission('data:view')
   const hasWatchDogPermission = useSideBarPermission('watchdog:view')
   const hasLTGRPermission = useSideBarPermission('Report:view')
+
+  const reportsList = [
+    {
+      text: 'Transit Signal Priority',
+      url: '/reports/transit-signal-priority',
+    },
+  ]
+  if (hasLTGRPermission) {
+    reportsList.push({ text: 'Left Turn Gap', url: '/reports/left-turn-gap' })
+  }
 
   const toggleDrawer =
     () => (event: React.KeyboardEvent | React.MouseEvent) => {

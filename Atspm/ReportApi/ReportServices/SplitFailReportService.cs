@@ -111,9 +111,12 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                  phaseDetail.PhaseNumber);
             var detectors = phaseDetail.Approach.GetDetectorsForMetricType(options.MetricTypeId);
             var tasks = new List<Task<SplitFailsResult>>();
-            foreach (var detectionType in detectors.SelectMany(d => d.DetectionTypes).Distinct())
+            var stopbarDetector = detectors
+            .SelectMany(d => d.DetectionTypes)
+            .FirstOrDefault(dt => dt.Id == Data.Enums.DetectionTypes.SBP);
+            if (stopbarDetector != null)
             {
-                tasks.Add(GetChartDataByDetectionType(options, phaseDetail, controllerEventLogs, planEvents, cycleEvents, terminationEvents, detectors, detectionType));
+                tasks.Add(GetChartDataByDetectionType(options, phaseDetail, controllerEventLogs, planEvents, cycleEvents, terminationEvents, detectors, stopbarDetector));
             }
             var results = await Task.WhenAll(tasks);
             return results.Where(result => result != null).OrderBy(r => r.PhaseNumber);
@@ -177,7 +180,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 splitFailData.Bins.Select(b => new DataPointForDouble(b.StartTime, b.AverageRedOccupancyPercent)).ToList(),
                 splitFailData.Bins.Select(b => new DataPointForDouble(b.StartTime, b.PercentSplitfails)).ToList()
                 );
-            result.ApproachDescription = phaseDetail.Approach.Description;
+            result.ApproachDescription = phaseDetail.Approach.Description + " - " + result.PhaseType;
             result.LocationDescription = phaseDetail.Approach.Location.LocationDescription();
             return result;
         }

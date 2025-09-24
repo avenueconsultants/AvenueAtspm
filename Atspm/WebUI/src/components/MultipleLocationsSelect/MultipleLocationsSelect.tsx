@@ -1,13 +1,14 @@
-import { useGetLocationLocationsForSearch } from '@/api/config/aTSPMConfigurationApi'
 import {
+  getLocationFromKey,
   SearchLocation as Location,
   Route,
-} from '@/api/config/aTSPMConfigurationApi.schemas'
+  useGetLocationLatestVersionOfAllLocations,
+  useGetRoute,
+} from '@/api/config'
 import { Filters } from '@/features/locations/components/selectLocation'
 import LocationInput from '@/features/locations/components/selectLocation/LocationInput'
 import SelectLocationMap from '@/features/locations/components/selectLocationMap'
-import { useGetRoutes } from '@/features/routes/api'
-import AddIcon from '@mui/icons-material/Add'
+import { ChevronRight } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -34,8 +35,8 @@ const MultipleLocationsSelect = ({
   setLocations,
   removeRouteSelect,
 }: MultipleLocationsSelectProps) => {
-  const { data: routesData } = useGetRoutes()
-  const { data: locationsData } = useGetLocationLocationsForSearch()
+  const { data: routesData } = useGetRoute({ expand: 'routeLocations' })
+  const { data: locationsData } = useGetLocationLatestVersionOfAllLocations()
 
   const routes = useMemo(() => routesData?.value || [], [routesData])
   const locations = useMemo(
@@ -70,7 +71,7 @@ const MultipleLocationsSelect = ({
     setSelectedRoute(route)
   }
 
-  const onAddRoute = () => {
+  const onAddRoute = async () => {
     if (!selectedRoute?.routeLocations) return
 
     const routeLocs = selectedRoute.routeLocations
@@ -82,16 +83,25 @@ const MultipleLocationsSelect = ({
       (loc) => !selectedLocations.some((sel) => sel.id === loc.id)
     )
     if (newLocations.length > 0) {
-      setLocations([...selectedLocations, ...newLocations])
+      const locationwithApproaches =
+        await getLocationWithApproaches(newLocations)
+      if (locationwithApproaches) {
+        setLocations([...selectedLocations, ...locationwithApproaches])
+      }
     }
   }
 
-  const onAddLocation = () => {
+  const onAddLocation = async () => {
     if (
       selectedLocation &&
       !selectedLocations.some((loc) => loc.id === selectedLocation.id)
     ) {
-      setLocations([...selectedLocations, selectedLocation])
+      const locationwithApproaches = await getLocationWithApproaches([
+        selectedLocation,
+      ])
+      if (locationwithApproaches) {
+        setLocations([...selectedLocations, locationwithApproaches[0]])
+      }
     }
   }
 
@@ -107,13 +117,37 @@ const MultipleLocationsSelect = ({
   return (
     <Box>
       {!removeRouteSelect && (
-        <Box
-          sx={{
-            display: 'flex',
-            flexDirection: 'row',
-            alignItems: 'center',
-            mb: 2,
-          }}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          mb: 2,
+        }}
+      >
+        <FormControl fullWidth>
+          <InputLabel htmlFor="route-select">Route</InputLabel>
+          <Select
+            label="Route"
+            variant="outlined"
+            fullWidth
+            value={selectedRoute?.id || ''}
+            onChange={onRouteChange}
+            inputProps={{ id: 'route-select' }}
+          >
+            {routes?.map((route) => (
+              <MenuItem key={route.id} value={route.id}>
+                {route.name}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <Button
+          variant="contained"
+          endIcon={<ChevronRight />}
+          onClick={onAddRoute}
+          sx={{ ml: 2, width: 100 }}
+          disabled={!selectedRoute?.routeLocations}
         >
           <FormControl fullWidth>
             <InputLabel htmlFor="route-select">Route</InputLabel>
@@ -160,9 +194,10 @@ const MultipleLocationsSelect = ({
         </Box>
         <Button
           variant="contained"
-          startIcon={<AddIcon />}
+          endIcon={<ChevronRight />}
           onClick={onAddLocation}
           sx={{ ml: 2 }}
+          disabled={!selectedLocation}
         >
           Add
         </Button>
@@ -183,3 +218,12 @@ const MultipleLocationsSelect = ({
 }
 
 export default MultipleLocationsSelect
+
+export const getLocationWithApproaches = async (locations: Location[]) => {
+  const locationsWithApproaches = await Promise.all(
+    locations
+      .filter((loc) => loc?.id)
+      .map((loc) => getLocationFromKey(loc.id, { expand: 'approaches' }))
+  )
+  return locationsWithApproaches.map((res) => res.value[0])
+}

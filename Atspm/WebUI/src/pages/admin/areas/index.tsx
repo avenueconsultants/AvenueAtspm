@@ -1,21 +1,21 @@
 import {
+  Area,
+  Location,
   useDeleteAreaFromKey,
   useGetArea,
   useGetLocationLocationsForSearch,
   usePatchAreaFromKey,
   usePostArea,
-} from '@/api/config/aTSPMConfigurationApi'
+} from '@/api/config'
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import AreaEditorModal from '@/features/areas/components/AreaEditorModal'
-import { Area } from '@/features/areas/types'
 import {
   PageNames,
   useUserHasClaim,
   useViewPage,
 } from '@/features/identity/pagesCheck'
-import { Location } from '@/features/locations/types'
 import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, CircularProgress } from '@mui/material'
 const AreasAdmin = () => {

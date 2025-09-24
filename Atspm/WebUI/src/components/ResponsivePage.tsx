@@ -7,6 +7,8 @@ interface ResponsivePageLayoutProps {
   title: string
   noBottomMargin?: boolean
   hideTitle?: boolean
+  useFullWidth?: boolean
+  width?: string | number
 }
 
 export const ResponsivePageLayout = ({
@@ -14,6 +16,8 @@ export const ResponsivePageLayout = ({
   title,
   noBottomMargin,
   hideTitle,
+  useFullWidth,
+  width = '100%',
 }: ResponsivePageLayoutProps) => {
   const theme = useTheme()
   return (
@@ -22,8 +26,8 @@ export const ResponsivePageLayout = ({
         display: 'flex',
         flexDirection: 'column',
         margin: 'auto',
-
-        maxWidth: '1550px',
+        width,
+        maxWidth: useFullWidth ? 'inherit' : '1550px',
         minWidth: '375px',
         [theme.breakpoints.down('md')]: {},
       }}

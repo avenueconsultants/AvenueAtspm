@@ -21,15 +21,17 @@ using Identity.Business.Agency;
 using Identity.Business.Claims;
 using Identity.Business.Tokens;
 using Identity.Business.Users;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Utah.Udot.Atspm.Data;
 using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Infrastructure.Configuration;
 
-//gitactions: II
+//gitactions: III
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
@@ -92,7 +94,7 @@ builder.Host
             o.GroupNameFormat = "'v'VVV";
             o.SubstituteApiVersionInUrl = true;
         });
-        s.AddDbContext<IdentityContext>(h, Microsoft.EntityFrameworkCore.QueryTrackingBehavior.NoTracking);
+        s.AddDbContext<IdentityContext>(db => db.DbDefaults<IdentityContext>(h, QueryTrackingBehavior.NoTracking));
         s.AddIdentity<ApplicationUser, IdentityRole>() // Use AddDefaultIdentity if you don't need roles
         .AddEntityFrameworkStores<IdentityContext>()
         .AddDefaultTokenProviders();
@@ -107,6 +109,9 @@ builder.Host
         s.AddPathBaseFilter(h);
         s.AddAtspmAuthentication(h);
         s.AddAtspmAuthorization();
+
+        s.AddDataProtection()
+        .SetApplicationName("TestResetFlow");
 
         //don't mind me, i'm just putting this in here to gitactions thinks I changed something
 

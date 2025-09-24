@@ -24,6 +24,7 @@ using Utah.Udot.Atspm.ConfigApi.Models;
 using Utah.Udot.Atspm.Data.Enums;
 using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Extensions;
+using Utah.Udot.Atspm.Infrastructure.Services;
 using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.Specifications;
 using Utah.Udot.NetStandardToolkit.Extensions;
@@ -37,14 +38,18 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
     /// </summary>
     /// 
     [ApiVersion(1.0)]
-    public class LocationController : AtspmConfigControllerBase<Location, int>
+    public class LocationController : LocationPolicyControllerBase<Location, int>
     {
         private readonly ILocationRepository _repository;
+        private readonly ILocationManager _locationManager;
+
+        //HACK: ILocationManager is temporary
 
         /// <inheritdoc/>
-        public LocationController(ILocationRepository repository) : base(repository)
+        public LocationController(ILocationRepository repository, ILocationManager locationManager) : base(repository)
         {
             _repository = repository;
+            _locationManager = locationManager;
         }
 
         #region NavigationProperties
@@ -98,27 +103,34 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
 
         #region Actions
 
+        //HACK: move this to LocationManagementController
+
         /// <summary>
         /// Copies <see cref="Location"/> and associated <see cref="Approach"/> to new version
         /// </summary>
         /// <param name="key">Location version to copy</param>
+        /// <param name="newVersionLabel">Label of new version</param>
         /// <returns>New version of copied <see cref="Location"/></returns>
         /// 
         [Authorize(Policy = "CanEditLocationConfigurations")]
         [HttpPost]
         [ProducesResponseType(typeof(Location), Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> CopyLocationToNewVersion(int key)
+        public async Task<IActionResult> CopyLocationToNewVersion(int key, string newVersionLabel)
         {
             try
             {
-                return Ok(await _repository.CopyLocationToNewVersion(key));
+                var copiedVersion = await _locationManager.CopyLocationToNewVersion(key, newVersionLabel);
+
+                return Ok(copiedVersion);
             }
             catch (ArgumentException e)
             {
                 return NotFound(e.Message);
             }
         }
+
+        //HACK: move this to LocationManagementController
 
         /// <summary>
         /// Marks <see cref="Location"/> to deleted
@@ -134,14 +146,40 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
         {
             try
             {
-                await _repository.SetLocationToDeleted(key);
+                await _locationManager.SetLocationToDeleted(key);
+
+                return Ok();
             }
             catch (ArgumentException e)
             {
                 return NotFound(e.Message);
             }
+        }
 
-            return Ok();
+        //HACK: move this to LocationManagementController
+
+        /// <summary>
+        /// Marks <see cref="Location"/> to deleted
+        /// </summary>
+        /// <param name="key">Identifier of <see cref="Location"/> to mark as deleted</param>
+        /// <returns></returns>
+        /// 
+        [Authorize(Policy = "CanDeleteLocationConfigurations")]
+        [HttpPost("/api/v1/Location/{key}/DeleteAllVersions")]
+        [ProducesResponseType(Status200OK)]
+        [ProducesResponseType(Status404NotFound)]
+        public async Task<IActionResult> DeleteAllVersions(string key)
+        {
+            try
+            {
+                await _locationManager.DeleteAllVersions(key);
+
+                return Ok();
+            }
+            catch (ArgumentException e)
+            {
+                return NotFound(e.Message);
+            }
         }
 
         #endregion
