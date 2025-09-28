@@ -1,7 +1,8 @@
+import { PedatLocationData } from '@/api/reports'
+import BoxPlotByLocationChart from '@/features/activeTransportation/components/charts/BoxPlotByLocationChart'
 import { Box, Button, Container, Tab, Tabs } from '@mui/material'
 import { useState } from 'react'
 import AverageDailyPedVolByLocationChart from './charts/AverageDailyPedVolByLocationChart'
-import BoxPlotByLocationChart from './charts/BoxPlotByLocationChart'
 import DailyPedVolByMonthChart from './charts/DailyPedVolByMonthChart'
 import HourlyPedVolByDayOfWeekChart from './charts/HourlyPedVolByDayOfWeekChart'
 import HourlyPedVolByHourOfDayChart from './charts/HourlyPedVolByHourOfDayChart'
@@ -11,7 +12,11 @@ import DescriptiveStatsByHourByLocationChart from './DescriptiveStatsByHourByLoc
 import PedatMapContainer from './PedatMapContainer'
 import PedestrianVolumeTimeSeriesTable from './PedestrianVolumeTimeSeriesTable'
 
-const PedatChartsContainer: React.FC = () => {
+export interface PedatChartsContainerProps {
+  data?: PedatLocationData[]
+}
+
+const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
   const [tabIndex, setTabIndex] = useState(0)
   return (
     <Container sx={{ py: 4, minWidth: '1530px', ml: '-15px' }}>
@@ -28,18 +33,18 @@ const PedatChartsContainer: React.FC = () => {
 
       {tabIndex === 0 && (
         <Box sx={{ mb: 10 }}>
-          <AverageDailyPedVolByLocationChart />
-          <HourlyPedVolByHourOfDayChart />
-          <HourlyPedVolByDayOfWeekChart />
-          <DailyPedVolByMonthChart />
+          <AverageDailyPedVolByLocationChart data={data} />
+          <HourlyPedVolByHourOfDayChart data={data} />
+          <HourlyPedVolByDayOfWeekChart data={data} />
+          <DailyPedVolByMonthChart data={data} />
         </Box>
       )}
 
       {tabIndex === 1 && (
         <Box sx={{ mb: 4 }}>
-          <TotalPedVolByLocationCharts />
-          <TimeSeriesByHourByLocationChart />
-          <BoxPlotByLocationChart />
+          <TotalPedVolByLocationCharts data={data} />
+          <TimeSeriesByHourByLocationChart data={data} />
+          <BoxPlotByLocationChart data={data} />
         </Box>
       )}
 

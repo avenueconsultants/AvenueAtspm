@@ -13,29 +13,9 @@ export interface MonthlyPedestrianVolume {
   averageVolume: number
 }
 
-const monthOrder = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
-
 export default function transformDailyPedVolByMonthTransformer(
   data: MonthlyPedestrianVolume[]
 ): EChartsOption {
-  const sortedData = monthOrder.map(
-    (month) =>
-      data.find((d) => d.month === month) ?? { month, averageVolume: 0 }
-  )
-
   const title = {
     text: 'Average Daily Pedestrian Volume by Month of Year',
     left: 'center',
@@ -44,7 +24,7 @@ export default function transformDailyPedVolByMonthTransformer(
   const xAxis = {
     type: 'category',
     name: 'Month',
-    data: sortedData.map((d) => d.month),
+    data: data.map((d) => d.month),
   }
 
   const yAxis = {
@@ -72,7 +52,7 @@ export default function transformDailyPedVolByMonthTransformer(
     {
       type: 'bar',
       name: 'Average Hourly Volume',
-      data: sortedData.map((d) => d.averageVolume),
+      data: data.map((d) => d.averageVolume),
     },
   ]
 

@@ -10,7 +10,7 @@ import { EChartsOption } from 'echarts'
 
 export interface PedestrianVolumeByLocation {
   locationId: string
-  locationName: string
+  locationIdentifier: string
   averageDailyVolume: number
 }
 
@@ -24,7 +24,7 @@ export default function transformAvgDailyPedVolByLocation(
 
   const xAxis = {
     type: 'category',
-    data: data.map((d) => d.locationName),
+    data: data.map((d) => d.locationIdentifier),
     name: 'Location',
   }
 

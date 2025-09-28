@@ -1,4 +1,5 @@
 // /features/activeTransportation/transformers/boxPlotByLocation.ts
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import {
   createGrid,
   createLegend,
@@ -7,25 +8,8 @@ import {
 } from '@/features/charts/common/transformers'
 import { EChartsOption } from 'echarts'
 
-export interface BoxPlotStats {
-  count: number
-  mean: number
-  stdDev: number
-  min: number
-  q1: number
-  median: number
-  q3: number
-  max: number
-  missing: number
-}
-
-export interface BoxPlotByLocation {
-  locationId: string
-  stats: BoxPlotStats
-}
-
 export default function transformBoxPlotByLocationTransformer(
-  data: BoxPlotByLocation[]
+  data: PedatChartsContainerProps['data']
 ): EChartsOption {
   const title = {
     text: 'Box Plot of Pedestrian Volume, by Hour, by Location',
@@ -35,7 +19,7 @@ export default function transformBoxPlotByLocationTransformer(
   const xAxis = {
     type: 'category',
     name: 'Location',
-    data: data.map((d) => d.locationId),
+    data: data?.map((d) => d.locationIdentifier),
   }
 
   const yAxis = {
@@ -57,31 +41,33 @@ export default function transformBoxPlotByLocationTransformer(
 
   const tooltip = createTooltip({
     trigger: 'item',
-    formatter: (params: any) => {
-      const [min, q1, median, q3, max] = params.data.slice(1)
-      return `
-        <strong>${params.name}</strong><br/>
-        Min: ${min}<br/>
-        Q1: ${q1}<br/>
-        Median: ${median}<br/>
-        Q3: ${q3}<br/>
-        Max: ${max}
-      `
-    },
+    // formatter: (params: any) => {
+    //   const [min, q1, median, q3, max] = params.data.slice(1)
+    //   return `
+    //     <strong>${params.name}</strong><br/>
+    //     Min: ${min}<br/>
+    //     Q1: ${q1}<br/>
+    //     Median: ${median}<br/>
+    //     Q3: ${q3}<br/>
+    //     Max: ${max}
+    //   `
+    // },
   })
 
   const series = [
     {
       name: 'Volume Distribution',
       type: 'boxplot',
-      data: data.map((d) => [
-        d.locationId,
-        d.stats.min,
-        d.stats.q1,
-        d.stats.median,
-        d.stats.q3,
-        d.stats.max,
-      ]),
+      data: data?.map((d) => ({
+        name: d.locationIdentifier,
+        value: [
+          d.statisticData?.min,
+          d.statisticData?.twentyFifthPercentile,
+          d.statisticData?.fiftyithPercentile,
+          d.statisticData?.seventyFifthPercentile,
+          d.statisticData?.max,
+        ],
+      })),
     },
   ]
 

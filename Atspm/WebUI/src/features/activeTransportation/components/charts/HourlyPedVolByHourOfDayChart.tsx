@@ -1,12 +1,22 @@
 // /features/activeTransportation/components/charts/HourlyPedVolByHourOfDayChart.tsx
-import { mockHourlyPedestrianVolume } from '@/features/activeTransportation/mockdata/pedatMockData'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import ApacheEChart from '@/features/charts/components/apacheEChart'
 import transformHourlyPedVolByHourOfDay from '@/features/charts/pedat/avgHourlyPedVolByHour'
 import { Paper } from '@mui/material'
 
-const HourlyPedVolByHourOfDayChart = () => {
-  const option = transformHourlyPedVolByHourOfDay(mockHourlyPedestrianVolume)
+const HourlyPedVolByHourOfDayChart = ({ data }: PedatChartsContainerProps) => {
+  const combinedData = [...Array(23)].map((_, hour) => {
+    const averageVolume = data
+      ?.map((loc) => {
+        return loc.averageVolumeByHourOfDay?.[hour]?.volume || 0
+      })
+      .reduce((a, b) => a + b, 0)
 
+    const hourOfDay = hour + 1
+    return { hour: hourOfDay, averageVolume: averageVolume || 0 }
+  })
+
+  const option = transformHourlyPedVolByHourOfDay(combinedData || [])
   return (
     <Paper sx={{ padding: '25px', mb: 5 }}>
       <ApacheEChart

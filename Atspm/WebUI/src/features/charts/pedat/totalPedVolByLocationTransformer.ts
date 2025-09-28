@@ -2,8 +2,7 @@
 import { EChartsOption } from 'echarts'
 
 export interface TotalVolumeByLocation {
-  locationId: string
-  locationName: string
+  locationIdentifier: string
   percentage: number
 }
 
@@ -27,7 +26,7 @@ export function transformPieChartTransformer(
         radius: '70%',
         center: ['50%', '50%'],
         data: data.map((d) => ({
-          name: d.locationName,
+          name: d.locationIdentifier,
           value: d.percentage,
         })),
         label: {
@@ -49,7 +48,7 @@ export function transformBlockChartTransformer(
       {
         type: 'treemap',
         data: data.map((d) => ({
-          name: d.locationName,
+          name: d.locationIdentifier,
           value: d.percentage,
         })),
         label: {

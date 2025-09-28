@@ -1,13 +1,13 @@
 // /features/activeTransportation/components/charts/AverageDailyPedVolByLocationChart.tsx
-import { mockdailyPedestrianVolumeByLocation } from '@/features/activeTransportation/mockdata/pedatMockData'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import ApacheEChart from '@/features/charts/components/apacheEChart'
 import transformAvgDailyPedVolByLocation from '@/features/charts/pedat/avgDailyPedVolByLocation'
 import { Paper } from '@mui/material'
 
-const AverageDailyPedVolByLocationChart = () => {
-  const option = transformAvgDailyPedVolByLocation(
-    mockdailyPedestrianVolumeByLocation
-  )
+const AverageDailyPedVolByLocationChart = ({
+  data,
+}: PedatChartsContainerProps) => {
+  const option = transformAvgDailyPedVolByLocation(data || [])
 
   return (
     <Paper sx={{ padding: '25px', mb: 5 }}>

@@ -1,5 +1,5 @@
 // /features/activeTransportation/components/charts/TotalPedVolByLocationCharts.tsx
-import { mockTotalPedestrianVolumeByLocation } from '@/features/activeTransportation/mockdata/pedatMockData'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import ApacheEChart from '@/features/charts/components/apacheEChart'
 
 import {
@@ -8,13 +8,16 @@ import {
 } from '@/features/charts/pedat/totalPedVolByLocationTransformer'
 import { Box, Paper, Typography } from '@mui/material'
 
-const TotalPedVolByLocationCharts = () => {
-  const pieOption = transformPieChartTransformer(
-    mockTotalPedestrianVolumeByLocation
-  )
-  const blockOption = transformBlockChartTransformer(
-    mockTotalPedestrianVolumeByLocation
-  )
+const TotalPedVolByLocationCharts = ({ data }: PedatChartsContainerProps) => {
+  const totalVolume = data
+    ?.map((loc) => loc.totalVolume || 0)
+    .reduce((a, b) => a + b, 0)
+  const percentageData = data?.map((loc) => ({
+    locationIdentifier: loc.locationIdentifier,
+    percentage: totalVolume ? ((loc.totalVolume || 0) / totalVolume) * 100 : 0,
+  }))
+  const pieOption = transformPieChartTransformer(percentageData || [])
+  const blockOption = transformBlockChartTransformer(percentageData || [])
 
   return (
     <Paper sx={{ padding: '25px', mb: 5 }}>
