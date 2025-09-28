@@ -36,7 +36,7 @@ const DailyPedVolByMonthChart = ({ data }: PedatChartsContainerProps) => {
   const option = transformDailyPedVolByMonthTransformer(combinedData || [])
 
   return (
-    <Paper sx={{ padding: '25px', mb: 5 }}>
+    <Paper sx={{ padding: '25px' }}>
       <ApacheEChart
         id="daily-ped-vol-month"
         option={option}

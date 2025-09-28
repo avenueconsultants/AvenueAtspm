@@ -63,7 +63,7 @@ export default function transformBoxPlotByLocationTransformer(
         value: [
           d.statisticData?.min,
           d.statisticData?.twentyFifthPercentile,
-          d.statisticData?.fiftyithPercentile,
+          d.statisticData?.fiftiethPercentile,
           d.statisticData?.seventyFifthPercentile,
           d.statisticData?.max,
         ],

@@ -1,16 +1,17 @@
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import { Box } from '@mui/material'
 import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'
 import { memo } from 'react'
 
-const PedatMap = dynamic(() => import('./pedatMap'), {
+const PedatMap = dynamic(() => import('./PedatMap'), {
   ssr: false,
 })
 
-const PedatMapWrapper: React.FC = () => {
+const PedatMapWrapper = ({ data }: PedatChartsContainerProps) => {
   return (
     <Box sx={{ height: '100%', width: '100%' }}>
-      <PedatMap />
+      <PedatMap data={data} />
     </Box>
   )
 }

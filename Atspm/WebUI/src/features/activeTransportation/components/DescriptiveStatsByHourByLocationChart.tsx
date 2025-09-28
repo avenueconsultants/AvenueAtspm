@@ -1,8 +1,33 @@
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import { Box, Typography } from '@mui/material'
-import { mockDescriptiveStatsByHourByLocation } from '../mockdata/pedatMockData'
+import React, { useMemo } from 'react'
 
-// /features/activeTransportation/components/charts/DescriptiveStatsByHourByLocationTable.tsx
-const DescriptiveStatsByHourByLocationTable = () => {
+const fmt = (v: unknown) =>
+  Number.isFinite(v as number)
+    ? (v as number).toLocaleString(undefined, { maximumFractionDigits: 2 })
+    : ''
+
+const DescriptiveStatsByHourByLocationTable = ({
+  data,
+}: PedatChartsContainerProps) => {
+  const rows = useMemo(() => {
+    return (data ?? []).map((loc) => {
+      const s = loc?.statisticData ?? {}
+      return {
+        locationId: loc?.locationIdentifier,
+        count: s.count,
+        mean: s.mean,
+        stdDev: s.std,
+        min: s.min,
+        q1: s.twentyFifthPercentile,
+        median: s.fiftiethPercentile,
+        q3: s.seventyFifthPercentile,
+        max: s.max,
+        missing: s.missingCount,
+      }
+    })
+  }, [data])
+
   return (
     <Box sx={{ mb: 2 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
@@ -10,6 +35,7 @@ const DescriptiveStatsByHourByLocationTable = () => {
           Descriptive Statistics By Hour by location
         </Typography>
       </Box>
+
       <Box
         sx={{
           overflow: 'auto',
@@ -40,20 +66,28 @@ const DescriptiveStatsByHourByLocationTable = () => {
             </tr>
           </thead>
           <tbody>
-            {mockDescriptiveStatsByHourByLocation.map((row) => (
-              <tr key={row.locationId}>
-                <td style={td}>{row.locationId}</td>
-                <td style={td}>{row.stats.count}</td>
-                <td style={td}>{row.stats.mean}</td>
-                <td style={td}>{row.stats.stdDev}</td>
-                <td style={td}>{row.stats.min}</td>
-                <td style={td}>{row.stats.q1}</td>
-                <td style={td}>{row.stats.median}</td>
-                <td style={td}>{row.stats.q3}</td>
-                <td style={td}>{row.stats.max}</td>
-                <td style={td}>{row.stats.missing}</td>
+            {rows.length ? (
+              rows.map((row) => (
+                <tr key={row.locationId}>
+                  <td style={td}>{row.locationId}</td>
+                  <td style={td}>{fmt(row.count)}</td>
+                  <td style={td}>{fmt(row.mean)}</td>
+                  <td style={td}>{fmt(row.stdDev)}</td>
+                  <td style={td}>{fmt(row.min)}</td>
+                  <td style={td}>{fmt(row.q1)}</td>
+                  <td style={td}>{fmt(row.median)}</td>
+                  <td style={td}>{fmt(row.q3)}</td>
+                  <td style={td}>{fmt(row.max)}</td>
+                  <td style={td}>{fmt(row.missing)}</td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td style={td} colSpan={10}>
+                  No data
+                </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </Box>
@@ -61,7 +95,7 @@ const DescriptiveStatsByHourByLocationTable = () => {
   )
 }
 
-const th = {
+const th: React.CSSProperties = {
   position: 'sticky',
   top: 0,
   zIndex: 1,
@@ -72,7 +106,7 @@ const th = {
   fontWeight: 600,
 }
 
-const td = {
+const td: React.CSSProperties = {
   padding: '8px',
   borderBottom: '1px solid #eee',
 }

@@ -1,8 +1,41 @@
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import { Box, Typography } from '@mui/material'
-import React from 'react'
-import { mockPedestrianVolumeTimeSeries } from '../mockdata/pedatMockData'
+import React, { useMemo } from 'react'
 
-const PedestrianVolumeTimeSeriesTable: React.FC = () => {
+const PedestrianVolumeTimeSeriesTable = ({
+  data,
+}: PedatChartsContainerProps) => {
+  const rows = useMemo(() => {
+    return (data ?? [])
+      .flatMap((loc) => {
+        const {
+          locationIdentifier,
+          names,
+          areas,
+          latitude,
+          longitude,
+          rawData,
+        } = loc ?? {}
+
+        return (rawData ?? []).map((r) => ({
+          locationIdentifier: String(locationIdentifier ?? ''),
+          address: String(names ?? ''),
+          timestamp: r?.timestamp,
+          pedestrian: Number(r?.pedestrianCount ?? 0),
+          city: String(areas ?? ''),
+          latitude,
+          longitude,
+        }))
+      })
+      .filter((r) => r.timestamp) // keep valid rows
+      .sort((a, b) => {
+        const ta = new Date(a.timestamp).getTime()
+        const tb = new Date(b.timestamp).getTime()
+        if (ta !== tb) return ta - tb
+        return a.locationIdentifier.localeCompare(b.locationIdentifier)
+      })
+  }, [data])
+
   return (
     <Box sx={{ mb: 8 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
@@ -10,45 +43,56 @@ const PedestrianVolumeTimeSeriesTable: React.FC = () => {
           Data By Hour By Location
         </Typography>
       </Box>
+
       <Box
         sx={{
           overflow: 'auto',
-          maxHeight: '600px',
+          maxHeight: 600,
           border: '1px solid #ccc',
-          borderRadius: '8px',
+          borderRadius: 2,
         }}
       >
-        <table
-          style={{
-            width: '100%',
-            borderCollapse: 'collapse',
-          }}
-        >
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr>
               <th style={thStyle}>Signal ID</th>
               <th style={thStyle}>Address</th>
               <th style={thStyle}>Timestamp</th>
-              <th style={thStyle}>Pedestrian</th>
+              <th style={thStyle}>Count</th>
               <th style={thStyle}>City</th>
               <th style={thStyle}>Latitude</th>
               <th style={thStyle}>Longitude</th>
             </tr>
           </thead>
           <tbody>
-            {mockPedestrianVolumeTimeSeries.map((row, idx) => (
-              <tr key={idx}>
-                <td style={tdStyle}>{row.signalId}</td>
+            {rows.map((row, idx) => (
+              <tr key={`${row.locationIdentifier}-${row.timestamp}-${idx}`}>
+                <td style={tdStyle}>{row.locationIdentifier}</td>
                 <td style={tdStyle}>{row.address}</td>
                 <td style={tdStyle}>
                   {new Date(row.timestamp).toLocaleString()}
                 </td>
                 <td style={tdStyle}>{row.pedestrian}</td>
                 <td style={tdStyle}>{row.city}</td>
-                <td style={tdStyle}>{row.latitude.toFixed(6)}</td>
-                <td style={tdStyle}>{row.longitude.toFixed(6)}</td>
+                <td style={tdStyle}>
+                  {Number.isFinite(row.latitude as number)
+                    ? (row.latitude as number).toFixed(6)
+                    : ''}
+                </td>
+                <td style={tdStyle}>
+                  {Number.isFinite(row.longitude as number)
+                    ? (row.longitude as number).toFixed(6)
+                    : ''}
+                </td>
               </tr>
             ))}
+            {!rows.length && (
+              <tr>
+                <td style={tdStyle} colSpan={7}>
+                  No data
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </Box>

@@ -1,226 +1,370 @@
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
+import ControlsPanel from '@/features/activeTransportation/components/pedatMap/PedatMapControls'
 import { getEnv } from '@/utils/getEnv'
-import ClearIcon from '@mui/icons-material/Clear'
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  ClickAwayListener,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Paper,
-  Popper,
-  Select,
-  Slider,
-  Typography,
-} from '@mui/material'
+import { Box } from '@mui/material'
 import L, { Map as LeafletMap } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { MapContainer, TileLayer } from 'react-leaflet'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  CircleMarker,
+  LayerGroup,
+  MapContainer,
+  TileLayer,
+  Tooltip,
+  useMap,
+} from 'react-leaflet'
 
-const PedatMap: React.FC = () => {
+export type Aggregation = 'Average Hour' | 'Average Daily' | 'Total'
+
+type Loc = {
+  latitude: number
+  longitude: number
+  averageDailyVolume?: number
+  averageVolumeByHourOfDay?: { index: number; volume: number }[]
+  rawData?: {
+    timestamp?: string
+    timeStamp?: string
+    pedestrianCount: number
+  }[]
+  names?: string
+  locationIdentifier?: string
+}
+
+const ONE_DAY = 24 * 60 * 60 * 1000
+
+const floorMidnightLocal = (t: number) => {
+  const d = new Date(t)
+  return +new Date(d.getFullYear(), d.getMonth(), d.getDate())
+}
+
+function computeDateBounds(data: PedatChartsContainerProps['data']) {
+  let min = Infinity
+  let max = -Infinity
+  for (const loc of (data ?? []) as Loc[]) {
+    for (const r of loc.rawData ?? []) {
+      const tt = Date.parse(r.timestamp ?? r.timeStamp ?? '')
+      if (Number.isFinite(tt)) {
+        if (tt < min) min = tt
+        if (tt > max) max = tt
+      }
+    }
+  }
+  if (!Number.isFinite(min) || !Number.isFinite(max)) {
+    const today = floorMidnightLocal(Date.now())
+    return { min: today, max: today }
+  }
+  return { min: floorMidnightLocal(min), max: floorMidnightLocal(max) }
+}
+
+function ymd(t: number) {
+  const d = new Date(t)
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
+function getMetric(
+  row: Loc,
+  aggregation: Aggregation,
+  dateRange: [number, number],
+  hourRange: [number, number]
+) {
+  const [startMid, endMid] = dateRange
+  const endOfEndDay = endMid + (ONE_DAY - 1)
+  const [hStart, hEnd] = hourRange
+
+  const samples = (row.rawData ?? [])
+    .map((r) => {
+      const t = Date.parse(r.timestamp ?? r.timeStamp ?? '')
+      if (!Number.isFinite(t)) return null
+      const h = new Date(t).getHours()
+      const inDate = t >= startMid && t <= endOfEndDay
+      const inHour = h >= hStart && h <= hEnd
+      return inDate && inHour ? { t, h, c: r.pedestrianCount ?? 0 } : null
+    })
+    .filter(Boolean) as { t: number; h: number; c: number }[]
+
+  if (!samples.length) return 0
+
+  if (aggregation === 'Total') {
+    return samples.reduce((s, r) => s + r.c, 0)
+  }
+  if (aggregation === 'Average Hour') {
+    const sum = samples.reduce((s, r) => s + r.c, 0)
+    return sum / samples.length
+  }
+  const byDay = new Map<string, number>()
+  for (const s of samples) {
+    const key = ymd(s.t)
+    byDay.set(key, (byDay.get(key) ?? 0) + s.c)
+  }
+  const totals = Array.from(byDay.values())
+  return totals.reduce((s, v) => s + v, 0) / totals.length
+}
+
+function makeRadiusScale(values: number[], rMin = 6, rMax = 30) {
+  const vMin = Math.min(...values)
+  const vMax = Math.max(...values)
+  if (!isFinite(vMin) || !isFinite(vMax) || vMax <= vMin) return () => rMin
+  const span = Math.sqrt(vMax - vMin)
+  return (v: number) =>
+    rMin + (Math.sqrt(Math.max(0, v - vMin)) / span) * (rMax - rMin)
+}
+
+// ---- color ramp: blue → green → yellow → orange → red ----------------------
+// piecewise RGB interpolation across 5 stops
+const STOPS = ['#2563eb', '#22c55e', '#eab308', '#f97316', '#dc2626'] // low→high
+function hexToRgb(hex: string) {
+  const m = hex.replace('#', '')
+  const n = parseInt(m.length === 3 ? m.replace(/(.)/g, '$1$1') : m, 16)
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 }
+}
+function rgbToHex({ r, g, b }: { r: number; g: number; b: number }) {
+  const toHex = (x: number) => x.toString(16).padStart(2, '0')
+  return `#${toHex(Math.round(r))}${toHex(Math.round(g))}${toHex(Math.round(b))}`
+}
+function lerp(a: number, b: number, t: number) {
+  return a + (b - a) * t
+}
+function lerpColor(c1: string, c2: string, t: number) {
+  const a = hexToRgb(c1)
+  const b = hexToRgb(c2)
+  return rgbToHex({
+    r: lerp(a.r, b.r, t),
+    g: lerp(a.g, b.g, t),
+    b: lerp(a.b, b.b, t),
+  })
+}
+function colorFor(v: number, vMin: number, vMax: number) {
+  const t = vMax > vMin ? (v - vMin) / (vMax - vMin) : 0
+  const seg = Math.min(STOPS.length - 2, Math.floor(t * (STOPS.length - 1)))
+  const localT = t * (STOPS.length - 1) - seg
+  return lerpColor(STOPS[seg], STOPS[seg + 1], localT)
+}
+
+function Legend({ vMin, vMax }: { vMin: number; vMax: number }) {
+  const map = useMap()
+  useEffect(() => {
+    const control = L.control({ position: 'topright' })
+    control.onAdd = () => {
+      const div = L.DomUtil.create('div', 'pedat-legend')
+      div.style.background = 'rgba(255,255,255,0.9)'
+      div.style.padding = '6px 8px'
+      div.style.borderRadius = '6px'
+      div.style.boxShadow = '0 1px 3px rgba(0,0,0,0.3)'
+      div.style.font =
+        '12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial'
+      div.style.minWidth = '220px'
+      const gradient = `linear-gradient(90deg, ${STOPS.join(',')})`
+      const mid = vMin + (vMax - vMin) / 2
+      div.innerHTML = `
+        <div style="font-weight:600;margin-bottom:4px">Pedestrian Count</div>
+        <div style="position:relative;height:12px;border-radius:4px;background:${gradient}"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:2px">
+          <span>${vMin.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+          <span>${mid.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+          <span>${vMax.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+        </div>
+      `
+      // prevent map drag when pointer is on legend
+      L.DomEvent.disableClickPropagation(div)
+      L.DomEvent.disableScrollPropagation(div)
+      return div
+    }
+    control.addTo(map)
+    return () => control.remove()
+  }, [map, vMin, vMax])
+  return null
+}
+
+function PedatLeafletMap({
+  data,
+  aggregation,
+  dateRange,
+  hourRange,
+}: {
+  data: PedatChartsContainerProps['data']
+  aggregation: Aggregation
+  dateRange: [number, number]
+  hourRange: [number, number]
+}) {
   const [mapRef, setMapRef] = useState<LeafletMap | null>(null)
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
-  const [mapCoords, setMapCoords] = useState<{
-    lat: number
-    lng: number
-    zoom: number
-  }>({
+  const [mapCoords, setMapCoords] = useState({
     lat: 40.7608,
     lng: -111.891,
     zoom: 10,
   })
-  const [dateRange, setDateRange] = useState<number[]>([1, 30])
-  const [hourRange, setHourRange] = useState<number[]>([0, 23])
-  const [aggregation, setAggregation] = useState('Average Hour')
-  const filtersButtonRef = useRef(null)
-
-  // Fallback coordinates if env is not set
 
   useEffect(() => {
     const fetchEnv = async () => {
       const env = await getEnv()
-
       const lat = parseFloat(env?.MAP_DEFAULT_LATITUDE || '')
       const lng = parseFloat(env?.MAP_DEFAULT_LONGITUDE || '')
       const zoom = parseInt(env?.MAP_DEFAULT_ZOOM || '', 10)
-
-      if (!isNaN(lat) && !isNaN(lng) && !isNaN(zoom)) {
+      if (!isNaN(lat) && !isNaN(lng) && !isNaN(zoom))
         setMapCoords({ lat, lng, zoom })
-      }
     }
-
     fetchEnv()
   }, [])
 
-  // Invalidate map size on mount and resize
   useEffect(() => {
-    if (mapRef) {
-      mapRef.invalidateSize()
-      const mapContainer = mapRef.getContainer()
-      const resizeObserver = new ResizeObserver(() => {
-        mapRef.invalidateSize()
-      })
-      resizeObserver.observe(mapContainer)
-      return () => {
-        resizeObserver.disconnect()
-      }
-    }
+    if (!mapRef) return
+    mapRef.invalidateSize()
+    const el = mapRef.getContainer()
+    const ro = new ResizeObserver(() => mapRef.invalidateSize())
+    ro.observe(el)
+    return () => ro.disconnect()
   }, [mapRef])
 
-  const handleFiltersClick = useCallback(() => {
-    setIsFiltersOpen((prev) => !prev)
-  }, [])
+  useEffect(() => {
+    if (!mapRef || !data?.length) return
+    const pts = (data as Loc[])
+      .filter(
+        (d) => Number.isFinite(d.latitude) && Number.isFinite(d.longitude)
+      )
+      .map((d) => [d.latitude, d.longitude] as [number, number])
+    if (!pts.length) return
+    const bounds = L.latLngBounds(pts)
+    if (bounds.isValid()) mapRef.fitBounds(bounds.pad(0.2))
+  }, [mapRef, data])
 
-  const handleFiltersClearClick = useCallback(() => {
-    console.log('clear filters')
-  }, [])
+  const metrics = useMemo(() => {
+    const rows = (data ?? []) as Loc[]
+    const res = rows.map((row) =>
+      getMetric(row, aggregation, dateRange, hourRange)
+    )
+    return res
+  }, [data, aggregation, dateRange, hourRange])
 
-  const handleClosePopper = useCallback(() => {
-    // setIsFiltersOpen(false)
-  }, [])
+  const vMin = useMemo(() => Math.min(...metrics), [metrics])
+  const vMax = useMemo(() => Math.max(...metrics), [metrics])
+  const radius = useMemo(() => makeRadiusScale(metrics, 6, 30), [metrics])
+
+  // force a clean redraw when controls change
+  const layerKey = useMemo(
+    () =>
+      `${aggregation}|${dateRange[0]}|${dateRange[1]}|${hourRange[0]}|${hourRange[1]}`,
+    [aggregation, dateRange, hourRange]
+  )
 
   return (
-    <Box sx={{ height: '100%', width: '100%', position: 'relative' }}>
-      <MapContainer
-        center={[mapCoords.lat, mapCoords.lng]}
-        zoom={mapCoords.zoom}
-        scrollWheelZoom={true}
-        style={{
-          height: '100%',
-          width: '100%',
-        }}
-        renderer={L.canvas({ tolerance: 5 })}
-        ref={setMapRef}
-        doubleClickZoom={false}
-      >
-        <ClickAwayListener onClickAway={handleClosePopper}>
-          <Box>
-            <ButtonGroup
-              variant="contained"
-              size="small"
-              disableElevation
-              sx={{
-                position: 'absolute',
-                right: '10px',
-                top: '10px',
-                zIndex: 1000,
+    <MapContainer
+      center={[mapCoords.lat, mapCoords.lng]}
+      zoom={mapCoords.zoom}
+      scrollWheelZoom
+      style={{ height: '100%', width: '100%' }}
+      renderer={L.canvas({ tolerance: 5 })}
+      ref={setMapRef}
+      doubleClickZoom={false}
+    >
+      <TileLayer
+        attribution='&copy; <a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)'
+        url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+      />
+
+      {/* color legend */}
+      <Legend
+        vMin={isFinite(vMin) ? vMin : 0}
+        vMax={isFinite(vMax) ? vMax : 0}
+      />
+
+      {/* force remount when ranges change */}
+      <LayerGroup key={layerKey}>
+        {(data as Loc[]).map((row, i) => {
+          if (!Number.isFinite(row.latitude) || !Number.isFinite(row.longitude))
+            return null
+
+          const v = metrics[i] ?? 0
+          const r = radius(v)
+          const col = colorFor(v, vMin, vMax)
+          const key = row.locationIdentifier || row.names || String(i)
+
+          return (
+            <CircleMarker
+              key={key}
+              center={[row.latitude, row.longitude]}
+              radius={r}
+              pathOptions={{
+                color: col,
+                fillColor: col,
+                fillOpacity: 0.65,
+                weight: 1,
               }}
             >
-              <Button variant="contained" onClick={handleFiltersClick}>
-                Filters
-              </Button>
-              <Button
-                ref={filtersButtonRef}
-                variant="contained"
-                size="small"
-                aria-label="Clear filters"
-                onClick={handleFiltersClearClick}
-                // disabled={
-                //   !Object.values(filters).some((value) => value != null)
-                // }
-                // sx={{
-                //   '&:disabled': { backgroundColor: theme.palette.grey[300] },
-                // }}
-              >
-                <ClearIcon fontSize="small" sx={{ p: 0 }} />
-              </Button>
-            </ButtonGroup>
-            <Popper
-              open={isFiltersOpen}
-              anchorEl={filtersButtonRef.current}
-              container={mapRef?.getContainer() ?? undefined}
-              placement="bottom-end"
-              style={{ zIndex: 1000 }}
-            >
-              <Paper
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  padding: 2,
-                  minWidth: '250px',
-                  zIndex: 1001,
-                }}
-              >
-                {/* Dropdown */}
+              <Tooltip direction="top" opacity={0.9}>
+                <div>
+                  <strong>
+                    {row.names || row.locationIdentifier || 'Location'}
+                  </strong>
+                  <div>
+                    {aggregation}: {Math.round(v * 100) / 100}
+                  </div>
+                </div>
+              </Tooltip>
+            </CircleMarker>
+          )
+        })}
+      </LayerGroup>
+    </MapContainer>
+  )
+}
 
-                <FormControl>
-                  <InputLabel>Aggregation</InputLabel>
-                  <Select
-                    value={aggregation}
-                    label="Aggregation"
-                    onChange={(e) => setAggregation(e.target.value)}
-                  >
-                    <MenuItem value="Average Hour">Average Hour</MenuItem>
-                    <MenuItem value="Average Daily">Average Daily</MenuItem>
-                    <MenuItem value="Total">Total</MenuItem>
-                  </Select>
-                </FormControl>
+function PedatMapWithSidePanel({ data }: PedatChartsContainerProps) {
+  const [aggregation, setAggregation] = useState<Aggregation>('Average Hour')
+  const { min: dateMin, max: dateMax } = useMemo(
+    () => computeDateBounds(data),
+    [data]
+  )
 
-                {/* Date Range Slider */}
-                <Box>
-                  <Typography gutterBottom>Date Range</Typography>
-                  <Slider
-                    value={dateRange}
-                    onChange={(e, newValue) =>
-                      setDateRange(newValue as number[])
-                    }
-                    onMouseDown={(e) => {
-                      e.stopPropagation()
-                      mapRef?.dragging.disable()
-                    }}
-                    onMouseUp={() => mapRef?.dragging.enable()}
-                    onTouchStart={(e) => {
-                      e.stopPropagation()
-                      mapRef?.dragging.disable()
-                    }}
-                    onTouchEnd={() => mapRef?.dragging.enable()}
-                    valueLabelDisplay="auto"
-                    min={1}
-                    max={31}
-                    size="small"
-                  />
-                </Box>
+  // slider values = midnight timestamps
+  const [dateRange, setDateRange] = useState<[number, number]>([
+    dateMin,
+    dateMax,
+  ])
+  useEffect(() => setDateRange([dateMin, dateMax]), [dateMin, dateMax])
 
-                {/* Hour Range Slider */}
-                <Box>
-                  <Typography gutterBottom>Hour Range</Typography>
-                  <Slider
-                    value={hourRange}
-                    onChange={(_, newValue) =>
-                      setHourRange(newValue as number[])
-                    }
-                    onMouseDown={(e) => {
-                      e.stopPropagation()
-                      mapRef?.dragging.disable()
-                    }}
-                    onMouseUp={() => mapRef?.dragging.enable()}
-                    onTouchStart={(e) => {
-                      e.stopPropagation()
-                      mapRef?.dragging.disable()
-                    }}
-                    onTouchEnd={() => mapRef?.dragging.enable()}
-                    valueLabelDisplay="auto"
-                    min={0}
-                    max={23}
-                    size="small"
-                  />
-                </Box>
-              </Paper>
-            </Popper>
-          </Box>
-        </ClickAwayListener>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openaip.net/">openAIP Data</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-NC-SA</a>)'
-          url="https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png"
+  const [hourRange, setHourRange] = useState<[number, number]>([0, 23])
+
+  const setDates = useCallback(
+    (v: [number, number]) => setDateRange([v[0], v[1]]),
+    []
+  )
+  const setHours = useCallback(
+    (v: [number, number]) => setHourRange([v[0], v[1]]),
+    []
+  )
+
+  return (
+    <Box
+      sx={{
+        height: '100%',
+        width: '100%',
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0, 1fr) 320px',
+        gap: 2,
+      }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        <PedatLeafletMap
+          data={data}
+          aggregation={aggregation}
+          dateRange={dateRange}
+          hourRange={hourRange}
         />
-      </MapContainer>
+      </Box>
+
+      <ControlsPanel
+        aggregation={aggregation}
+        setAggregation={setAggregation}
+        dateMin={dateMin}
+        dateMax={dateMax}
+        dateRange={dateRange}
+        setDateRange={setDates}
+        hourRange={hourRange}
+        setHourRange={setHours}
+      />
     </Box>
   )
 }
 
-PedatMap.displayName = 'PedatMap'
-
-export default memo(PedatMap)
+export default PedatMapWithSidePanel
