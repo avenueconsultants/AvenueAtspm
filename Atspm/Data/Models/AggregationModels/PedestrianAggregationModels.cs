@@ -50,7 +50,7 @@ namespace Utah.Udot.Atspm.Data.Models.AggregationModels
 
     public class RawDataPoint
     {
-        public DateTime TimeStamp { get; set; }
+        public DateTime Timestamp { get; set; }
         public double? PedestrianCount { get; set; }
     }
 
@@ -71,7 +71,7 @@ namespace Utah.Udot.Atspm.Data.Models.AggregationModels
         public double? Std { get; set; }
         public double? Min { get; set; }
         public double? TwentyFifthPercentile { get; set; }
-        public double? FiftyithPercentile { get; set; }
+        public double? FiftiethPercentile { get; set; }
         public double? SeventyFifthPercentile { get; set; }
         public double? Max { get; set; }
         public double? MissingCount { get; set; }

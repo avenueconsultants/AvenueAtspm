@@ -8453,7 +8453,7 @@
       "RawDataPoint": {
         "type": "object",
         "properties": {
-          "timeStamp": {
+          "timestamp": {
             "type": "string",
             "format": "date-time"
           },
@@ -8836,7 +8836,7 @@
             "format": "double",
             "nullable": true
           },
-          "fiftyithPercentile": {
+          "fiftiethPercentile": {
             "type": "number",
             "format": "double",
             "nullable": true

@@ -120,7 +120,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
 
                         return new CombinedHourlyAggregation
                         {
-                            TimeStamp = g.Key.Hour,
+                            Timestamp = g.Key.Hour,
                             PhaseNumber = g.Key.PhaseNumber,
                             UniquePedDetections = pedSumUnique,
                             ImputedPedCallsRegistered = pedSumCalls,
@@ -178,7 +178,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 expectedTimes.Add(t);
 
             // Actual timestamps that have data
-            var actualTimes = new HashSet<DateTime>(rawData.Select(r => r.TimeStamp));
+            var actualTimes = new HashSet<DateTime>(rawData.Select(r => r.Timestamp));
 
             // Missing timestamps
             int missingCount = expectedTimes.Count - actualTimes.Count;
@@ -200,7 +200,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 Min = min,
                 Max = max,
                 TwentyFifthPercentile = Math.Round(AtspmMath.Percentile(values, 0.25)),
-                FiftyithPercentile = Math.Round(AtspmMath.Percentile(values, 0.5)),
+                fiftiethPercentile = Math.Round(AtspmMath.Percentile(values, 0.5)),
                 SeventyFifthPercentile = Math.Round(AtspmMath.Percentile(values, 0.75))
             };
         }
@@ -211,63 +211,63 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             {
                 case PedestrianTimeUnit.Day:
                     return combinedHourly
-                        .GroupBy(p => p.TimeStamp.Date)
+                        .GroupBy(p => p.Timestamp.Date)
                         .Select(g => new RawDataPoint
                         {
-                            TimeStamp = g.Key,
+                            Timestamp = g.Key,
                             PedestrianCount = g.Sum(x => x.CalculatedVolume)
                         })
-                        .OrderBy(d => d.TimeStamp)
+                        .OrderBy(d => d.Timestamp)
                         .ToList();
 
                 case PedestrianTimeUnit.Week:
                     return combinedHourly
                         .GroupBy(p =>
                         {
-                            var diff = (int)p.TimeStamp.DayOfWeek - (int)DayOfWeek.Monday;
+                            var diff = (int)p.Timestamp.DayOfWeek - (int)DayOfWeek.Monday;
                             if (diff < 0) diff += 7; // ISO Monday = 0
-                            var monday = p.TimeStamp.AddDays(-diff).Date;
+                            var monday = p.Timestamp.AddDays(-diff).Date;
                             return monday; // group by start of week
                         })
                         .Select(g => new RawDataPoint
                         {
-                            TimeStamp = g.Key,
+                            Timestamp = g.Key,
                             PedestrianCount = g.Sum(x => x.CalculatedVolume)
                         })
-                        .OrderBy(d => d.TimeStamp)
+                        .OrderBy(d => d.Timestamp)
                         .ToList();
 
                 case PedestrianTimeUnit.Month:
                     return combinedHourly
-                        .GroupBy(p => new DateTime(p.TimeStamp.Year, p.TimeStamp.Month, 1))
+                        .GroupBy(p => new DateTime(p.Timestamp.Year, p.Timestamp.Month, 1))
                         .Select(g => new RawDataPoint
                         {
-                            TimeStamp = g.Key,
+                            Timestamp = g.Key,
                             PedestrianCount = g.Sum(x => x.CalculatedVolume)
                         })
-                        .OrderBy(d => d.TimeStamp)
+                        .OrderBy(d => d.Timestamp)
                         .ToList();
 
                 case PedestrianTimeUnit.Year:
                     return combinedHourly
-                        .GroupBy(p => new DateTime(p.TimeStamp.Year, 1, 1))
+                        .GroupBy(p => new DateTime(p.Timestamp.Year, 1, 1))
                         .Select(g => new RawDataPoint
                         {
-                            TimeStamp = g.Key,
+                            Timestamp = g.Key,
                             PedestrianCount = g.Sum(x => x.CalculatedVolume)
                         })
-                        .OrderBy(d => d.TimeStamp)
+                        .OrderBy(d => d.Timestamp)
                         .ToList();
 
                 default: // Hour
                     return combinedHourly
-                        .GroupBy(p => new DateTime(p.TimeStamp.Year, p.TimeStamp.Month, p.TimeStamp.Day, p.TimeStamp.Hour, 0, 0))
+                        .GroupBy(p => new DateTime(p.Timestamp.Year, p.Timestamp.Month, p.Timestamp.Day, p.Timestamp.Hour, 0, 0))
                         .Select(g => new RawDataPoint
                         {
-                            TimeStamp = g.Key,
+                            Timestamp = g.Key,
                             PedestrianCount = g.Sum(x => x.CalculatedVolume)
                         })
-                        .OrderBy(d => d.TimeStamp)
+                        .OrderBy(d => d.Timestamp)
                         .ToList();
             }
         }
@@ -316,8 +316,8 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
 
         private List<IndexedVolume> AverageVolumeByHour(List<CombinedHourlyAggregation> combinedHourly)
         {
-            var allHours = combinedHourly.Select(p => p.TimeStamp)
-                .Select(h => h.Hour)           // get 0–23 hour of day
+            var allHours = combinedHourly.Select(p => p.Timestamp)
+                .Select(h => h.Hour)           // get 0ï¿½23 hour of day
                 .Distinct()
                 .OrderBy(h => h)
                 .ToList();
@@ -326,12 +326,12 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 .Select(hour =>
                 {
                     var volume = combinedHourly
-                        .Where(p => p.TimeStamp.Hour == hour)
+                        .Where(p => p.Timestamp.Hour == hour)
                         .Sum(p => p.CalculatedVolume);
 
                     return new IndexedVolume
                     {
-                        Index = hour,   // 0–23
+                        Index = hour,   // 0ï¿½23
                         Volume = volume
                     };
                 })
@@ -343,7 +343,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
         private List<IndexedVolume> AverageVolumeByDayOfWeek(List<CombinedHourlyAggregation> combinedHourly)
         {
             // Get all days of week present in the data
-            var allDays = combinedHourly.Select(p => (int)p.TimeStamp.DayOfWeek)
+            var allDays = combinedHourly.Select(p => (int)p.Timestamp.DayOfWeek)
                             .Distinct()
                             .OrderBy(d => d)
                             .ToList();
@@ -358,7 +358,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
 
                     // Sum across all hours/phases for this day
                     var volume = combinedHourly
-                        .Where(p => ToIsoDay((int)p.TimeStamp.DayOfWeek) == isoDay)
+                        .Where(p => ToIsoDay((int)p.Timestamp.DayOfWeek) == isoDay)
                         .Sum(p => p.CalculatedVolume);
 
                     return new IndexedVolume
@@ -375,7 +375,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
         private List<IndexedVolume> AverageVolumeByMonth(List<CombinedHourlyAggregation> combinedHourly)
         {
             // Get all months present in the data
-            var allMonths = combinedHourly.Select(p => p.TimeStamp.Month)
+            var allMonths = combinedHourly.Select(p => p.Timestamp.Month)
                             .Distinct()
                             .OrderBy(m => m)
                             .ToList();
@@ -385,7 +385,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 {
                     // Sum across all days/hours/phases for this month
                     var volume = combinedHourly
-                        .Where(p => p.TimeStamp.Month == month)
+                        .Where(p => p.Timestamp.Month == month)
                         .Sum(p => p.CalculatedVolume);
 
                     return new IndexedVolume
@@ -403,7 +403,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
         {
             // Group by date (ignore time)
             var dailySums = combinedHourly
-                .GroupBy(i => i.TimeStamp.Date)
+                .GroupBy(i => i.Timestamp.Date)
                 .Select(g => g.Sum(x => x.CalculatedVolume));
 
             // Compute the average across all days
@@ -412,7 +412,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
 
         private class CombinedHourlyAggregation
         {
-            public DateTime TimeStamp { get; set; }
+            public DateTime Timestamp { get; set; }
             public int PhaseNumber { get; set; }
 
             // Pedestrian fields
