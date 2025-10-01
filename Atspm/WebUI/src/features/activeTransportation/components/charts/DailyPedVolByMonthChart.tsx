@@ -1,8 +1,9 @@
-// /features/activeTransportation/components/charts/DailyPedVolByMonthChart.tsx
+import { applyPrintMode } from '@/features/activeTransportation/components/charts/utils'
 import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import ApacheEChart from '@/features/charts/components/apacheEChart'
 import transformDailyPedVolByMonthTransformer from '@/features/charts/pedat/dailyPedVolByMonthTransformer'
 import { Paper } from '@mui/material'
+import { useMemo } from 'react'
 
 const months = [
   'January',
@@ -19,7 +20,10 @@ const months = [
   'December',
 ]
 
-const DailyPedVolByMonthChart = ({ data }: PedatChartsContainerProps) => {
+const DailyPedVolByMonthChart = ({
+  data,
+  printMode,
+}: PedatChartsContainerProps) => {
   const combinedData = months?.map((month, monthIndex) => {
     const monthVolume =
       data
@@ -33,7 +37,12 @@ const DailyPedVolByMonthChart = ({ data }: PedatChartsContainerProps) => {
     return { month, averageVolume: monthVolume }
   })
 
-  const option = transformDailyPedVolByMonthTransformer(combinedData || [])
+  const base = transformDailyPedVolByMonthTransformer(combinedData || [])
+
+  const option = useMemo(
+    () => applyPrintMode(base, !!printMode),
+    [base, printMode]
+  )
 
   return (
     <Paper sx={{ padding: '25px' }}>

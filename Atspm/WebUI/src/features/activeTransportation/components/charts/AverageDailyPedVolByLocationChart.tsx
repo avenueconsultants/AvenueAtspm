@@ -1,13 +1,20 @@
-// /features/activeTransportation/components/charts/AverageDailyPedVolByLocationChart.tsx
+import { applyPrintMode } from '@/features/activeTransportation/components/charts/utils'
 import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
 import ApacheEChart from '@/features/charts/components/apacheEChart'
 import transformAvgDailyPedVolByLocation from '@/features/charts/pedat/avgDailyPedVolByLocation'
 import { Paper } from '@mui/material'
+import { useMemo } from 'react'
 
 const AverageDailyPedVolByLocationChart = ({
   data,
+  printMode,
 }: PedatChartsContainerProps) => {
-  const option = transformAvgDailyPedVolByLocation(data || [])
+  const base = transformAvgDailyPedVolByLocation(data || [])
+
+  const option = useMemo(
+    () => applyPrintMode(base, !!printMode),
+    [base, printMode]
+  )
 
   return (
     <Paper sx={{ padding: '25px', mb: 5 }}>
