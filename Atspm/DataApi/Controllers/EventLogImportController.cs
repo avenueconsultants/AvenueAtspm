@@ -1,0 +1,102 @@
+﻿#region license
+// Copyright 2025 Utah Departement of Transportation
+// for DataApi - Utah.Udot.Atspm.DataApi.Controllers/EventLogController.cs
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http://www.apache.org/licenses/LICENSE-2.
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#endregion
+
+using Asp.Versioning;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.IO.Compression;
+using System.Text;
+using Utah.Udot.ATSPM.DataApi.Controllers;
+using Utah.Udot.ATSPM.DataApi.Services;
+
+namespace Utah.Udot.Atspm.DataApi.Controllers
+{
+    /// <summary>
+    /// Event log controller
+    /// for querying raw device log data
+    /// </summary>
+    [ApiVersion("1.0")]
+    [Authorize(Policy = "CanViewData")]
+    public class EventLogImportController : DataControllerBase
+    {
+        private readonly IEventLogRepository _repository;
+        private readonly ILogger _log;
+        private EventLogImporterService _eventLogImporterService;
+
+        /// <inheritdoc/>
+        public EventLogImportController(IEventLogRepository repository, ILogger<EventLogController> log, EventLogImporterService eventLogImporterService)
+        {
+            _repository = repository;
+            _log = log;
+            _eventLogImporterService = eventLogImporterService;
+        }
+
+        /// <summary>
+        /// Save Events for a location
+        /// </summary>
+        /// <param name="locationIdentifier">Location identifier</param>
+        /// <returns></returns>
+        /// <response code="200">Call completed successfully</response>
+        /// <response code="400">Invalid request </response>
+        /// <response code="404">Resource not found</response>
+        [HttpPost("[action]/{locationIdentifier}")]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult UploadEventsFromCompressedJson(string locationIdentifier)
+        {
+            try
+            {
+                using var memoryStream = new MemoryStream();
+                Request.Body.CopyTo(memoryStream);
+
+                // Rewind the stream
+                memoryStream.Seek(0, SeekOrigin.Begin);
+
+                // Decompress using GZip
+                using var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress);
+                using var reader = new StreamReader(gzipStream, Encoding.UTF8);
+                var json = reader.ReadToEnd();
+
+                // Now deserialize the JSON
+                var events = JsonConvert.DeserializeObject<List<IndianaEvent>>(json);
+                foreach (var e in events)
+                {
+                    e.LocationIdentifier = locationIdentifier;
+                }
+
+                if (events == null || events.Count == 0)
+                    return BadRequest("No events found in decompressed JSON");
+                var compressedEventLog = _eventLogImporterService.CompressEvents(locationIdentifier, events);
+
+                var result = _eventLogImporterService.InsertLogWithRetryAsync(compressedEventLog);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error processing compressed JSON: {ex.Message}");
+            }
+        }
+
+
+
+        //Add in the run the aggregation for a certain location over certain dates. :P
+
+    }
+}
