@@ -59,12 +59,12 @@ namespace Utah.Udot.Atspm.DataApi.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult UploadEventsFromCompressedJson(string locationIdentifier)
+        public async Task<IActionResult> UploadEventsFromCompressedJsonAsync(string locationIdentifier)
         {
             try
             {
                 using var memoryStream = new MemoryStream();
-                Request.Body.CopyTo(memoryStream);
+                await Request.Body.CopyToAsync(memoryStream);
 
                 // Rewind the stream
                 memoryStream.Seek(0, SeekOrigin.Begin);
@@ -85,8 +85,12 @@ namespace Utah.Udot.Atspm.DataApi.Controllers
                     return BadRequest("No events found in decompressed JSON");
                 var compressedEventLog = _eventLogImporterService.CompressEvents(locationIdentifier, events);
 
-                var result = _eventLogImporterService.InsertLogWithRetryAsync(compressedEventLog);
-                return Ok(result);
+                bool success = await _eventLogImporterService.InsertLogWithRetryAsync(compressedEventLog);
+
+                if (success)
+                    return Ok(new { message = "Log inserted successfully or already exists" });
+                else
+                    return StatusCode(500, new { message = "Failed to insert log" });
             }
             catch (Exception ex)
             {

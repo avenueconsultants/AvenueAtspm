@@ -1,4 +1,6 @@
-﻿using Polly;
+﻿using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using Polly;
 using Polly.Contrib.WaitAndRetry;
 using Polly.Retry;
 using Utah.Udot.Atspm.Data;
@@ -28,12 +30,14 @@ namespace Utah.Udot.ATSPM.DataApi.Services
                 });
         private readonly IServiceProvider _serviceProvider;
         private ILocationRepository _locationRepository;
+        private IDeviceRepository _deviceRepository;
 
-        public EventLogImporterService(AsyncRetryPolicy retryPolicy, IServiceProvider serviceProvider, ILocationRepository locationRepository)
+        public EventLogImporterService(AsyncRetryPolicy retryPolicy, IServiceProvider serviceProvider, ILocationRepository locationRepository, IDeviceRepository deviceRepository)
         {
             _retryPolicy = retryPolicy;
             _serviceProvider = serviceProvider;
             _locationRepository = locationRepository;
+            _deviceRepository = deviceRepository;
         }
 
         public CompressedEventLogs<IndianaEvent> CompressEvents(string locationIdentifier, List<IndianaEvent> events)
@@ -41,7 +45,7 @@ namespace Utah.Udot.ATSPM.DataApi.Services
             var location = _locationRepository.GetLatestVersionOfLocation(locationIdentifier);
             if (events.Any())
             {
-                var device = location.Devices
+                var device = _deviceRepository.GetActiveDevicesByLocation(location.Id)
                     .FirstOrDefault(d => d.DeviceType == DeviceTypes.SignalController);
 
                 events.OrderBy(i => i.Timestamp);
@@ -67,20 +71,48 @@ namespace Utah.Udot.ATSPM.DataApi.Services
 
 
 
-        public async Task InsertLogWithRetryAsync(CompressedEventLogs<IndianaEvent> archiveLogs)
+        public async Task<bool> InsertLogWithRetryAsync(CompressedEventLogs<IndianaEvent> archiveLog)
         {
-            await _retryPolicy.ExecuteAsync(async () =>
+            if (archiveLog == null)
             {
-                using var scope = _serviceProvider.CreateScope();
-                var context = scope.ServiceProvider.GetService<EventLogContext>();
-                if (context == null)
+                return false; // Nothing to insert
+            }
+
+            try
+            {
+                await _retryPolicy.ExecuteAsync(async () =>
                 {
-                    return;
-                }
-                context.CompressedEvents.AddRange(archiveLogs);
-                //context.CompressedEvents.Add(archiveLog);
-                await context.SaveChangesAsync();
-            });
+                    using var scope = _serviceProvider.CreateScope();
+                    var context = scope.ServiceProvider.GetService<EventLogContext>();
+
+                    if (context == null)
+                    {
+                        throw new InvalidOperationException("EventLogContext is not available.");
+                    }
+
+                    context.CompressedEvents.Add(archiveLog);
+
+                    try
+                    {
+                        await context.SaveChangesAsync();
+                    }
+                    catch (DbUpdateException ex) when (
+                        ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+                    {
+                        // Duplicate key — log already exists, skip insert
+                        var doubleKey = true;
+                    }
+                });
+
+                return true; // Successfully inserted (or already exists)
+            }
+            catch (Exception e)
+            {
+                // Retry policy failed
+                return false;
+            }
         }
+
+
     }
 }
