@@ -12,6 +12,7 @@ import {
   Skeleton,
   useTheme,
 } from '@mui/material'
+import 'esri-leaflet-renderers'
 import L, { Map as LeafletMap } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
@@ -57,10 +58,11 @@ const LocationMap = ({
   const filtersButtonRef = useRef(null)
 
   const [mapInfo, setMapInfo] = useState<{
-    tile_layer: string
-    attribution: string
+    tile_layer: string | undefined
+    attribution: string | undefined
     initialLat: number
     initialLong: number
+    zoomLevel: number
   } | null>(null)
 
   const locationsEnabledLength = locations.filter((l) => l.chartEnabled).length
@@ -68,17 +70,18 @@ const LocationMap = ({
   useEffect(() => {
     const fetchEnv = async () => {
       const env = await getEnv()
+      if (!env) return
       setMapInfo({
         tile_layer: env.MAP_TILE_LAYER,
         attribution: env.MAP_TILE_ATTRIBUTION,
-        initialLat: parseFloat(env.MAP_DEFAULT_LATITUDE),
-        initialLong: parseFloat(env.MAP_DEFAULT_LONGITUDE),
+        initialLat: parseFloat(env.MAP_DEFAULT_LATITUDE ?? '0'),
+        initialLong: parseFloat(env.MAP_DEFAULT_LONGITUDE ?? '0'),
+        zoomLevel: parseInt(env.MAP_DEFAULT_ZOOM ?? '0'),
       })
     }
     fetchEnv()
   }, [])
 
-  // Pan to the selected location
   useEffect(() => {
     if (location && mapRef) {
       const markerLocation = locations.find((loc) => loc.id === location.id)
@@ -142,14 +145,12 @@ const LocationMap = ({
           .map((loc) => [loc.latitude, loc.longitude])
       )
 
-      // Check if bounds are valid before fitting the map to these bounds
       if (bounds.isValid()) {
         mapRef.fitBounds(bounds)
       }
     }
-  }, [mapRef, filteredLocations, locations])
+  }, [mapRef, filteredLocations, locations, locationsEnabledLength])
 
-  // Handle filter changes using MapFilters
   const handleFiltersClick = useCallback(() => {
     setIsFiltersOpen((prev) => !prev)
   }, [])
@@ -162,11 +163,10 @@ const LocationMap = ({
       jurisdictionId: null,
       measureTypeId: null,
     })
-
     if (mapInfo?.initialLat && mapInfo?.initialLong) {
       mapRef?.setView([mapInfo.initialLat, mapInfo.initialLong], 6)
     }
-  }, [updateFilters])
+  }, [updateFilters, mapInfo, mapRef])
 
   const handleClosePopper = useCallback(() => {
     setIsFiltersOpen(false)
@@ -179,11 +179,11 @@ const LocationMap = ({
   return (
     <MapContainer
       center={center || [mapInfo.initialLat, mapInfo.initialLong]}
-      zoom={zoom || 6}
+      zoom={zoom ?? mapInfo.zoomLevel ?? 6}
       scrollWheelZoom={true}
       style={{
         height: mapHeight || 'calc(100% - 80px)',
-        minHeight: '400px',
+        minHeight: mapHeight || '400px',
         width: '100%',
       }}
       ref={setMapRef}
@@ -233,6 +233,7 @@ const LocationMap = ({
           </Popper>
         </Box>
       </ClickAwayListener>
+
       <TileLayer attribution={mapInfo.attribution} url={mapInfo.tile_layer} />
       <Markers locations={filteredLocations} setLocation={setLocation} />
       {route && route.length > 0 && (

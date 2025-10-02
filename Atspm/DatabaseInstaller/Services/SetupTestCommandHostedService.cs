@@ -1,6 +1,6 @@
 ﻿#region license
 // Copyright 2025 Utah Departement of Transportation
-// for DatabaseInstaller - %Namespace%/TransferConfigCommandHostedService.cs
+// for DatabaseInstaller - %Namespace%/SetupTestCommandHostedService.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -432,8 +432,8 @@ public class SetupTestCommandHostedService : IHostedService
             OperationTimeout = 30000,
             LoggingOffset = 0,
             Decoders = new[] { "Asc To Indiana Decoder" },
-            UserName = "econolite",
-            Password = "ecpi2ecpi",
+            UserName = "test",
+            Password = "test",
             ProductId = productLookup["ASC-3"]
         },
         new()
@@ -454,8 +454,8 @@ public class SetupTestCommandHostedService : IHostedService
             OperationTimeout = 3000,
             LoggingOffset = 0,
             Decoders = new[] { "Asc To Indiana Decoder" },
-            UserName = "econolite",
-            Password = "ecpi2ecpi",
+            UserName = "test",
+            Password = "test",
             ProductId = productLookup["Cobalt"]
         },
         new()
@@ -473,8 +473,8 @@ public class SetupTestCommandHostedService : IHostedService
             OperationTimeout = 60000,
             LoggingOffset = 30,
             Decoders = new[] { "Maxtime To Indiana Decoder" },
-            UserName = "econolite",
-            Password = "ecpi2ecpi",
+            UserName = "test",
+            Password = "test",
             ProductId = productLookup["MaxTime ic"]
         },
         new()
@@ -482,7 +482,7 @@ public class SetupTestCommandHostedService : IHostedService
             Description = ">= 32.67.20 < 32.68.20",
             Protocol = TransportProtocols.Sftp,
             Port = 22,
-            Path = "/opt/econolite/set1",
+            Path = "/opt/admin/set1",
             Query = new[] { "dat", "datZ" },
             ConnectionProperties = new Dictionary<string, object>
             {
@@ -495,8 +495,8 @@ public class SetupTestCommandHostedService : IHostedService
             OperationTimeout = 30000,
             LoggingOffset = 0,
             Decoders = new[] { "Asc To Indiana Decoder" },
-            UserName = "econolite",
-            Password = "ecpi2ecpi",
+            UserName = "test",
+            Password = "test",
             ProductId = productLookup["Cobalt"]
         },
         new()
@@ -504,7 +504,7 @@ public class SetupTestCommandHostedService : IHostedService
             Description = ">= 32.68.40",
             Protocol = TransportProtocols.Sftp,
             Port = 22,
-            Path = "/opt/econolite/set1",
+            Path = "/opt/admin/set1",
             Query = new[] { "dat", "datZ" },
             ConnectionProperties = new Dictionary<string, object>
             {
@@ -517,8 +517,8 @@ public class SetupTestCommandHostedService : IHostedService
             OperationTimeout = 30000,
             LoggingOffset = 0,
             Decoders = new[] { "Asc To Indiana Decoder" },
-            UserName = "econolite",
-            Password = "ecpi2ecpi",
+            UserName = "test",
+            Password = "test",
             ProductId = productLookup["Cobalt"]
         },
         new()
@@ -536,8 +536,8 @@ public class SetupTestCommandHostedService : IHostedService
             OperationTimeout = 60000,
             LoggingOffset = 30,
             Decoders = new[] { "Maxtime To Indiana Decoder" },
-            UserName = "econolite",
-            Password = "ecpi2ecpi",
+            UserName = "test",
+            Password = "test",
             ProductId = productLookup["MaxTime rm"]
         }
     };

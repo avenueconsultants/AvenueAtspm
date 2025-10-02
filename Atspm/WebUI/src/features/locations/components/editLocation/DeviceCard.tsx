@@ -1,4 +1,4 @@
-import { Device } from '@/api/config/aTSPMConfigurationApi.schemas'
+import { Device } from '@/api/config'
 import { useGetDeviceConfigurations } from '@/features/devices/api'
 import CircleIcon from '@mui/icons-material/Circle'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
@@ -186,6 +186,10 @@ const DeviceCard = ({ device, onEdit, onDelete }: DeviceCardProps) => {
                   'deviceIdentifier',
                   'location',
                   'deviceConfiguration',
+                  'created',
+                  'modified',
+                  'createdBy',
+                  'modifiedBy',
                 ].includes(key)
             )
             .map(([key, value]) => (

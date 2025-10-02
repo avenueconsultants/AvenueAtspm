@@ -1,11 +1,15 @@
+import {
+  useGetArea,
+  useGetJurisdiction,
+  useGetLocationType,
+  useGetRegion,
+  usePutLocationFromKey,
+} from '@/api/config'
 import CustomSelect from '@/components/customSelect'
-import { useAreas } from '@/features/areas/api'
-import { useJurisdictions } from '@/features/jurisdictions/api'
-import { useEditLocation } from '@/features/locations/api'
-import { useLocationTypes } from '@/features/locations/api/getLocationTypes'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
-import { useRegions } from '@/features/regions/api'
+import { useNotificationStore } from '@/stores/notifications'
 import { dateToTimestamp } from '@/utils/dateTime'
+import { removeAuditFields } from '@/utils/removeAuditFields'
 import SaveIcon from '@mui/icons-material/Save'
 import {
   Box,
@@ -26,13 +30,14 @@ import { useQueryClient } from 'react-query'
 
 const LocationGeneralOptionsEditor = () => {
   const { location, handleLocationEdit, setLocation } = useLocationStore()
+  const { addNotification } = useNotificationStore()
   const queryClient = useQueryClient()
-  const { data: areasData } = useAreas()
-  const { data: regionsData } = useRegions()
-  const { data: jurisdictionData } = useJurisdictions()
-  const { data: locationTypeData } = useLocationTypes()
+  const { data: areasData } = useGetArea()
+  const { data: regionsData } = useGetRegion()
+  const { data: jurisdictionData } = useGetJurisdiction()
+  const { data: locationTypeData } = useGetLocationType()
 
-  const { mutate: updateGeneralInfo } = useEditLocation()
+  const { mutateAsync: updateGeneralInfo } = usePutLocationFromKey()
 
   const handleAreaDelete = (id: number | string) => {
     setLocation({
@@ -94,17 +99,34 @@ const LocationGeneralOptionsEditor = () => {
 
     generalInfo.start = format(parseISO(location.start), 'yyyy-MM-dd')
 
-    updateGeneralInfo(
-      {
-        id: location.id,
-        data: generalInfo,
-      },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries()
+    // remove audit fields
+    const generalInfoDto = removeAuditFields(generalInfo)
+    generalInfoDto.areas = location?.areas?.map(removeAuditFields)
+
+    try {
+      updateGeneralInfo(
+        {
+          key: location.id,
+          data: generalInfoDto,
         },
-      }
-    )
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries()
+          },
+        }
+      )
+      addNotification({
+        type: 'success',
+        title: 'Location saved successfully',
+      })
+    } catch (error) {
+      console.error('Error saving general location info:', error)
+      addNotification({
+        type: 'error',
+        title: 'Error saving general location info',
+        message: 'An error occurred while saving the general location info.',
+      })
+    }
   }
 
   if (!location) return null
@@ -247,28 +269,6 @@ const LocationGeneralOptionsEditor = () => {
                   sx={{
                     minWidth: '226px',
                   }}
-                />
-                <FormControlLabel
-                  control={<Checkbox onChange={handleCheckboxChange} />}
-                  name="pedsAre1to1"
-                  label={
-                    <Tooltip
-                      title={
-                        'If enabled, peds phases will be 1 to 1 with the protected phase.'
-                      }
-                    >
-                      <Typography
-                        sx={{
-                          textDecoration: 'underline',
-                          textDecorationStyle: 'dotted',
-                          textUnderlineOffset: '5px',
-                        }}
-                      >
-                        Peds are 1 to 1
-                      </Typography>
-                    </Tooltip>
-                  }
-                  checked={location.pedsAre1to1}
                 />
               </Box>
             </Box>

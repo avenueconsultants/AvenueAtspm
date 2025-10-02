@@ -1,4 +1,4 @@
-import { SearchLocation as Location } from '@/api/config/aTSPMConfigurationApi.schemas'
+import { SearchLocation as Location } from '@/api/config'
 import { Filters } from '@/features/locations/components/selectLocation/SelectLocation'
 import { Autocomplete, Badge, TextField, Tooltip } from '@mui/material'
 import match from 'autosuggest-highlight/match'
@@ -43,9 +43,20 @@ const LocationInput = ({
   filters,
   handleChange,
 }: LocationInputProps) => {
-  const amountOfFiltersApplied = Object.values(filters).filter(
-    (value) => value !== null
-  ).length
+  const amountOfFiltersApplied = filters
+    ? Object.values(filters).filter((value) => value !== null).length
+    : 0
+
+  // sort locations so that templates come first
+  const templateLocations = locations.sort((a, b) => {
+    if (a.locationIdentifier.includes('template')) {
+      return -1
+    }
+    if (b.locationIdentifier.includes('template')) {
+      return 1
+    }
+    return 0
+  })
   const [inputValue, setInputValue] = useState('')
   return (
     <Badge
@@ -64,11 +75,11 @@ const LocationInput = ({
     >
       <Autocomplete
         value={
-          locations?.find(
+          templateLocations?.find(
             (l) => l.locationIdentifier === location?.locationIdentifier
           ) || null
         }
-        options={customSort(locations, inputValue)}
+        options={customSort(templateLocations, inputValue)}
         inputValue={inputValue}
         onInputChange={(event, newInputValue) => {
           setInputValue(newInputValue)

@@ -1,4 +1,4 @@
-import { Product } from '@/api/config/aTSPMConfigurationApi.schemas'
+import { Product } from '@/api/config'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Button,

@@ -1,4 +1,4 @@
-import { useGetDeviceConfigurationEventLogDecoders } from '@/api/config/aTSPMConfigurationApi'
+import { useGetDeviceConfigurationEventLogDecoders } from '@/api/config'
 import { knownKeys } from '@/features/devices/components/DeviceConfigCustomRenderCell'
 import { DeviceConfiguration } from '@/features/devices/types/index'
 import { useGetProducts } from '@/features/products/api'
@@ -130,7 +130,6 @@ const DeviceConfigModal = ({
   const { data: transportProtocols } = useConfigEnums(
     ConfigEnum.TransportProtocols
   )
-  console.log(allDecodersData)
   const defaultConnectionProperties = deviceConfiguration
     ? Object.entries(deviceConfiguration)
         .filter(([key]) => !knownKeys.has(key))

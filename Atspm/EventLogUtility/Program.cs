@@ -1,4 +1,4 @@
-﻿#region license
+#region license
 // Copyright 2025 Utah Departement of Transportation
 // for EventLogUtility - %Namespace%/Program.cs
 // 
@@ -23,7 +23,6 @@ using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
 using System.Diagnostics;
-using System.Reflection;
 using Utah.Udot.Atspm.EventLogUtility.Commands;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
 
@@ -39,16 +38,11 @@ if (OperatingSystem.IsWindows())
 var rootCmd = new EventLogCommands();
 var cmdBuilder = new CommandLineBuilder(rootCmd);
 cmdBuilder.UseDefaults();
+
 cmdBuilder.UseHost(a =>
 {
     return Host.CreateDefaultBuilder(a)
     //.UseConsoleLifetime()
-    .ConfigureAppConfiguration((h, c) =>
-    {
-        c.AddUserSecrets<Program>(optional: true); // Load secrets first
-        c.AddCommandLine(args);                    // Override with command-line args
-
-    })
     .ApplyVolumeConfiguration()
     .ConfigureLogging((h, l) =>
     {
@@ -61,18 +55,21 @@ cmdBuilder.UseHost(a =>
             });
         }
 
-        //l.AddGoogle(new LoggingServiceOptions
-        //{
-        //    ServiceName = AppDomain.CurrentDomain.FriendlyName,
-        //    Version = Assembly.GetEntryAssembly().GetName().Version.ToString(),
-        //    Options = LoggingOptions.Create(LogLevel.Information, AppDomain.CurrentDomain.FriendlyName)
-        //});
-    })
+        var config = h.Configuration.GetSection("Logging:GoogleDiagnostics").Get<GoogleDiagnosticsConfiguration>();
 
+        if (config != null && config.Enabled)
+        {
+            l.AddGoogle(new LoggingServiceOptions
+            {
+                ProjectId = config.ProjectId,
+                ServiceName = config.ServiceName,
+                Version = config.Version,
+                Options = LoggingOptions.Create(config.MinimumLogLevel, config.ServiceName)
+            });
+        }
+    })
     .ConfigureServices((h, s) =>
     {
-        //s.AddGoogleDiagnostics(loggingOptions: LoggingOptions.Create(LogLevel.Debug));
-
         s.AddAtspmDbContext(h);
         s.AddAtspmEFConfigRepositories();
         s.AddAtspmEFEventLogRepositories();

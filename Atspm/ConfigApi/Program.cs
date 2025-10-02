@@ -26,11 +26,12 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Utah.Udot.Atspm.ConfigApi.Configuration;
 using Utah.Udot.Atspm.ConfigApi.Services;
-using Utah.Udot.Atspm.ConfigApi.Utility;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
+using Utah.Udot.Atspm.Infrastructure.Services;
+using Utah.Udot.ATSPM.ConfigApi.Utility;
 using Utah.Udot.NetStandardToolkit.Extensions;
 
-//gitactions: II
+//gitactions: III
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
@@ -60,11 +61,6 @@ builder.Host
             o.RouteOptions.EnablePropertyNameCaseInsensitive = true;
             o.RouteOptions.EnableQualifiedOperationCall = false;
             o.RouteOptions.EnableUnqualifiedOperationCall = true;
-        })
-        // Configure JSON options to use custom DateTime converter
-        .AddJsonOptions(options =>
-        {
-            options.JsonSerializerOptions.Converters.Add(new CustomDateTimeConverter());
         });
         s.AddProblemDetails();
 
@@ -99,6 +95,7 @@ builder.Host
             o.CustomOperationIds((controller, verb, action) => $"{verb}{controller}{action}");
             o.EnableAnnotations();
             o.AddJwtAuthorization();
+            o.DocumentFilter<GenerateMeasureOptionSchemas>();
         });
 
         var allowedHosts = builder.Configuration.GetSection("AllowedHosts").Get<string>() ?? "*";
@@ -130,6 +127,8 @@ builder.Host
         s.AddScoped<IApproachService, ApproachService>();
         s.AddPathBaseFilter(h);
         s.AddAtspmIdentity(h);
+
+        s.AddScoped<ILocationManager, LocationManager>();
     });
 
 var app = builder.Build();
