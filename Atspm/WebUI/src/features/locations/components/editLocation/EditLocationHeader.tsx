@@ -1,21 +1,22 @@
-import { useGetLocationAllVersionsOfLocationFromIdentifier } from '@/api/config/aTSPMConfigurationApi'
-import { Location } from '@/api/config/aTSPMConfigurationApi.schemas'
-import CustomSelect from '@/components/customSelect'
-import { useLocationTypes } from '@/features/locations/api'
 import {
-  useCopyLocationToNewVersion,
-  useDeleteVersion,
-  useSetLocationToBeDeleted,
-} from '@/features/locations/api/location'
+  Location,
+  useDeleteLocationAllVersionsFromKey,
+  useDeleteLocationSetLocationTodFromKey,
+  useGetLocationAllVersionsOfLocationFromIdentifier,
+  useGetLocationCopyLocationToNewVersionFromKey,
+  useGetLocationType,
+} from '@/api/config'
+import CustomSelect from '@/components/customSelect'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import { getLocationTypeConfig } from '@/features/locations/utils'
-import { getLocation } from '@/pages/admin/locations'
+import { getLocation } from '@/pages/admin/locations/[[...id]]'
 import { useNotificationStore } from '@/stores/notifications'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import {
   Avatar,
   Box,
   Button,
+  Divider,
   Icon,
   InputLabel,
   Menu,
@@ -23,6 +24,7 @@ import {
   Modal,
   Paper,
   SelectChangeEvent,
+  TextField,
   Typography,
 } from '@mui/material'
 import React, { useState } from 'react'
@@ -44,12 +46,13 @@ const modalStyle = {
 export default function EditLocationHeader() {
   const { location, setLocation } = useLocationStore()
   const { addNotification } = useNotificationStore()
-
   const queryClient = useQueryClient()
-  const { data: locationTypeData } = useLocationTypes()
-  const { mutate: copyVersion } = useCopyLocationToNewVersion(location.id)
-  const { mutate: deleteVersion } = useDeleteVersion()
-  const { mutate: deleteLocation } = useSetLocationToBeDeleted(location.id)
+
+  const { data: locationTypeData } = useGetLocationType()
+  const { mutate: copyVersion } =
+    useGetLocationCopyLocationToNewVersionFromKey()
+  const { mutate: deleteVersion } = useDeleteLocationSetLocationTodFromKey()
+  const { mutate: deleteLocation } = useDeleteLocationAllVersionsFromKey()
 
   const { data: versionsData, refetch: fetchLocationVersions } =
     useGetLocationAllVersionsOfLocationFromIdentifier(
@@ -62,26 +65,25 @@ export default function EditLocationHeader() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const open = Boolean(anchorEl)
 
-  const [openModal, setOpenModal] = useState(false)
-  const [modalAction, setModalAction] = useState('')
+  const [openDeleteModal, setOpenDeleteModal] = useState(false)
+  const [deleteAction, setDeleteAction] = useState('')
+
+  const [openAddDialog, setOpenAddDialog] = useState(false)
+  const [newVersionLabel, setNewVersionLabel] = useState('')
 
   if (!location) return null
 
   const updateLocationVersion = async (newLoc: Location | null) => {
-    if (!newLoc) return
-
-    setLocation(await getLocation(newLoc.id))
+    if (!newLoc?.id) return
+    const newLocation = await getLocation(newLoc.id)
+    setLocation(newLocation)
   }
 
   function buildDisplayName(loc: Location) {
     const { locationIdentifier, primaryName, secondaryName } = loc
     let displayName = locationIdentifier || ''
-    if (primaryName) {
-      displayName += ` - ${primaryName}`
-    }
-    if (primaryName && secondaryName) {
-      displayName += ` & ${secondaryName}`
-    }
+    if (primaryName) displayName += ` - ${primaryName}`
+    if (primaryName && secondaryName) displayName += ` & ${secondaryName}`
     return displayName
   }
 
@@ -96,16 +98,18 @@ export default function EditLocationHeader() {
     return `${+month}/${+day}/${year} - ${note}`
   }
 
-  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(e.currentTarget)
-  }
-  const handleClose = () => {
-    setAnchorEl(null)
+  const handleClose = () => setAnchorEl(null)
+
+  const handleAddNewVersion = () => {
+    setOpenAddDialog(true)
+    handleClose()
   }
 
-  const handleModalPopup = (action: string) => {
-    setModalAction(action)
-    setOpenModal(true)
+  const handleDeletePopup = (action: string) => {
+    setDeleteAction(action)
+    setOpenDeleteModal(true)
     handleClose()
   }
 
@@ -116,68 +120,63 @@ export default function EditLocationHeader() {
   }
 
   const handleAddNewVersionConfirm = () => {
-    copyVersion(location.id, {
-      onSuccess: (newLoc) => {
-        updateLocationVersion(newLoc)
-        fetchLocationVersions()
-      },
-    })
-    setOpenModal(false)
+    copyVersion(
+      { key: location.id, params: { newVersionLabel } },
+      {
+        onSuccess: (newLoc) => {
+          updateLocationVersion(newLoc)
+          fetchLocationVersions()
+          addNotification({ type: 'success', title: 'New Version Added' })
+        },
+      }
+    )
+    setOpenAddDialog(false)
+    setNewVersionLabel('')
   }
 
   const handleDeleteCurrentVersionConfirm = () => {
-    deleteVersion(location.id, {
-      onSuccess: () => {
-        fetchLocationVersions()
-        updateLocationVersion(
-          locationVersions?.find((ver) => ver.id !== location.id) || null
-        )
-      },
-    })
-    setOpenModal(false)
+    deleteVersion(
+      { key: location.id },
+      {
+        onSuccess: () => {
+          fetchLocationVersions()
+          updateLocationVersion(
+            locationVersions?.find((ver) => ver.id !== location.id) || null
+          )
+          addNotification({ type: 'success', title: 'Version Deleted' })
+        },
+      }
+    )
+    setOpenDeleteModal(false)
   }
 
   const handleDeleteLocationConfirm = () => {
-    deleteLocation(location.id, {
-      onSuccess: async () => {
-        updateLocationVersion(null)
-        addNotification({
-          type: 'error',
-          title: 'Location Deleted',
-        })
-        await queryClient.invalidateQueries()
-      },
-    })
-    setOpenModal(false)
+    if (!location?.locationIdentifier) return
+    deleteLocation(
+      { key: location.locationIdentifier },
+      {
+        onSuccess: async () => {
+          updateLocationVersion(null)
+          setLocation(null)
+          addNotification({ type: 'success', title: 'Location Deleted' })
+          await queryClient.invalidateQueries()
+        },
+      }
+    )
+    setOpenDeleteModal(false)
   }
 
-  // Decide which text/action to use based on the chosen menu item
-  const modalText =
-    modalAction === 'addVersion'
-      ? 'Are you sure you want to add a new version of this location?'
-      : modalAction === 'deleteVersion'
-        ? 'Are you sure you want to delete this version?'
-        : 'Are you sure you want to delete this location?'
+  const deleteModalText =
+    deleteAction === 'deleteVersion'
+      ? 'Are you sure you want to delete this version?'
+      : 'Are you sure you want to delete this location?'
 
-  const actionButtonText =
-    modalAction === 'addVersion'
-      ? 'Add New Version'
-      : modalAction === 'deleteVersion'
-        ? 'Delete Version'
-        : 'Delete Location'
+  const deleteButtonText =
+    deleteAction === 'deleteVersion' ? 'Delete Version' : 'Delete Location'
 
-  const handleModalAction = () => {
-    switch (modalAction) {
-      case 'addVersion':
-        handleAddNewVersionConfirm()
-        break
-      case 'deleteVersion':
-        handleDeleteCurrentVersionConfirm()
-        break
-      case 'deleteLocation':
-        handleDeleteLocationConfirm()
-        break
-    }
+  const handleDeleteAction = () => {
+    if (deleteAction === 'deleteVersion') handleDeleteCurrentVersionConfirm()
+    if (deleteAction === 'deleteLocation') handleDeleteLocationConfirm()
   }
 
   const locationType = locationTypeData?.value.find(
@@ -188,7 +187,6 @@ export default function EditLocationHeader() {
   return (
     <Paper sx={{ mt: 2, p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        {/* Left side: Location Type + Avatar */}
         <Box sx={{ display: 'flex', alignItems: 'flex-end', mb: '10px' }}>
           <Avatar
             sx={{
@@ -209,7 +207,6 @@ export default function EditLocationHeader() {
           </Typography>
         </Box>
 
-        {/* Right side: Actions button */}
         <Box>
           <Button
             variant="contained"
@@ -220,27 +217,24 @@ export default function EditLocationHeader() {
             Actions
           </Button>
           <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
-            <MenuItem onClick={() => handleModalPopup('addVersion')}>
-              Add New Version
-            </MenuItem>
-            <MenuItem onClick={() => handleModalPopup('deleteVersion')}>
+            <MenuItem onClick={handleAddNewVersion}>Add New Version</MenuItem>
+            <MenuItem onClick={() => handleDeletePopup('deleteVersion')}>
               Delete This Version
             </MenuItem>
-            <MenuItem onClick={() => handleModalPopup('deleteLocation')}>
+            <Divider />
+            <MenuItem onClick={() => handleDeletePopup('deleteLocation')}>
               Delete This Location
             </MenuItem>
           </Menu>
         </Box>
       </Box>
 
-      {/* Main Title */}
       <Typography variant="h2" marginBottom={'10px'}>
         {buildDisplayName(location)}
       </Typography>
 
-      {/* Version Dropdown */}
       <Box sx={{ display: 'flex', alignItems: 'center', mt: '10px' }}>
-        <InputLabel sx={{ marginRight: '10px' }} htmlFor="version-select-label">
+        <InputLabel sx={{ marginRight: '10px' }}>
           <Typography variant="h4" marginRight={'10px'} component={'p'}>
             Version
           </Typography>
@@ -259,22 +253,50 @@ export default function EditLocationHeader() {
         />
       </Box>
 
-      {/* Modal Confirmation */}
-      <Modal open={openModal} onClose={() => setOpenModal(false)}>
+      {/* Add Version Dialog */}
+      <Modal open={openAddDialog} onClose={() => setOpenAddDialog(false)}>
         <Box sx={modalStyle}>
-          <Typography sx={{ fontWeight: 'bold' }}>Confirm Action</Typography>
-          <Typography sx={{ mt: 2 }}>{modalText}</Typography>
+          <Typography sx={{ fontWeight: 'bold' }}>Add New Version</Typography>
+          <TextField
+            label="Version Label"
+            fullWidth
+            sx={{ mt: 2 }}
+            value={newVersionLabel}
+            onChange={(e) => setNewVersionLabel(e.target.value)}
+          />
           <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button onClick={() => setOpenModal(false)} color="inherit">
+            <Button onClick={() => setOpenAddDialog(false)} color="inherit">
               Cancel
             </Button>
             <Button
-              onClick={handleModalAction}
+              onClick={handleAddNewVersionConfirm}
               variant="contained"
-              color={modalAction === 'addVersion' ? 'success' : 'error'}
+              color="success"
+              sx={{ ml: 2 }}
+              disabled={!newVersionLabel.trim()}
+            >
+              Add New Version
+            </Button>
+          </Box>
+        </Box>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={openDeleteModal} onClose={() => setOpenDeleteModal(false)}>
+        <Box sx={modalStyle}>
+          <Typography sx={{ fontWeight: 'bold' }}>Confirm Action</Typography>
+          <Typography sx={{ mt: 2 }}>{deleteModalText}</Typography>
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button onClick={() => setOpenDeleteModal(false)} color="inherit">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDeleteAction}
+              variant="contained"
+              color="error"
               sx={{ ml: 2 }}
             >
-              {actionButtonText}
+              {deleteButtonText}
             </Button>
           </Box>
         </Box>

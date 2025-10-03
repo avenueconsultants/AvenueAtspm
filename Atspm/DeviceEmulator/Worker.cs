@@ -1,8 +1,23 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System.Text.Json;
+#region license
+// Copyright 2025 Utah Departement of Transportation
+// for DeviceEmulator - DeviceEmulator/Worker.cs
+// 
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// 
+// http://www.apache.org/licenses/LICENSE-2.
+// 
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+#endregion
+
 using DeviceEmulator.Models;
 using DeviceEmulator.Services;
+using System.Text.Json;
 
 namespace DeviceEmulator
 {
@@ -23,15 +38,55 @@ namespace DeviceEmulator
         {
             _logger.LogInformation("Device Emulator starting...");
 
-            var deviceConfigPath = Environment.GetEnvironmentVariable("DEVICE_CONFIG_PATH") ?? "devices.json";
-            if (!File.Exists(deviceConfigPath))
+            var devices = new List<DeviceDefinition>();
+
+            // FTP devices
+            var ftpCount = int.TryParse(_config["FTP_Count"], out var fc) ? fc : 0;
+            //var ftpCount = int.TryParse(Environment.GetEnvironmentVariable("FTP_COUNT"), out var fc) ? fc : 0;
+            for (int i = 1; i <= ftpCount; i++)
             {
-                _logger.LogError("Device config file not found at {Path}", deviceConfigPath);
-                return;
+                devices.Add(new DeviceDefinition
+                {
+                    DeviceIdentifier = $"FTP-{i:D3}",
+                    Protocol = "ftp",
+                    IpAddress = _config["FTP_IP"] ?? "127.0.0.1",
+                    Port = 21,
+                    LogDirectory = Path.Combine(_config["FTP_LOG_BASE"] ?? "/files", $"FTP-{i:D3}"),
+                    UseCompression = false
+                });
             }
 
-            var devices = JsonSerializer.Deserialize<List<DeviceDefinition>>(await File.ReadAllTextAsync(deviceConfigPath, stoppingToken));
-            if (devices == null || devices.Count == 0)
+            // SFTP devices
+            var sftpCount = int.TryParse(_config["SFTP_COUNT"], out var sc) ? sc : 0;
+            for (int i = 1; i <= sftpCount; i++)
+            {
+                devices.Add(new DeviceDefinition
+                {
+                    DeviceIdentifier = $"SFTP-{i:D3}",
+                    Protocol = "sftp",
+                    IpAddress = _config["SFTP_IP"] ?? "127.0.0.1",
+                    Port = 22,
+                    LogDirectory = Path.Combine(_config["SFTP_LOG_BASE"] ?? "/data", $"SFTP-{i:D3}"),
+                    UseCompression = false
+                });
+            }
+
+            // HTTP devices
+            var httpCount = int.TryParse(_config["HTTP_COUNT"], out var hc) ? hc : 0;
+            for (int i = 1; i <= httpCount; i++)
+            {
+                devices.Add(new DeviceDefinition
+                {
+                    DeviceIdentifier = $"HTTP-{i:D3}",
+                    Protocol = "http",
+                    IpAddress = "127.0.0.1",
+                    Port = 80,
+                    LogDirectory = Path.Combine(_config["HTTP_LOG_BASE"] ?? "/http", $"HTTP-{i:D3}"),
+                    UseCompression = false
+                });
+            }
+
+            if (!devices.Any())
             {
                 _logger.LogWarning("No devices configured for emulation.");
                 return;
@@ -46,8 +101,6 @@ namespace DeviceEmulator
                     "http" => new HttpXmlDeviceRunner(device, _logger),
                     "ftp" => new FtpDeviceRunner(device, _logger, _config),
                     "sftp" => new SftpDeviceRunner(device, _logger, _config),
-
-                    // Add other protocol cases here later
                     _ => null
                 };
 
@@ -73,7 +126,6 @@ namespace DeviceEmulator
                     ? mins : 15;
 
                 await Task.Delay(TimeSpan.FromMinutes(intervalMinutes), stoppingToken);
-
             }
 
             _logger.LogInformation("Device Emulator shutting down...");

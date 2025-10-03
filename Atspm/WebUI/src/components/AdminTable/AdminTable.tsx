@@ -21,7 +21,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import React, { ReactElement, cloneElement, useState } from 'react'
+import type { ReactElement } from 'react'
+import React, { cloneElement, useMemo, useState } from 'react'
 
 interface HasId {
   id: number
@@ -47,24 +48,24 @@ interface CreateModalProps {
   onClose?: () => void
 }
 
-interface CustomCellConfig {
-  headerKey: string
-  component: (value: any, row: any) => React.ReactNode
+interface CustomCellConfig<T> {
+  headerKey: keyof T
+  component: (value: T[keyof T], row: T) => React.ReactNode
 }
 
 interface AdminChartProps<T extends HasId> {
   headers: string[]
-  headerKeys: string[]
+  headerKeys: (keyof T)[]
   data: T[]
   pageName: string
   hasEditPrivileges?: boolean
   hasDeletePrivileges?: boolean
   protectedFromDeleteItems?: string[]
-  customEditFunction?: (selectedRow: T) => void
+  customEditFunction?: (selectedRow: T | null) => void
   editModal?: ReactElement<EditModalProps<T>>
   deleteModal?: ReactElement<DeleteModalProps<T>>
   createModal?: ReactElement<CreateModalProps>
-  customCellRender?: CustomCellConfig[]
+  customCellRender?: CustomCellConfig<T>[]
 }
 
 type Order = 'asc' | 'desc'
@@ -88,7 +89,7 @@ const AdminTable = <T extends HasId>({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [selectedRow, setSelectedRow] = useState<T | null>(null)
   const [order, setOrder] = useState<Order>('asc')
-  const [orderBy, setOrderBy] = useState<string>('id')
+  const [orderBy, setOrderBy] = useState<keyof T>('id')
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
@@ -118,26 +119,30 @@ const AdminTable = <T extends HasId>({
     setIsDeleteModalOpen(true)
   }
 
-  const handleRequestSort = (property: string) => {
+  const handleRequestSort = (property: keyof T) => {
     const isAsc = orderBy === property && order === 'asc'
     setOrder(isAsc ? 'desc' : 'asc')
     setOrderBy(property)
   }
 
-  const sortedData = data.sort((a, b) => {
-    let aValue = a[orderBy as keyof T] as string | number
-    let bValue = b[orderBy as keyof T] as string | number
+  const sortedData = useMemo(
+    () =>
+      [...data].sort((a, b) => {
+        let aValue = a[orderBy] as string | number
+        let bValue = b[orderBy] as string | number
 
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      aValue = aValue.toLowerCase()
-      bValue = bValue.toLowerCase()
-    }
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          aValue = aValue.toLowerCase()
+          bValue = bValue.toLowerCase()
+        }
 
-    if (orderBy === '') return 0
-    if (aValue < bValue) return order === 'asc' ? -1 : 1
-    if (aValue > bValue) return order === 'asc' ? 1 : -1
-    return 0
-  })
+        if (orderBy === '') return 0
+        if (aValue < bValue) return order === 'asc' ? -1 : 1
+        if (aValue > bValue) return order === 'asc' ? 1 : -1
+        return 0
+      }),
+    [data, order, orderBy]
+  )
 
   let deleteModalWithId
   if (deleteModal) {
@@ -243,13 +248,17 @@ const AdminTable = <T extends HasId>({
                     )
 
                     return (
-                      <TableCell key={header} sx={{ height: '53px' }}>
+                      <TableCell
+                        key={
+                          typeof header === 'symbol'
+                            ? header.toString()
+                            : header
+                        }
+                        sx={{ height: '53px' }}
+                      >
                         {customRenderer
-                          ? customRenderer.component(
-                              row[header as keyof T],
-                              row
-                            )
-                          : (row[header as keyof T] as string | number)}
+                          ? customRenderer.component(row[header], row)
+                          : (row[header] as string | number)}
                       </TableCell>
                     )
                   })}

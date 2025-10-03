@@ -1,6 +1,6 @@
 ﻿#region license
 // Copyright 2025 Utah Departement of Transportation
-// for DatabaseInstaller - DatabaseInstaller.Commands/TransferConfigCommand.cs
+// for DatabaseInstaller - DatabaseInstaller.Commands/SetupTestCommand.cs
 // 
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,5 +62,13 @@ namespace DatabaseInstaller.Commands
         public int LocationCount { get; set; }
         public int DeviceConfigurationId { get; set; }
         public string Protocol { get; set; }
+        public int FtpCount { get; set; }
+        public int SftpCount { get; set; }
+        public int HttpCount { get; set; }
+        public string FtpLogBase { get; set; }
+        public string SftpLogBase { get; set; }
+        public string HttpLogBase { get; set; }
+        public string FtpIp { get; set; }
+        public string SftpIp { get; set; }
     }
 }

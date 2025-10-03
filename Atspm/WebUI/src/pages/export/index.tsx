@@ -1,163 +1,119 @@
-import { ResponseFormat, useEventLogs } from '@/features/data/api/getEventLogs'
-import SelectDataType from '@/features/data/components/selectDataType'
-import SelectLocation from '@/features/locations/components/selectLocation'
-import { Location } from '@/features/locations/types'
-import { LoadingButton } from '@mui/lab'
-import { Alert, Box, Paper, useMediaQuery, useTheme } from '@mui/material'
-
-import { StyledPaper } from '@/components/StyledPaper'
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
-import Button from '@mui/material/Button'
-import ButtonGroup from '@mui/material/ButtonGroup'
-import ClickAwayListener from '@mui/material/ClickAwayListener'
-import Grow from '@mui/material/Grow'
-import MenuItem from '@mui/material/MenuItem'
-import MenuList from '@mui/material/MenuList'
-import Popper from '@mui/material/Popper'
-
+import { Location } from '@/api/config'
+import OptionsWrapper from '@/components/OptionsWrapper'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
+import SelectDateTime from '@/components/selectTimeSpan'
+import { ResponseFormat, useEventLogs } from '@/features/data/api/getEventLogs'
+import SelectDataType, {
+  DataTypeOption,
+} from '@/features/data/components/selectDataType'
+import { useGetAggData } from '@/features/data/exportData/api/getAggData'
+import SelectLocation from '@/features/locations/components/selectLocation'
+import useMissingDays from '@/hooks/useMissingDays'
 import Authorization from '@/lib/Authorization'
 import { dateToTimestamp } from '@/utils/dateTime'
-import { isValid, startOfToday, startOfTomorrow } from 'date-fns'
+import DownloadIcon from '@mui/icons-material/Download'
+import { LoadingButton } from '@mui/lab'
+import {
+  Alert,
+  Box,
+  List,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  useMediaQuery,
+  useTheme,
+} from '@mui/material'
+import {
+  addDays,
+  endOfMonth,
+  endOfWeek,
+  isValid,
+  startOfMonth,
+  startOfToday,
+  startOfTomorrow,
+  startOfWeek,
+} from 'date-fns'
+import { useState } from 'react'
 
-import SelectDateTime from '@/components/selectTimeSpan'
-import { useGetAggData } from '@/features/data/exportData/api/getAggData'
-import { useEffect, useRef, useState } from 'react'
+const options = ['csv', 'json']
 
 const ExportData = () => {
   const theme = useTheme()
+
   const [location, setLocation] = useState<Location | null>(null)
   const [error, setError] = useState(false)
-  //date options
   const [startDateTime, setStartDateTime] = useState(startOfToday())
   const [endDateTime, setEndDateTime] = useState(startOfTomorrow())
-
-  // data Types and codes
-  const [selectedDataType, setSelectedDataType] = useState<string | null>(
-    'All Raw Data'
-  )
-  const [isAllRawDataSelected, setIsAllRawDataSelected] =
-    useState<boolean>(true)
-  // const [eventCodes, setEventCodes] = useState<string | null>('')
-  // const [eventParams, setEventParams] = useState<string>('')
-
-  //data queries states
+  const [selectedOption, setSelectedOption] = useState<DataTypeOption>({
+    name: 'IndianaEvent',
+    type: 'raw',
+  })
   const [isDownloading, setIsDownloading] = useState<boolean>(false)
   const [downloadFormat, setDownloadFormat] = useState<ResponseFormat>('csv')
-
-  //drop down button states
-  const [open, setOpen] = useState(false)
-  const anchorRef = useRef<HTMLDivElement>(null)
-  const [selectedIndex, setSelectedIndex] = useState(2)
+  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [calendarStartDate, setCalendarStartDate] = useState<Date>(
+    startOfWeek(startOfMonth(startOfToday()))
+  )
+  const [calendarEndDate, setCalendarEndDate] = useState<Date>(
+    endOfWeek(endOfMonth(startOfToday()))
+  )
 
   const isMobileView = useMediaQuery(theme.breakpoints.down('md'))
 
-  const handleStartDateTimeChange = (date: Date) => {
-    setStartDateTime(date)
-  }
+  // Todo: for now, the end date is the start date + 1 day for raw data
 
-  const handleEndDateTimeChange = (date: Date) => {
-    setEndDateTime(date)
-  }
+  const { refetch: refetchEventLogs } = useEventLogs({
+    locationIdentifier: location?.locationIdentifier || '',
+    start: isValid(startDateTime) ? dateToTimestamp(startDateTime) : '',
+    end: isValid(startDateTime)
+      ? dateToTimestamp(addDays(startDateTime, 1))
+      : '',
+    dataType: selectedOption.name,
+    ResponseFormat: downloadFormat,
+  })
 
-  const downloadData = (data: any, filename: string, type: string) => {
-    setError(false)
-    let formattedData = ''
+  const { refetch: refetchAggData } = useGetAggData(
+    location?.locationIdentifier,
+    selectedOption.name,
+    isValid(startDateTime) ? dateToTimestamp(startDateTime) : '',
+    isValid(startDateTime) ? dateToTimestamp(addDays(startDateTime, 1)) : ''
+  )
 
-    if (type === 'application/json') {
-      formattedData = JSON.stringify(data)
-    } else if (type === 'text/csv' || type === 'application/xml') {
-      // Extract the event log data from the data object
-      const eventLogData = data[0].data
+  const missingDays = useMissingDays(
+    location?.locationIdentifier ?? '',
+    selectedOption.name ?? '',
+    calendarStartDate,
+    calendarEndDate
+    // selectedOption.type === 'aggregation'
+  )
 
-      if (eventLogData.length > 0) {
-        const headers = Object.keys(eventLogData[0])
+  const handleStartDateTimeChange = (date: Date) => setStartDateTime(date)
+  const handleEndDateTimeChange = (date: Date) => setEndDateTime(date)
 
-        if (type === 'text/csv') {
-          // Generate the CSV headers
-          formattedData = headers.join(',') + '\n'
-
-          // Generate the CSV rows
-          eventLogData.forEach((eventLog: any) => {
-            const row = headers
-              .map((header) => {
-                if (header === 'timestamp') {
-                  return eventLog[header].replace('T', ' ')
-                }
-                if (
-                  typeof eventLog[header] === 'string' &&
-                  eventLog[header].includes(',')
-                ) {
-                  return `"${eventLog[header]}"`
-                }
-                return eventLog[header]
-              })
-              .join(',')
-            formattedData += row + '\n'
-          })
-        } else if (type === 'application/xml') {
-          // Generate the XML content
-          formattedData = '<?xml version="1.0" encoding="UTF-8"?>\n'
-          formattedData += '<eventLogs>\n'
-
-          eventLogData.forEach((eventLog: any) => {
-            formattedData += '  <eventLog>\n'
-            headers.forEach((header) => {
-              formattedData += `    <${header}>${eventLog[header]}</${header}>\n`
-            })
-            formattedData += '  </eventLog>\n'
-          })
-
-          formattedData += '</eventLogs>'
-        }
-      }
-    } else {
-      formattedData = data
-    }
-
-    const blob = new Blob([formattedData], { type })
-    const url = URL.createObjectURL(blob)
-
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
   const downloadEventLogs = async () => {
     setIsDownloading(true)
     setError(false)
     try {
-      let response
-      let data
-      if (selectedDataType == 'All Raw Data') {
+      let response, data
+      if (selectedOption.type === 'raw') {
         response = await refetchEventLogs()
         if (response.status === 'error') {
           setError(true)
-          setIsDownloading(false)
-
           return
         }
         data = response.data
-
-        setIsDownloading(false)
       } else {
         response = await refetchAggData()
         data = response.data
-        setIsDownloading(false)
       }
 
-      function dateToTimestamp(dateTime) {
-        const date = new Date(dateTime)
-        return date.toISOString().split('T')[0] // Returns "YYYY-MM-DD"
-      }
-
-      const filename = isAllRawDataSelected
-        ? `${location?.locationIdentifier}_${selectedDataType?.split(' ').join('')}_${dateToTimestamp(dateToTimestamp(startDateTime))}.${downloadFormat}`
-        : `${location?.locationIdentifier}_${selectedDataType?.split(' ').join('')}_${dateToTimestamp(dateToTimestamp(startDateTime))}_${dateToTimestamp(dateToTimestamp(endDateTime))}.${downloadFormat}`
+      const filename = generateFilename(
+        location,
+        selectedOption,
+        startDateTime,
+        endDateTime,
+        downloadFormat
+      )
 
       let mimeType = ''
       switch (downloadFormat) {
@@ -168,95 +124,55 @@ const ExportData = () => {
           mimeType = 'application/xml'
           break
         case 'csv':
+        default:
           mimeType = 'text/csv'
           break
       }
-
       downloadData(data, filename, mimeType)
-    } catch (error) {
-      setIsDownloading(false)
-      console.error('Error fetching data:', error)
+    } catch (err) {
+      console.error('Error fetching data:', err)
       setError(true)
+    } finally {
+      setIsDownloading(false)
     }
   }
 
-  const options = ['csv', 'json', 'xml']
-
-  const handleMenuItemClick = (
-    event: React.MouseEvent<HTMLLIElement, MouseEvent>,
-    index: number
-  ) => {
-    setSelectedIndex(index)
-    setDownloadFormat(options[index])
-    setOpen(false)
+  const handleCalendarRangeChange = (start: Date, end: Date) => {
+    setCalendarStartDate(start)
+    setCalendarEndDate(end)
   }
 
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen)
+  const handleDateChange = (date: Date | null) => {
+    if (!date) return
+    const newStart = startOfWeek(startOfMonth(date))
+    const newEnd = endOfWeek(endOfMonth(date))
+    handleCalendarRangeChange(newStart, newEnd)
   }
-
-  const handleClose = (event: Event) => {
-    if (
-      anchorRef.current &&
-      anchorRef.current.contains(event.target as HTMLElement)
-    ) {
-      return
-    }
-
-    setOpen(false)
-  }
-
-  //React Query Fetch
-  const { refetch: refetchEventLogs } = useEventLogs({
-    locationIdentifier: location?.locationIdentifier
-      ? location.locationIdentifier
-      : '',
-    start: isValid(startDateTime) ? dateToTimestamp(startDateTime) : '',
-    end:isValid(endDateTime) ? dateToTimestamp(endDateTime) : '',
-    ResponseFormat: downloadFormat,
-  })
-
-  const { refetch: refetchAggData } = useGetAggData(
-    location?.locationIdentifier,
-    selectedDataType,
-    isValid(startDateTime) ? dateToTimestamp(startDateTime) : '',
-    isValid(endDateTime) ? dateToTimestamp(endDateTime) : ''
-  )
-
-  useEffect(() => {
-    if (selectedDataType == 'All Raw Data') {
-      setIsAllRawDataSelected(true)
-    } else {
-      setIsAllRawDataSelected(false)
-    }
-  }, [selectedDataType])
 
   const requiredClaim = 'Data:View'
   return (
     <Authorization requiredClaim={requiredClaim}>
       <ResponsivePageLayout title={'Export Data'}>
-        <Box
-          sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 2,
-          }}
-        >
-          <StyledPaper
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          <Paper
             sx={{
               flexGrow: 1,
-              minWidth: '23.188rem',
-              padding: theme.spacing(3),
+              minWidth: '350px',
+              padding: 3,
             }}
           >
-            <SelectLocation location={location} setLocation={setLocation} />
-          </StyledPaper>
+            <SelectLocation
+              location={location}
+              setLocation={setLocation}
+              mapHeight={'350px'}
+            />
+          </Paper>
 
           <Box display="flex" sx={{ gap: '15px', flexWrap: 'wrap' }}>
-            <StyledPaper
+            <Paper
               sx={{
                 padding: 3,
-                width: '23.188rem',
+                width: '336px',
                 [theme.breakpoints.down('sm')]: {
                   width: '100%',
                 },
@@ -267,126 +183,66 @@ const ExportData = () => {
                 views={['year', 'month', 'day']}
                 startDateTime={startDateTime}
                 endDateTime={endDateTime}
-                startDateOnly={isAllRawDataSelected}
+                startDateOnly={selectedOption.type === 'raw'}
                 changeStartDate={handleStartDateTimeChange}
                 changeEndDate={handleEndDateTimeChange}
                 noCalendar={isMobileView}
+                markDays={location ? missingDays : undefined}
+                onChange={handleDateChange}
+                onMonthChange={handleDateChange}
               />
-            </StyledPaper>
+            </Paper>
             <Box
               sx={{
                 minWidth: '23.188rem',
-                [theme.breakpoints.down('sm')]: {
-                  width: '100%',
-                },
+                [theme.breakpoints.down('sm')]: { width: '100%' },
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
               }}
             >
               <SelectDataType
-                selectedDataType={selectedDataType}
-                setSelectedDataType={setSelectedDataType}
-                // eventCodes={eventCodes}
-                // setEventCodes={setEventCodes}
-                // eventParams={eventParams}
-                // setEventParams={setEventParams}
+                selectedDataType={selectedOption}
+                setSelectedDataType={setSelectedOption}
               />
+              <Box display="flex" flexDirection="column">
+                <OptionsWrapper header="Export Options" noPadding>
+                  <Box sx={{ overflow: 'auto' }}>
+                    <List sx={{ marginTop: '-8px' }}>
+                      {options.map((opt, index) => (
+                        <ListItemButton
+                          key={opt}
+                          onClick={() => {
+                            setSelectedIndex(index)
+                            setDownloadFormat(opt as ResponseFormat)
+                          }}
+                          selected={selectedIndex === index}
+                        >
+                          <ListItemText primary={opt.toUpperCase()} />
+                        </ListItemButton>
+                      ))}
+                    </List>
+                  </Box>
+                </OptionsWrapper>
+              </Box>
             </Box>
           </Box>
         </Box>
 
-        <Box
-          sx={{
-            display: 'flex',
-            gap: '10px',
-            marginTop: '10px',
-            marginBottom: '120px',
-          }}
-        >
-          <ButtonGroup
+        <Box sx={{ display: 'flex', gap: '10px', mt: '10px', mb: '120px' }}>
+          <LoadingButton
+            loadingPosition="start"
+            startIcon={<DownloadIcon />}
+            loading={isDownloading}
             variant="contained"
-            ref={anchorRef}
-            aria-label="split button"
+            onClick={downloadEventLogs}
             disabled={!location}
-            sx={{ height: '45px', marginTop: '20px' }}
           >
-            <LoadingButton
-              loadingPosition="start"
-              loading={isDownloading}
-              variant="contained"
-              onClick={downloadEventLogs}
-              disabled={!location}
-            >
-              Download {downloadFormat}
-            </LoadingButton>
-            <Button
-              size="small"
-              // variant="outlined"
-              aria-controls={open ? 'split-button-menu' : undefined}
-              aria-expanded={open ? 'true' : undefined}
-              aria-label="select merge strategy"
-              aria-haspopup="menu"
-              onClick={handleToggle}
-            >
-              <ArrowDropDownIcon />
-            </Button>
-          </ButtonGroup>
-          <Popper
-            sx={{
-              zIndex: 1300,
-              paddingLeft: '140px',
-            }}
-            open={open}
-            anchorEl={anchorRef.current}
-            role={undefined}
-            transition
-            disablePortal
-            placement="bottom"
-            modifiers={[
-              {
-                name: 'preventOverflow',
-                options: {
-                  altAxis: true,
-                  altBoundary: true,
-                  tether: true,
-                  rootBoundary: 'document',
-                  padding: 8,
-                },
-              },
-            ]}
-          >
-            {({ TransitionProps }) => (
-              <Grow
-                {...TransitionProps}
-                style={{
-                  transformOrigin: 'center top',
-                }}
-              >
-                <Paper>
-                  <ClickAwayListener onClickAway={handleClose}>
-                    <MenuList id="split-button-menu" autoFocusItem>
-                      {options.map((option, index) => (
-                        <MenuItem
-                          key={option}
-                          selected={index === selectedIndex}
-                          onClick={(event) => handleMenuItemClick(event, index)}
-                        >
-                          {option}
-                        </MenuItem>
-                      ))}
-                    </MenuList>
-                  </ClickAwayListener>
-                </Paper>
-              </Grow>
-            )}
-          </Popper>
+            Download Data
+          </LoadingButton>
+
           {error && (
-            <Box
-              sx={{
-                display: 'flex',
-                marginLeft: '1rem',
-                marginTop: '19px',
-                height: '48px',
-              }}
-            >
+            <Box sx={{ ml: '1rem', mt: '19px', height: '48px' }}>
               <Alert severity="error">No Data Found</Alert>
             </Box>
           )}
@@ -397,3 +253,80 @@ const ExportData = () => {
 }
 
 export default ExportData
+
+const formatData = (data: any, type: string): string => {
+  if (type === 'application/json') {
+    return JSON.stringify(data)
+  }
+  if (type === 'text/csv' || type === 'application/xml') {
+    const eventLogData = data.flatMap((d) => d.data)
+    if (eventLogData.length === 0) return ''
+
+    const headers = Object.keys(eventLogData[0])
+    if (type === 'text/csv') {
+      // Build CSV string
+      let csv = headers.join(',') + '\n'
+      eventLogData.forEach((eventLog: any) => {
+        const row = headers
+          .map((header) => {
+            if (header === 'timestamp') {
+              return eventLog[header].replace('T', ' ')
+            }
+            // Wrap string with commas in quotes
+            if (
+              typeof eventLog[header] === 'string' &&
+              eventLog[header].includes(',')
+            ) {
+              return `"${eventLog[header]}"`
+            }
+            return eventLog[header]
+          })
+          .join(',')
+        csv += row + '\n'
+      })
+      return csv
+    } else if (type === 'application/xml') {
+      // Build XML string
+      let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<eventLogs>\n'
+      eventLogData.forEach((eventLog: any) => {
+        xml += '  <eventLog>\n'
+        headers.forEach((header) => {
+          xml += `    <${header}>${eventLog[header]}</${header}>\n`
+        })
+        xml += '  </eventLog>\n'
+      })
+      xml += '</eventLogs>'
+      return xml
+    }
+  }
+  return data // Fallback for other formats
+}
+
+const generateFilename = (
+  location: Location | null,
+  selectedDataType: DataTypeOption | null,
+  start: Date,
+  end: Date,
+  downloadFormat: ResponseFormat
+): string => {
+  const startStr = dateToTimestamp(start)
+  const endStr = dateToTimestamp(end)
+  const baseName = `${location?.locationIdentifier}_${selectedDataType?.name.replace(/\s+/g, '')}_${startStr}`
+
+  return selectedDataType?.type === 'raw'
+    ? `${baseName}.${downloadFormat}`
+    : `${baseName}_${endStr}.${downloadFormat}`
+}
+
+const downloadData = (data: any, filename: string, mimeType: string) => {
+  const formattedData = formatData(data, mimeType)
+  const blob = new Blob([formattedData], { type: mimeType })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}

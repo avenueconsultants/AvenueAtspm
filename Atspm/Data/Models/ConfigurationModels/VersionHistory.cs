@@ -19,7 +19,7 @@
 #nullable disable
 
 using Utah.Udot.Atspm.Data.Models;
-using Utah.Udot.Atspm.Data.Models;
+using Utah.Udot.Atspm.Data.Models.ConfigurationModels;
 
 namespace Utah.Udot.Atspm.Data.Models
 {
@@ -46,7 +46,7 @@ namespace Utah.Udot.Atspm.Data.Models
         /// <summary>
         /// Version number
         /// </summary>
-        public int Version { get; set; }
+        public string Version { get; set; }
 
         /// <summary>
         /// Item parent id

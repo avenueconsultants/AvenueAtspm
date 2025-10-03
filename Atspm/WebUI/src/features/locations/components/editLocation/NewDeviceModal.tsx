@@ -1,4 +1,4 @@
-import { usePutDeviceFromKey } from '@/api/config/aTSPMConfigurationApi'
+import { usePutDeviceFromKey } from '@/api/config'
 import { useGetDeviceConfigurations } from '@/features/devices/api'
 import { useCreateDevice } from '@/features/devices/api/devices'
 import { DeviceConfiguration } from '@/features/devices/types'
@@ -55,6 +55,10 @@ const knownDeviceKeys = new Set([
   'deviceIdentifier',
   'location',
   'deviceConfiguration',
+  'created',
+  'modified',
+  'createdBy',
+  'modifiedBy',
 ])
 
 const deviceSchema = z.object({

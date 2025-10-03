@@ -15,12 +15,15 @@ import {
   useViewPage,
 } from '@/features/identity/pagesCheck'
 import UserDto from '@/features/identity/types/userDto'
+import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, CircularProgress } from '@mui/material'
 
 const UsersAdmin = () => {
   const pageAccess = useViewPage(PageNames.Users)
   const hasUserEditClaim = useUserHasClaim('User:Edit')
   const hasUserDeleteClaim = useUserHasClaim('User:Delete')
+
+  const { addNotification } = useNotificationStore()
 
   const { mutateAsync: deleteMutation } = useDeleteUser()
   const { mutateAsync: editMutation } = useEditUsers()
@@ -45,18 +48,34 @@ const UsersAdmin = () => {
         userName: userName.toLowerCase(),
         roles,
       })
+      addNotification({
+        title: `User updated successfully.`,
+        type: 'success',
+      })
       refetchUsers()
     } catch (error) {
       console.error('Mutation Error:', error)
+      addNotification({
+        title: `Error updating user: ${error.message}`,
+        type: 'error',
+      })
     }
   }
 
   const handleDeleteUser = async (id: number) => {
     try {
       await deleteMutation(id)
+      addNotification({
+        title: `User deleted successfully.`,
+        type: 'success',
+      })
       refetchUsers()
     } catch (error) {
       console.error('Error deleting user:', error)
+      addNotification({
+        title: `Error deleting user: ${error.message}`,
+        type: 'error',
+      })
     }
   }
 

@@ -92,8 +92,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.EventLogImporters
             {
                 var logMessages = new EventLogDecoderLogMessages(_log, this.GetType().Name, device, file);
 
-                foreach (var decoder in _decoders.Where(w => decoders.Any(d => d.Replace(" ", "").Equals(w.GetType().Name, StringComparison.OrdinalIgnoreCase))))
-
+                foreach (IEventLogDecoder decoder in _decoders.Where(w => decoders.Contains(w.GetType().Name)))
                 {
                     List<EventLogModelBase> decodedLogs = new();
 
