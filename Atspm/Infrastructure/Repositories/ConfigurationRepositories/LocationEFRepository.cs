@@ -209,7 +209,21 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.ConfigurationRepositories
 
 
 
+        public List<Location> GetLatestLocationsWithDetectionTypes()
+        {
+            var result = BaseQuery()
+                .FromSpecification(new ActiveLocationSpecification())
+                .Include(l => l.Approaches)
+                    .ThenInclude(a => a.Detectors)
+                        .ThenInclude(d => d.DetectionTypes)
+                .Include(l => l.Approaches)
+                    .ThenInclude(a => a.DirectionType)
+                .GroupBy(r => r.LocationIdentifier)
+                .Select(g => g.OrderByDescending(r => r.Start).FirstOrDefault())
+                .ToList();
 
+            return result;
+        }
 
         /// <inheritdoc/>
         public Location GetLatestVersionOfLocationWithDevice(string LocationIdentifier, DateTime startDate)

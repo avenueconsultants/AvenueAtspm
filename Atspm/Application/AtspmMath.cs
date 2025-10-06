@@ -156,11 +156,6 @@ namespace Utah.Udot.Atspm
                 .ToList();
         }
 
-        public static double GetAverage(List<double> speeds)
-        {
-            return speeds.Average();
-        }
-
         public static double Percentile(List<double> sequence, double percentile)
         {
             if (sequence == null || !sequence.Any())
