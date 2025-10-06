@@ -56,7 +56,7 @@ namespace Utah.Udot.Atspm.Data.Configuration.Identity
             {
                 "Admin", "UserAdmin", "RoleAdmin",
                 "LocationConfigurationAdmin", "GeneralConfigurationAdmin",
-                "DataAdmin", "WatchdogSubscriber", "ReportAdmin"
+                "DataAdmin", "WatchdogSubscriber", "ReportAdmin", "SpeedConfigurationAdmin"
             };
 
                     foreach (var role in roles)
@@ -139,7 +139,14 @@ namespace Utah.Udot.Atspm.Data.Configuration.Identity
                     new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Watchdog:View"),
                     new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Report:View")
                 }
-            }
+            },
+            { "SpeedConfigurationAdmin", new List<Claim>
+                {
+                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:View"),
+                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:Edit"),
+                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:Delete")
+                }
+            },
         };
 
                 // Loop through each role and add claims.

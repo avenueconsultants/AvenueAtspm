@@ -250,6 +250,22 @@ namespace Utah.Udot.Atspm.Infrastructure.Extensions
                        context.User.HasClaim(c =>
                            c.Type == ClaimTypes.Role && c.Value == "Watchdog:View" ||
                            c.Type == ClaimTypes.Role && c.Value == "Admin")));
+
+                options.AddPolicy("CanViewSpeedConfigurations", policy =>
+                   policy.RequireAssertion(context =>
+                       context.User.HasClaim(c =>
+                           c.Type == ClaimTypes.Role && c.Value == "SpeedConfiguration:View" ||
+                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
+                options.AddPolicy("CanEditSpeedConfigurations", policy =>
+                   policy.RequireAssertion(context =>
+                       context.User.HasClaim(c =>
+                           c.Type == ClaimTypes.Role && c.Value == "SpeedConfiguration:Edit" ||
+                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
+                options.AddPolicy("CanDeleteSpeedConfigurations", policy =>
+                   policy.RequireAssertion(context =>
+                       context.User.HasClaim(c =>
+                           c.Type == ClaimTypes.Role && c.Value == "SpeedConfiguration:Delete" ||
+                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
             });
 
             return services;
