@@ -266,6 +266,12 @@ namespace Utah.Udot.Atspm.Infrastructure.Extensions
                        context.User.HasClaim(c =>
                            c.Type == ClaimTypes.Role && c.Value == "SpeedConfiguration:Delete" ||
                            c.Type == ClaimTypes.Role && c.Value == "Admin")));
+
+                options.AddPolicy("CanViewSpeedReports", policy =>
+                   policy.RequireAssertion(context =>
+                       context.User.HasClaim(c =>
+                           c.Type == ClaimTypes.Role && c.Value == "SpeedReport:View" ||
+                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
             });
 
             return services;
