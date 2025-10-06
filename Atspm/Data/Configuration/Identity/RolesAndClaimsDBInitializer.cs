@@ -49,32 +49,25 @@ namespace Utah.Udot.Atspm.Data.Configuration.Identity
 
                 logger.LogInformation("Starting role seeding process.");
 
-                if (!roleManager.Roles.Any())
+                // Create roles
+                var roles = new List<string>
                 {
-                    // Create roles
-                    var roles = new List<string>
-            {
-                "Admin", "UserAdmin", "RoleAdmin",
-                "LocationConfigurationAdmin", "GeneralConfigurationAdmin",
-                "DataAdmin", "WatchdogSubscriber", "ReportAdmin", "SpeedConfigurationAdmin"
-            };
+                    "Admin", "UserAdmin", "RoleAdmin",
+                    "LocationConfigurationAdmin", "GeneralConfigurationAdmin",
+                    "DataAdmin", "WatchdogSubscriber", "ReportAdmin", "SpeedConfigurationAdmin"
+                };
 
-                    foreach (var role in roles)
-                    {
-                        if (!await roleManager.RoleExistsAsync(role))
-                        {
-                            await roleManager.CreateAsync(new IdentityRole(role));
-                            logger.LogInformation($"Role '{role}' created successfully.");
-                        }
-                        else
-                        {
-                            logger.LogInformation($"Role '{role}' already exists.");
-                        }
-                    }
-                }
-                else
+                foreach (var role in roles)
                 {
-                    logger.LogInformation("Roles already exist. Skipping role creation.");
+                    if (!await roleManager.RoleExistsAsync(role))
+                    {
+                        await roleManager.CreateAsync(new IdentityRole(role));
+                        logger.LogInformation($"Role '{role}' created successfully.");
+                    }
+                    else
+                    {
+                        logger.LogInformation($"Role '{role}' already exists.");
+                    }
                 }
             }
 
@@ -94,60 +87,60 @@ namespace Utah.Udot.Atspm.Data.Configuration.Identity
 
                 // Define claims for each role
                 var claims = new Dictionary<string, List<Claim>>
-        {
-            { "UserAdmin", new List<Claim>
                 {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "User:View"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "User:Edit"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "User:Delete")
-                }
-            },
-            { "Admin", new List<Claim>
-                {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Admin")
-                }
-            },
-            { "RoleAdmin", new List<Claim>
-                {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Role:View"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Role:Edit"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Role:Delete")
-                }
-            },
-            { "LocationConfigurationAdmin", new List<Claim>
-                {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "LocationConfiguration:View"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "LocationConfiguration:Edit"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "LocationConfiguration:Delete")
-                }
-            },
-            { "GeneralConfigurationAdmin", new List<Claim>
-                {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "GeneralConfiguration:View"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "GeneralConfiguration:Edit"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "GeneralConfiguration:Delete")
-                }
-            },
-            { "DataAdmin", new List<Claim>
-                {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Data:View"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Data:Edit")
-                }
-            },
-            { "WatchdogSubscriber", new List<Claim>
-                {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Watchdog:View"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Report:View")
-                }
-            },
-            { "SpeedConfigurationAdmin", new List<Claim>
-                {
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:View"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:Edit"),
-                    new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:Delete")
-                }
-            },
-        };
+                    { "UserAdmin", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "User:View"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "User:Edit"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "User:Delete")
+                        }
+                    },
+                    { "Admin", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Admin")
+                        }
+                    },
+                    { "RoleAdmin", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Role:View"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Role:Edit"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Role:Delete")
+                        }
+                    },
+                    { "LocationConfigurationAdmin", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "LocationConfiguration:View"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "LocationConfiguration:Edit"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "LocationConfiguration:Delete")
+                        }
+                    },
+                    { "GeneralConfigurationAdmin", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "GeneralConfiguration:View"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "GeneralConfiguration:Edit"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "GeneralConfiguration:Delete")
+                        }
+                    },
+                    { "DataAdmin", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Data:View"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Data:Edit")
+                        }
+                    },
+                    { "WatchdogSubscriber", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Watchdog:View"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "Report:View")
+                        }
+                    },
+                    { "SpeedConfigurationAdmin", new List<Claim>
+                        {
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:View"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:Edit"),
+                            new Claim("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "SpeedConfiguration:Delete")
+                        }
+                    },
+                };
 
                 // Loop through each role and add claims.
                 foreach (var roleClaims in claims)
