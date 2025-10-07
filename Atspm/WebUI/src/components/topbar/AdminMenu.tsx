@@ -28,7 +28,7 @@ const GROUPS: Record<string, PageNames[]> = {
 }
 
 const AdminMenu = () => {
-  const { speedManagementTool } = useFlags()
+  const flags = useFlags()
   const pagesToLinks = useGetAdminPagesList()
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -36,6 +36,17 @@ const AdminMenu = () => {
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) =>
     setAnchorEl(e.currentTarget)
   const handleClose = () => setAnchorEl(null)
+
+  if (!flags.speedManagementTool) {
+    delete GROUPS['Speed Management']
+  }
+
+  const visibleSections = Object.entries(GROUPS)
+    .map(([label, keys]) => ({
+      label,
+      items: keys.filter((k) => pagesToLinks.has(k)),
+    }))
+    .filter((section) => section.items.length > 0)
 
   return (
     <>
@@ -65,51 +76,36 @@ const AdminMenu = () => {
         open={Boolean(anchorEl)}
         onClose={handleClose}
         MenuListProps={{ 'aria-labelledby': 'adminMenu' }}
-        slotProps={{
-          paper: {
-            sx: {
-              // px: 2,
-              py: 1,
-              minWidth: 220,
-            },
-          },
-        }}
+        slotProps={{ paper: { sx: { py: 1, minWidth: 220 } } }}
       >
-        {Object.entries(GROUPS)
-          .filter(
-            ([label]) => label !== 'Speed Management' || speedManagementTool
-          )
-          .map(([label, keys], idx) => {
-            const items = keys.filter((k) => pagesToLinks.has(k))
-            if (!items.length) return null
+        {visibleSections.map(({ label, items }, idx) => {
+          return (
+            <Box key={label}>
+              {idx !== 0 && <Divider sx={{ my: 1 }} />}
 
-            return (
-              <Box key={label}>
-                {idx !== 0 && <Divider sx={{ my: 1 }} />}
-                <Box sx={{ px: 2 }}>
-                  {/* gap between groups */}
-                  <Typography
-                    variant="subtitle2"
-                    color="primary"
-                    sx={{ fontSize: '0.8rem' }}
+              <Box sx={{ px: 2 }}>
+                <Typography
+                  variant="subtitle2"
+                  color="primary"
+                  sx={{ fontSize: '0.8rem' }}
+                >
+                  {label}
+                </Typography>
+                {items.map((k) => (
+                  <MenuItem
+                    key={k}
+                    component={NextLink}
+                    href={pagesToLinks.get(k) as string}
+                    onClick={handleClose}
+                    sx={{ pl: 1 }}
                   >
-                    {label}
-                  </Typography>
-                  {items.map((k) => (
-                    <MenuItem
-                      key={k}
-                      component={NextLink}
-                      href={pagesToLinks.get(k) as string}
-                      onClick={handleClose}
-                      sx={{ pl: 1 }}
-                    >
-                      {k}
-                    </MenuItem>
-                  ))}
-                </Box>
+                    {k}
+                  </MenuItem>
+                ))}
               </Box>
-            )
-          })}
+            </Box>
+          )
+        })}
       </Menu>
     </>
   )

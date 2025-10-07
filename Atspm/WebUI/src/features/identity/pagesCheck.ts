@@ -42,11 +42,8 @@ const generalConfigListToLink: Map<string, string> = new Map([
   [PageNames.FAQs, '/admin/faq'],
   [PageNames.MenuItems, '/admin/menu-items'],
   [PageNames.MeasureDefaults, '/admin/measure-defaults'],
-  [PageNames.Impacts, '/admin/impacts'],
-  [PageNames.ImpactTypes, '/admin/impact-types'],
-  [PageNames.Segments, '/admin/segments'],
-  [PageNames.UpdateNewEntityVersion, '/admin/versions'],
 ])
+
 const locationConfigListToLink: Map<string, string> = new Map([
   [PageNames.Areas, '/admin/areas'],
   [PageNames.Jurisdiction, '/admin/jurisdictions'],
@@ -55,6 +52,13 @@ const locationConfigListToLink: Map<string, string> = new Map([
   [PageNames.Routes, '/admin/routes'],
   [PageNames.Products, '/admin/products'],
   [PageNames.DeviceConfigurations, '/admin/device-configurations'],
+])
+
+const speedManagementConfigToLink: Map<string, string> = new Map([
+  [PageNames.Impacts, '/admin/impacts'],
+  [PageNames.ImpactTypes, '/admin/impact-types'],
+  [PageNames.Segments, '/admin/segments'],
+  [PageNames.UpdateNewEntityVersion, '/admin/versions'],
 ])
 
 const userConfigToLink: Map<string, string> = new Map([
@@ -70,6 +74,7 @@ const adminAccessToLinks = new Map([
   ['LocationConfiguration:View', locationConfigListToLink],
   ['User:View', userConfigToLink],
   ['Role:View', rolesConfigToLink],
+  ['SpeedConfiguration:View', speedManagementConfigToLink],
 ])
 
 export const useGetAdminPagesList = () => {
@@ -86,7 +91,6 @@ export const useGetAdminPagesList = () => {
         pagesToView.set(key, value)
       })
     })
-    return pagesToView
   } else {
     const claimsList = claims.split(',')
     claimsList.forEach((claim) => {
@@ -98,8 +102,8 @@ export const useGetAdminPagesList = () => {
         }
       })
     })
-    return pagesToView
   }
+  return pagesToView
 }
 
 export const useViewPage = (page: string) => {

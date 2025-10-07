@@ -1,10 +1,14 @@
 // src/FeatureFlagContext.tsx
-import { createContext, FC, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { Flags, loadFlags } from './featureFlags'
 
 const FeatureFlagContext = createContext<Flags | null>(null)
 
-export const FeatureFlagProvider: FC = ({ children }) => {
+export const FeatureFlagProvider = ({
+  children,
+}: {
+  children: React.ReactNode | React.ReactNode[]
+}) => {
   const [flags, setFlags] = useState<Flags | null>(null)
 
   useEffect(() => {

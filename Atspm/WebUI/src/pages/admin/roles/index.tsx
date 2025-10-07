@@ -6,6 +6,7 @@ import {
 import AdminTable from '@/components/AdminTable/AdminTable'
 import DeleteModal from '@/components/AdminTable/DeleteModal'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
+import { useFlags } from '@/feature-flags/FeatureFlagContext'
 import { useAddRoleClaims } from '@/features/identity/api/addRoleClaims'
 import {
   PageNames,
@@ -18,17 +19,13 @@ import { useNotificationStore } from '@/stores/notifications'
 import { Backdrop, Box, CircularProgress, Typography } from '@mui/material'
 
 const RolesAdmin = () => {
+  const flags = useFlags()
   const pageAccess = useViewPage(PageNames.Roles)
   const hasRoleEditClaim = useUserHasClaim('Role:Edit')
   const hasRolesDeleteClaim = useUserHasClaim('Role:Delete')
   const { addNotification } = useNotificationStore()
 
-  const {
-    data: allRolesData,
-    isLoading,
-    refetch: refetchRoles,
-  } = useGetApiV1Roles()
-  const roles = allRolesData
+  const { data: roles, isLoading, refetch: refetchRoles } = useGetApiV1Roles()
 
   const { mutateAsync: createMutation } = usePostApiV1Roles()
   const { mutateAsync: deleteMutation } = useDeleteApiV1RolesRoleName()
@@ -72,6 +69,14 @@ const RolesAdmin = () => {
     },
   ]
 
+  if (flags.speedManagementTool) {
+    builtInRoles.push({
+      role: 'SpeedConfigurationAdmin',
+      description:
+        'Can manage speed configurations, impacts, impact types, segments, and versions.',
+    })
+  }
+
   const protectedRoles: string[] = [
     'Admin',
     'DataAdmin',
@@ -84,9 +89,8 @@ const RolesAdmin = () => {
   ]
 
   const HandleDeleteRole = async (roleName: string) => {
-    if (protectedRoles.includes(roleName)) {
-      return;
-    }
+    if (protectedRoles.includes(roleName)) return
+
     try {
       await deleteMutation({ roleName })
       refetchRoles()
@@ -98,8 +102,8 @@ const RolesAdmin = () => {
   }
 
   const HandleEditRole = async (roleData: {
-    roleName: string;
-    claims: string[];
+    roleName: string
+    claims: string[]
   }) => {
     try {
       await editMutation({
@@ -118,8 +122,8 @@ const RolesAdmin = () => {
   }
 
   const HandleCreateRole = async (roleData: {
-    roleName: string;
-    claims: string[];
+    roleName: string
+    claims: string[]
   }) => {
     try {
       await createMutation({
@@ -131,7 +135,7 @@ const RolesAdmin = () => {
         await editMutation({
           roleName: roleData.roleName,
           claims: roleData.claims,
-        });
+        })
       }
       refetchRoles()
       addNotification({
@@ -145,23 +149,23 @@ const RolesAdmin = () => {
   }
 
   if (pageAccess.isLoading) {
-    return;
+    return
   }
 
   const onModalClose = () => {
     //do something?? potentially just delete
-  };
+  }
 
   if (isLoading) {
     return (
       <Backdrop open>
         <CircularProgress color="inherit" />
       </Backdrop>
-    );
+    )
   }
 
   if (!roles) {
-    return <div>Error returning data</div>;
+    return <div>Error returning data</div>
   }
 
   const customRoleFilteredData = roles
@@ -240,7 +244,7 @@ const RolesAdmin = () => {
         }
       />
     </ResponsivePageLayout>
-  );
-};
+  )
+}
 
-export default RolesAdmin;
+export default RolesAdmin

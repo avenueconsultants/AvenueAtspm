@@ -1,5 +1,6 @@
+import { useFlags } from '@/feature-flags/FeatureFlagContext'
 import { Box, MenuItem, Select, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 interface PageClaimsCardProps {
   currentClaims: { role: string; claims: string[] }[]
@@ -20,9 +21,13 @@ const PageClaimsCard = ({
   claimsData,
   isNewRole,
 }: PageClaimsCardProps) => {
+  const flags = useFlags()
+
   const claims = claimsData?.filter((claim) => claim !== 'Admin') || []
-  const roleCurrentClaims =
-    currentClaims.find((item) => item.role === id)?.claims || []
+  const roleCurrentClaims = useMemo(
+    () => currentClaims.find((item) => item.role === id)?.claims || [],
+    [currentClaims, id]
+  )
 
   const [selectedPermissions, setSelectedPermissions] = useState<{
     [key: string]: string
@@ -51,6 +56,11 @@ const PageClaimsCard = ({
     Watchdog:
       'View the system’s watchdog logs and subscribe to daily watchdog email updates.',
     Report: 'View the left turn gap report.',
+  }
+
+  if (flags.speedManagementTool) {
+    permissionDescriptions.SpeedConfiguration =
+      'Manage speed configurations, impacts, impact types, segments, and versions.'
   }
 
   useEffect(() => {

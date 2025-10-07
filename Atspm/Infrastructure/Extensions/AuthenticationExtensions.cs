@@ -18,6 +18,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -156,6 +157,14 @@ namespace Utah.Udot.Atspm.Infrastructure.Extensions
             return services;
         }
 
+        private static AuthorizationPolicyBuilder RequireRoleOrAdmin(
+           this AuthorizationPolicyBuilder builder, string role)
+        { 
+           return builder.RequireAssertion(ctx =>
+               ctx.User.HasClaim(ClaimTypes.Role, "Admin") ||
+               ctx.User.HasClaim(ClaimTypes.Role, role));
+            }
+
         /// <summary>
         /// Add atspm authorization
         /// </summary>
@@ -165,113 +174,38 @@ namespace Utah.Udot.Atspm.Infrastructure.Extensions
         {
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("CanViewUsers", policy =>
-                    policy.RequireAssertion(context =>
-                        context.User.HasClaim(c =>
-                            c.Type == ClaimTypes.Role && c.Value == "User:View" ||
-                            c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanEditUsers", policy =>
-                    policy.RequireAssertion(context =>
-                        context.User.HasClaim(c =>
-                            c.Type == ClaimTypes.Role && c.Value == "User:Edit" ||
-                            c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanDeleteUsers", policy =>
-                    policy.RequireAssertion(context =>
-                        context.User.HasClaim(c =>
-                            c.Type == ClaimTypes.Role && c.Value == "User:Delete" ||
-                            c.Type == ClaimTypes.Role && c.Value == "Admin")));
+                var rolePolicies = new (string Policy, string Role)[]
+                {
+                    ("CanViewUsers", "User:View"),
+                    ("CanEditUsers", "User:Edit"),
+                    ("CanDeleteUsers", "User:Delete"),
 
+                    ("CanViewRoles", "Role:View"),
+                    ("CanEditRoles", "Role:Edit"),
+                    ("CanDeleteRoles", "Role:Delete"),
 
-                options.AddPolicy("CanViewRoles", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "Role:View" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanEditRoles", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "Role:Edit" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanDeleteRoles", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "Role:Delete" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
+                    ("CanViewLocationConfigurations",  "LocationConfiguration:View"),
+                    ("CanEditLocationConfigurations",  "LocationConfiguration:Edit"),
+                    ("CanDeleteLocationConfigurations","LocationConfiguration:Delete"),
 
+                    ("CanViewGeneralConfigurations",   "GeneralConfiguration:View"),
+                    ("CanEditGeneralConfigurations",   "GeneralConfiguration:Edit"),
+                    ("CanDeleteGeneralConfigurations", "GeneralConfiguration:Delete"),
 
-                options.AddPolicy("CanViewLocationConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "LocationConfiguration:View" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanEditLocationConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "LocationConfiguration:Edit" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanDeleteLocationConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "LocationConfiguration:Delete" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
+                    ("CanViewData", "Data:View"),
+                    ("CanEditData", "Data:Edit"),
 
+                    ("CanViewWatchDog", "Watchdog:View"),
 
-                options.AddPolicy("CanViewGeneralConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "GeneralConfiguration:View" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanEditGeneralConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "GeneralConfiguration:Edit" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanDeleteGeneralConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "GeneralConfiguration:Delete" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
+                    ("CanViewSpeedConfigurations",  "SpeedConfiguration:View"),
+                    ("CanEditSpeedConfigurations",  "SpeedConfiguration:Edit"),
+                    ("CanDeleteSpeedConfigurations","SpeedConfiguration:Delete"),
 
+                    ("CanViewSpeedReports", "SpeedReport:View"),
+                };
 
-                options.AddPolicy("CanViewData", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "Data:View" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanEditData", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "Data:Edit" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-
-
-                options.AddPolicy("CanViewWatchDog", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "Watchdog:View" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-
-                options.AddPolicy("CanViewSpeedConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "SpeedConfiguration:View" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanEditSpeedConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "SpeedConfiguration:Edit" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-                options.AddPolicy("CanDeleteSpeedConfigurations", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "SpeedConfiguration:Delete" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
-
-                options.AddPolicy("CanViewSpeedReports", policy =>
-                   policy.RequireAssertion(context =>
-                       context.User.HasClaim(c =>
-                           c.Type == ClaimTypes.Role && c.Value == "SpeedReport:View" ||
-                           c.Type == ClaimTypes.Role && c.Value == "Admin")));
+                foreach (var (policy, role) in rolePolicies)
+                    options.AddPolicy(policy, p => p.RequireRoleOrAdmin(role));
             });
 
             return services;

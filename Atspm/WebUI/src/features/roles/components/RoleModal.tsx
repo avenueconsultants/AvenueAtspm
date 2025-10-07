@@ -64,27 +64,6 @@ const RoleModal = ({ isOpen, onSave, onClose, data }: ModalProps) => {
     setValue('claims', claims)
   }
 
-  const checkMaxPermissions = () => {
-    if (!claimsData || claimsData.length === 0 || roleId === 'Admin')
-      return false
-
-    const uniquePermissions = Array.from(
-      new Set(claimsData.map((claim) => claim.split(':')[0]))
-    ).filter((perm) => perm !== 'Admin')
-
-    const hasMaxPermission = (permission: string) => {
-      const availableClaims = claimsData.filter((c) => c.startsWith(permission))
-      const maxLevel = availableClaims.some((c) => c.endsWith('Delete'))
-        ? `${permission}:Delete`
-        : availableClaims.some((c) => c.endsWith('Edit'))
-          ? `${permission}:Edit`
-          : `${permission}:View`
-      return userClaims.includes(maxLevel)
-    }
-
-    return uniquePermissions.every(hasMaxPermission)
-  }
-
   const onSubmit = (formData: RoleFormData) => {
     if (!formData.roleName) return
     onSave({
