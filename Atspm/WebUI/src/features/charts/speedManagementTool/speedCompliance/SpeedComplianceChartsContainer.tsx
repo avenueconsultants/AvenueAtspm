@@ -23,7 +23,7 @@ const SpeedComplianceChartsContainer = ({ chartData }: { chartData: any }) => {
 
       <TableContainer
         sx={{
-          mt: 4,
+          my: 4,
           maxWidth: '1100px',
           mx: 'auto',
           overflowX: 'inherit',

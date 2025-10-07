@@ -112,8 +112,24 @@ const CHART_TOOLTIPS: Record<SM_ChartType, JSX.Element> = {
       before and after the implementation of the strategy or impact.
     </>
   ),
-  [SM_ChartType.SPEED_OVER_DISTANCE]: <></>,
-  [SM_ChartType.SPEED_COMPLIANCE]: <></>,
+  [SM_ChartType.SPEED_OVER_DISTANCE]: (
+    <>
+      Displays the Speed Limit, Average Speed, and 85th Percentile Speed for all
+      selected segments. Segments are plotted by milepoint (the X axis) so the
+      user can observe changes in speeds along a corridor.
+    </>
+  ),
+  [SM_ChartType.SPEED_COMPLIANCE]: (
+    <>
+      Displays the Speed Limit, Average Speed, and 85th Percentile Speed for all
+      selected segments. Users have the option to replace the speed limit with a
+      custom speed limit that is applied to all selected segments for the
+      purposes of this chart. Segments are plotted by milepoint (the X axis) so
+      the user can observe changes in speeds along a corridor. A data table is
+      provided below the chart displaying the speeds and their difference from
+      the speed limit (or custom speed limit if one was entered).
+    </>
+  ),
 }
 
 function getSingleRouteBaseCharts(): SM_ChartType[] {

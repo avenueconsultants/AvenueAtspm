@@ -1,4 +1,3 @@
-// Import necessary modules and types
 import { useQuery, UseQueryOptions, UseQueryResult } from 'react-query'
 
 import { transformCongestionTrackerData } from '@/features/charts/speedManagementTool/congestionTracker/congestionTracker.transformer'
