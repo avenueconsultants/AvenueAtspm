@@ -118,7 +118,10 @@ function transformSegmentData(
 
   const dataZoom = createDataZoom()
 
-  const toolbox = createToolbox()
+  const toolbox = createToolbox({
+    title: `Speed Violations - ${segment.segmentName}`,
+    dateRange,
+  })
 
   const tooltip = createTooltip({
     trigger: 'axis',

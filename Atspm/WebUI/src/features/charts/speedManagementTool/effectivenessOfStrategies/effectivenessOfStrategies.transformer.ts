@@ -224,6 +224,9 @@ function createDefaultSeries(
               return item.segmentName
             },
           },
+          tooltip: {
+            valueFormatter: (value: number) => `${Math.round(value)}`,
+          },
         },
         {
           name: `85th Percentile Speed`,
@@ -237,6 +240,9 @@ function createDefaultSeries(
           showSymbol: false,
           color: Color.Red,
           yAxisIndex: 0,
+          tooltip: {
+            valueFormatter: (value: number) => `${Math.round(value)}`,
+          },
         },
         {
           name: `Speed Limit`,

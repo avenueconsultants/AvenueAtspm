@@ -9,11 +9,15 @@ import {
   createTooltip,
   createXAxis,
   createYAxis,
-  lightenColor,
+  formatExportFileName,
   transformSeriesData,
 } from '@/features/charts/common/transformers'
 import { ExtendedEChartsOption } from '@/features/charts/types'
-import { Color, formatChartDateTimeRange } from '@/features/charts/utils'
+import {
+  Color,
+  formatChartDateTimeRange,
+  lightenColor,
+} from '@/features/charts/utils'
 import { SM_ChartType } from '@/features/speedManagementTool/api/getSMCharts'
 import { SeriesOption } from 'echarts'
 
@@ -120,7 +124,14 @@ function transformSingleSegmentAcrossSources(
   })
 
   const dataZoom = createDataZoom()
-  const toolbox = createToolbox()
+  const toolbox = createToolbox({
+    title: formatExportFileName(
+      `Data Quality - ${segmentsWithData[0].segmentName} (All Sources)`,
+      segmentsWithData[0].startingMilePoint,
+      segmentsWithData[0].endingMilePoint
+    ),
+    dateRange,
+  })
   const tooltip = createTooltip()
 
   const getSourceColor = (sourceName: string, index: number) => {
@@ -153,7 +164,7 @@ function transformSingleSegmentAcrossSources(
     const segment = source.segments.find((seg) => seg.segmentId === segmentId)
     return {
       name: source.name,
-      data: transformSeriesData(segment!.dataPoints),
+      data: transformSeriesData(segment.dataPoints),
       type: 'line',
       color: getSourceColor(source.name, index),
       tooltip: {
@@ -194,8 +205,10 @@ function transformData(
     'month'
   )
 
+  const titleHeader = `Data Quality - ${source.name}`
+
   const title = createTitle({
-    title: `Data Quality - ${source.name}`,
+    title: titleHeader,
     dateRange,
   })
 
@@ -217,7 +230,10 @@ function transformData(
   })
 
   const dataZoom = createDataZoom()
-  const toolbox = createToolbox()
+  console.log('titleHeader', titleHeader)
+  console.log('source', source)
+  console.log('dateRange', dateRange)
+  const toolbox = {}
   const tooltip = createTooltip()
 
   const availableColors = [

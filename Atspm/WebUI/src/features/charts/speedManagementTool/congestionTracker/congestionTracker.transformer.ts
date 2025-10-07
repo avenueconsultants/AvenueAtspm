@@ -6,12 +6,12 @@ import {
   createLegend,
   createTitle,
   createTooltip,
-  lightenColor,
   transformSeriesData,
 } from '@/features/charts/common/transformers'
 import {
   Color,
   DashedLineSeriesSymbol,
+  lightenColor,
   SolidLineSeriesSymbol,
 } from '@/features/charts/utils'
 import { SM_ChartType } from '@/features/speedManagementTool/api/getSMCharts'

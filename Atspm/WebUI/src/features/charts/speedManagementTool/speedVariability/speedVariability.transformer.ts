@@ -54,7 +54,6 @@ function transformData(response: SpeedVariabilityDto) {
       show: true,
       splitNumber: 2,
     },
-    boundaryGap: true,
   }
 
   const yAxis = createYAxis(true, { name: 'Speed (mph)' })

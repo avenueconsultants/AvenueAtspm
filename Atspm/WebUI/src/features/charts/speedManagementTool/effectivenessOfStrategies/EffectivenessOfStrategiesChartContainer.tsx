@@ -138,7 +138,7 @@ const EffectivenessOfStrategiesChartsContainer = ({
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>
-              <TableCell></TableCell>
+              <TableCell />
               <TableCell>Avg Speed (mph)</TableCell>
               <TableCell>85th %ile Speed (mph)</TableCell>
               <TableCell>% Violations</TableCell>
@@ -230,11 +230,8 @@ const EffectivenessOfStrategiesChartsContainer = ({
                   ? differenceMetrics.variability.toFixed(2)
                   : 'N/A'}
               </TableCell>
+              {/* <TableCell colSpan={6} sx={{ padding: '10px', border: 'none' }} /> */}
             </TableRow>
-            <TableCell
-              colSpan={6}
-              sx={{ padding: '10px', border: 'none' }}
-            ></TableCell>
           </TableBody>
           <TableRow>
             <TableCell
