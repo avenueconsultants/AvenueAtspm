@@ -20,10 +20,8 @@ import { Backdrop, CircularProgress } from '@mui/material'
 const ImpactTypeAdmin = () => {
   const pageAccess = useViewPage(PageNames.ImpactTypes)
 
-  const hasLocationsEditClaim = useUserHasClaim('LocationConfiguration:Edit')
-  const hasLocationsDeleteClaim = useUserHasClaim(
-    'LocationConfiguration:Delete'
-  )
+  const hasEditClaim = useUserHasClaim('SpeedConfiguration:Edit')
+  const hasDeleteClaim = useUserHasClaim('SpeedConfiguration:Delete')
 
   const { addNotification } = useNotificationStore()
 
@@ -104,8 +102,8 @@ const ImpactTypeAdmin = () => {
         headers={headers}
         headerKeys={headerKeys}
         data={filteredData}
-        hasEditPrivileges={hasLocationsEditClaim}
-        hasDeletePrivileges={hasLocationsDeleteClaim}
+        hasEditPrivileges={hasEditClaim}
+        hasDeletePrivileges={hasDeleteClaim}
         editModal={
           <ImpactTypeEditorModal
             isOpen={true}

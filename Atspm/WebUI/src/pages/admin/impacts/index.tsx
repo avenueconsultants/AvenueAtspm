@@ -31,8 +31,8 @@ const ImpactAdmin = () => {
   const { mutateAsync: deleteImpact } = useDeleteApiV1ImpactId()
   const { mutateAsync: editImpact } = usePutApiV1ImpactId()
 
-  const hasEditClaim = useUserHasClaim('GeneralConfiguration:Edit')
-  const hasDeleteClaim = useUserHasClaim('GeneralConfiguration:Delete')
+  const hasEditClaim = useUserHasClaim('SpeedConfiguration:Edit')
+  const hasDeleteClaim = useUserHasClaim('SpeedConfiguration:Delete')
 
   const {
     data: impacts,
