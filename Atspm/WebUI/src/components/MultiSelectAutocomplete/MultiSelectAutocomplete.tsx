@@ -94,8 +94,6 @@ const MultiSelectAutocomplete = <T,>({
     (paperProps) => (
       <CustomPaper
         {...paperProps}
-        selectedCount={value ? value.length : 0}
-        totalCount={options.length}
         onSelectAll={() => onChange(null, options)}
         onDeselectAll={() => onChange(null, null)}
       />

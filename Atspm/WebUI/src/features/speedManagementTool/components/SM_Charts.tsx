@@ -106,10 +106,8 @@ const CHART_TOOLTIPS: Record<SM_ChartType, JSX.Element> = {
   ),
   [SM_ChartType.EFFECTIVENESS_OF_STRATEGIES]: (
     <>
-      Displays all speed management strategies and speed impacts on the selected
-      segment that have been entered into the site's database, regardless of
-      implementation date. The chart shows the speeds for the analysis periods
-      before and after the implementation of the strategy or impact.
+      Displays the speeds for the analysis periods before and after the
+      implementation of the strategy or impact.
     </>
   ),
   [SM_ChartType.SPEED_OVER_DISTANCE]: (

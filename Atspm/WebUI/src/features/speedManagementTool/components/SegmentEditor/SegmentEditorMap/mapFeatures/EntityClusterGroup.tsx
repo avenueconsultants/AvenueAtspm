@@ -82,18 +82,17 @@ export default function EntityClusterGroup({
         const iconUrl =
           d.sourceId === DataSource.PeMS
             ? sel
-              ? pemsSelectedIcon.options.iconUrl!
-              : pemsIcon.options.iconUrl!
+              ? pemsSelectedIcon.options.iconUrl
+              : pemsIcon.options.iconUrl
             : sel
-              ? atspmSelectedIcon.options.iconUrl!
-              : atspmIcon.options.iconUrl!
+              ? atspmSelectedIcon.options.iconUrl
+              : atspmIcon.options.iconUrl
         return `<li data-id="${d.id}" style="
         display:flex;align-items:center;
         padding:8px 12px;
         border-bottom:1px solid rgba(0,0,0,0.05);
         cursor:pointer;transition:background 0.2s;
-      " onmouseover="this.style.background='rgba(0,0,0,0.05)'" +
-         "onmouseout="this.style.background='transparent'">
+      ">
         <img src="${iconUrl}" style="width:24px;height:24px;margin-right:8px;" />
         <div style="line-height:1.2;">
           <div style="font-weight:500;">
@@ -116,9 +115,7 @@ export default function EntityClusterGroup({
     cluster
       .bindPopup(html, {
         className: 'cluster-popup',
-        pane: 'popupPane',
-        closeOnClick: false,
-        autoClose: false,
+        pane: 'entity-popup',
       })
       .openPopup()
 
@@ -126,6 +123,14 @@ export default function EntityClusterGroup({
       const popupEl = cluster.getPopup()?.getElement()
       if (!popupEl) return
       popupEl.querySelectorAll('li').forEach((li) => {
+        li.addEventListener(
+          'mouseenter',
+          () => (li.style.background = 'rgba(0,0,0,0.05)')
+        )
+        li.addEventListener(
+          'mouseleave',
+          () => (li.style.background = 'transparent')
+        )
         li.addEventListener('click', () => {
           const id = li.getAttribute('data-id')
           if (!id) return
@@ -157,6 +162,7 @@ export default function EntityClusterGroup({
 
   return (
     <>
+      <Pane name="entity-popup" style={{ zIndex: 12000 }} />
       <Pane
         name="clearguide-lines"
         style={{ zIndex: 3100, pointerEvents: 'none' }}
@@ -196,7 +202,7 @@ export default function EntityClusterGroup({
           ))}
         </ClusterGroup>
       </Pane>
-      <Pane name="clearguide-spider" style={{ zIndex: 10000 }}>
+      <Pane name="clearguide-spider" style={{ zIndex: 10_000 }}>
         <ClearGuideSpiderLayer
           entities={clearGuide}
           associatedEntityIds={associatedEntityIds}

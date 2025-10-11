@@ -1,5 +1,5 @@
 import { SpeedOverTimeOptions } from '@/api/speedManagement/aTSPMSpeedManagementApi.schemas'
-import { TimeOptions } from '@/features/speedManagementTool/enums'
+import { DataSource, TimeOptions } from '@/features/speedManagementTool/enums'
 import useSpeedManagementStore from '@/features/speedManagementTool/speedManagementStore'
 import { toUTCDateStamp } from '@/utils/dateTime'
 import {
@@ -21,6 +21,7 @@ interface SpeedOverTimeOptionsProps {
 
 const SpeedOverTimeChartOptions = ({
   onOptionsChange,
+  sourceId,
 }: SpeedOverTimeOptionsProps) => {
   const { submittedRouteSpeedRequest } = useSpeedManagementStore()
 
@@ -37,26 +38,42 @@ const SpeedOverTimeChartOptions = ({
       : null
   )
 
+  const [selectedSource, setSelectedSource] = useState<DataSource>(sourceId)
   const [selectedTimeOptions, setSelectedTimeOptions] = useState<TimeOptions>(
     TimeOptions.Hour
   )
+  const [startTime, setStartTime] = useState<Date | null>(new Date())
+  const [endTime, setEndTime] = useState<Date | null>(new Date())
 
   useEffect(() => {
     if (startDate && endDate && startTime && endTime) {
       onOptionsChange({
         startDate: toUTCDateStamp(startDate),
         endDate: toUTCDateStamp(endDate),
+        sourceId: selectedSource,
         timeOptions: selectedTimeOptions,
+        startTime: startTime.toISOString(),
+        endTime: endTime.toISOString(),
       })
     } else {
       // Handle invalid dates by sending empty strings
       onOptionsChange({
         startDate: '',
         endDate: '',
+        sourceId: selectedSource,
         timeOptions: selectedTimeOptions,
+        startTime: '',
+        endTime: '',
       })
     }
-  }, [startDate, endDate, selectedTimeOptions, onOptionsChange])
+  }, [
+    startDate,
+    endDate,
+    selectedSource,
+    selectedTimeOptions,
+    startTime,
+    endTime,
+  ])
 
   const handleStartDateChange = (date: Date | null) => {
     if (date && isValid(date)) {
@@ -74,8 +91,32 @@ const SpeedOverTimeChartOptions = ({
     }
   }
 
+  const handleSourceChange = (event: SelectChangeEvent<number>) => {
+    setSelectedSource(event.target.value as DataSource)
+  }
+
   const handleTimeOptionsChange = (event: SelectChangeEvent<TimeOptions>) => {
     setSelectedTimeOptions(event.target.value as TimeOptions)
+  }
+
+  const handleStartTimeChange = (time: Date | null) => {
+    if (time && isValid(time)) {
+      setStartTime(time)
+      // You can add error handling for time if needed
+    } else {
+      setStartTime(null)
+      // Handle time errors if necessary
+    }
+  }
+
+  const handleEndTimeChange = (time: Date | null) => {
+    if (time && isValid(time)) {
+      setEndTime(time)
+      // You can add error handling for time if needed
+    } else {
+      setEndTime(null)
+      // Handle time errors if necessary
+    }
   }
 
   return (
@@ -96,6 +137,37 @@ const SpeedOverTimeChartOptions = ({
         />
       </Box>
 
+      {/* Row 2: Start Time and End Time */}
+      {/* Uncomment and update if needed */}
+      {/* <Box display="flex" gap={2}>
+        <TimePicker
+          label="Start Time"
+          value={startTime}
+          onChange={handleStartTimeChange}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              // Add error handling if necessary
+              InputLabelProps={{ shrink: true }}
+            />
+          )}
+          fullWidth
+        />
+        <TimePicker
+          label="End Time"
+          value={endTime}
+          onChange={handleEndTimeChange}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              // Add error handling if necessary
+              InputLabelProps={{ shrink: true }}
+            />
+          )}
+          fullWidth
+        />
+      </Box> */}
+
       {/* Row 3: Time Options and Source Select */}
       <Box display="flex" gap={2}>
         <FormControl sx={{ width: '150px' }}>
@@ -111,6 +183,21 @@ const SpeedOverTimeChartOptions = ({
             <MenuItem value={TimeOptions.Month}>Month</MenuItem>
           </Select>
         </FormControl>
+        {/* Uncomment and update the Source Select component if needed */}
+        {/* <FormControl fullWidth>
+          <InputLabel id="source-select-label">Source Select</InputLabel>
+          <Select
+            labelId="source-select-label"
+            id="source-select"
+            value={selectedSource}
+            label="Source Select"
+            onChange={handleSourceChange}
+          >
+            <MenuItem value={DataSource.PeMS}>PeMS</MenuItem>
+            <MenuItem value={DataSource.ATSPM}>ATSPM</MenuItem>
+            <MenuItem value={DataSource.ClearGuide}>Clear Guide</MenuItem>
+          </Select>
+        </FormControl> */}
       </Box>
     </Box>
   )
