@@ -33,6 +33,10 @@ using Utah.Udot.ATSPM.DataApi.Services;
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 2L * 1024 * 1024 * 1024; // 2 GB
+});
 
 builder.Host
     .ApplyVolumeConfiguration()
