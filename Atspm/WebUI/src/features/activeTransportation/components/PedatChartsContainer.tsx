@@ -1,4 +1,3 @@
-// PedatChartsContainer.tsx
 import { PedatLocationData } from '@/api/reports'
 import BoxPlotByLocationChart from '@/features/activeTransportation/components/charts/BoxPlotByLocationChart'
 import { Box, Button, Tab, Tabs } from '@mui/material'

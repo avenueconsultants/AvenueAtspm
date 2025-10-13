@@ -1,4 +1,4 @@
-import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/PedatChartsContainer'
 import { Box, Typography } from '@mui/material'
 import React, { useMemo } from 'react'
 

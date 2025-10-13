@@ -1,4 +1,4 @@
-import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/PedatChartsContainer'
 import PedatMapWrapper from '@/features/activeTransportation/components/pedatMap/PedatMapWrapper'
 import { Box, Paper } from '@mui/material'
 

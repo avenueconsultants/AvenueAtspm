@@ -200,7 +200,7 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 Min = min,
                 Max = max,
                 TwentyFifthPercentile = Math.Round(AtspmMath.Percentile(values, 0.25)),
-                fiftiethPercentile = Math.Round(AtspmMath.Percentile(values, 0.5)),
+                FiftiethPercentile = Math.Round(AtspmMath.Percentile(values, 0.5)),
                 SeventyFifthPercentile = Math.Round(AtspmMath.Percentile(values, 0.75))
             };
         }

@@ -1,7 +1,7 @@
 import { useGetPedestrianAggregationLocationData } from '@/api/reports'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
-import { ActiveTransportationOptions } from '@/features/activeTransportation/components/activeTransportationOptions'
-import PedatChartsContainer from '@/features/activeTransportation/components/pedatChartsContainer'
+import { ActiveTransportationOptions } from '@/features/activeTransportation/components/ActiveTransportationOptions'
+import PedatChartsContainer from '@/features/activeTransportation/components/PedatChartsContainer'
 import { dateToTimestamp } from '@/utils/dateTime'
 import { DropResult } from '@hello-pangea/dnd'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -389,11 +389,10 @@ const activeTransportationSchema = z.object({
     })
   ),
   daysOfWeek: z.array(z.number()),
-  startTime: z.date(),
-  endTime: z.date(),
   timeUnit: z.string(),
   startDate: z.date(),
   endDate: z.date(),
+  phase: z.number().nullable(),
 })
 
 type ActiveTransportationForm = z.infer<typeof activeTransportationSchema>
@@ -427,11 +426,10 @@ const ActiveTransportation = () => {
     defaultValues: {
       locations: [],
       daysOfWeek: [0],
-      startTime: new Date(new Date().setHours(8, 0, 0, 0)),
-      endTime: new Date(new Date().setHours(9, 0, 0, 0)),
       timeUnit: 'Hour',
       startDate: startOfDay(subYears(new Date(), 1)),
       endDate: startOfDay(new Date()),
+      phase: null,
     },
   })
 
@@ -442,11 +440,10 @@ const ActiveTransportation = () => {
 
   const locations = watch('locations')
   const daysOfWeek = watch('daysOfWeek')
-  const startTime = watch('startTime')
-  const endTime = watch('endTime')
   const timeUnit = watch('timeUnit')
   const startDate = watch('startDate')
   const endDate = watch('endDate')
+  const phase = watch('phase')
 
   function renderErrorAlert() {
     if (errorState.type === 'NO_LOCATIONS') {
@@ -560,9 +557,6 @@ const ActiveTransportation = () => {
         startDate: dateToTimestamp(formData.startDate),
         endDate: dateToTimestamp(formData.endDate),
         timeUnit: 0,
-        // startTime: formData.startTime,
-        // endTime: formData.endTime,
-        // daysOfWeek: formData.daysOfWeek,
       },
     })
 
@@ -575,18 +569,16 @@ const ActiveTransportation = () => {
         errorState={errorState}
         locations={locations}
         daysOfWeek={daysOfWeek}
-        startTime={startTime}
-        endTime={endTime}
         timeUnit={timeUnit}
         startDate={startDate}
         endDate={endDate}
+        phase={phase}
         setLocations={setLocations}
         setDaysOfWeek={(days) => setValue('daysOfWeek', days)}
-        setStartTime={(time) => setValue('startTime', time)}
-        setEndTime={(time) => setValue('endTime', time)}
         setTimeUnit={(unit) => setValue('timeUnit', unit)}
         setStartDate={(date) => setValue('startDate', date)}
         setEndDate={(date) => setValue('endDate', date)}
+        setPhase={(phase) => setValue('phase', phase)}
         onLocationDelete={handleLocationDelete}
         onReorderLocations={handleReorderLocations}
         onUpdateLocation={handleUpdateLocation}

@@ -1,5 +1,4 @@
-// /features/activeTransportation/transformers/boxPlotByLocation.ts
-import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/PedatChartsContainer'
 import {
   createGrid,
   createLegend,

@@ -1,4 +1,4 @@
-import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/PedatChartsContainer'
 import { Box } from '@mui/material'
 import 'leaflet/dist/leaflet.css'
 import dynamic from 'next/dynamic'

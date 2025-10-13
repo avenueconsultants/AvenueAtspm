@@ -1,4 +1,4 @@
-import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/PedatChartsContainer'
 import ControlsPanel from '@/features/activeTransportation/components/pedatMap/PedatMapControls'
 import { getEnv } from '@/utils/getEnv'
 import { Box } from '@mui/material'

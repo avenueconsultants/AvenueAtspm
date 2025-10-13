@@ -1,5 +1,5 @@
 import { applyPrintMode } from '@/features/activeTransportation/components/charts/utils'
-import { PedatChartsContainerProps } from '@/features/activeTransportation/components/pedatChartsContainer'
+import { PedatChartsContainerProps } from '@/features/activeTransportation/components/PedatChartsContainer'
 import ApacheEChart from '@/features/charts/components/apacheEChart'
 import transformDailyPedVolByMonthTransformer from '@/features/charts/pedat/dailyPedVolByMonthTransformer'
 import { Paper } from '@mui/material'
