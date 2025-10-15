@@ -20,7 +20,10 @@ export const dateToTimestamp = (date: Date) => {
   return format(date, "yyyy-MM-dd'T'HH:mm:ss")
 }
 
-export const toUTCDateStamp = (date: Date): string => {
+export const toUTCDateStamp = (date: Date | string): string => {
+  if (typeof date === 'string') {
+    date = new Date(date)
+  }
   const year = date.getUTCFullYear()
   const month = String(date.getUTCMonth() + 1).padStart(2, '0')
   const day = String(date.getUTCDate()).padStart(2, '0')

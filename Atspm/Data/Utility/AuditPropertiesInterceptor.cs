@@ -61,18 +61,18 @@ namespace Utah.Udot.Atspm.Data.Utility
                 {
                     if (entry.State == EntityState.Added)
                     {
-                        var now = new Lazy<DateTime>(() => DateTime.UtcNow);
-                        var user = _currentUserService.GetCurrentUser().FullName ?? "System";
+                        var now = new Lazy<DateTime>(() => DateTime.Now);
+                        var user = _currentUserService.GetCurrentUser();
 
                         auditProperties.Created = now.Value;
                         auditProperties.Modified = now.Value;
 
-                        auditProperties.CreatedBy = user;
-                        auditProperties.ModifiedBy = user;
+                        auditProperties.CreatedBy = ($"{user.FirstName} {user.LastName}") ?? "System"; ;
+                        auditProperties.ModifiedBy = ($"{user.FirstName} {user.LastName}") ?? "System"; ;
                     }
                     else if (entry.State == EntityState.Modified)
                     {
-                        auditProperties.Modified = DateTime.UtcNow;
+                        auditProperties.Modified = DateTime.Now;
 
                         var user = _currentUserService.GetCurrentUser();
 
