@@ -60,6 +60,19 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 return await Task.FromException<IEnumerable<ApproachVolumeResult>>(new NullReferenceException("No Controller Event Logs found for Location"));
             }
 
+            List<ApproachVolumeResult> finalResultcheck = await ProcessData(parameter, Location, controllerEventLogs);
+
+            //if (finalResultcheck.IsNullOrEmpty())
+            //{
+            //    return Ok("No chart data found");
+            //}
+            //return Ok(finalResultcheck);
+
+            return finalResultcheck;
+        }
+
+        public async Task<List<ApproachVolumeResult>> ProcessData(ApproachVolumeOptions parameter, Location Location, List<IndianaEvent> controllerEventLogs)
+        {
             var tasks = new List<Task<ApproachVolumeResult>>();
             var nbSbApproaches = Location.Approaches.Where(a => a.ProtectedPhaseNumber != 0 && (a.DirectionTypeId == DirectionTypes.NB || a.DirectionTypeId == DirectionTypes.SB)).ToList();
             GetApproachVolume(parameter, Location, controllerEventLogs, tasks, nbSbApproaches, DirectionTypes.NB, DirectionTypes.SB);
@@ -72,13 +85,6 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             var results = await Task.WhenAll(tasks);
 
             var finalResultcheck = results.Where(result => result != null).OrderBy(r => r.PrimaryDirectionName).ToList();
-
-            //if (finalResultcheck.IsNullOrEmpty())
-            //{
-            //    return Ok("No chart data found");
-            //}
-            //return Ok(finalResultcheck);
-
             return finalResultcheck;
         }
 
@@ -148,7 +154,9 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
             if (primaryDetectorEvents.Count == 0 &&
                 opposingDetectorEvents.Count == 0)
             {
-                return new ApproachVolumeResult(Location.LocationIdentifier, options.Start, options.End, primaryApproaches.FirstOrDefault().DirectionTypeId, opposingApproaches.FirstOrDefault().DirectionTypeId);
+                var primaryDir = primaryApproaches.FirstOrDefault() != null ? primaryApproaches.FirstOrDefault().DirectionTypeId : DirectionTypes.NA;
+                var opposingDir = opposingApproaches.FirstOrDefault() != null ? opposingApproaches.FirstOrDefault().DirectionTypeId : DirectionTypes.NA;
+                return new ApproachVolumeResult(Location.LocationIdentifier, options.Start, options.End,primaryDir, opposingDir);
             }
             ApproachVolumeResult viewModel = approachVolumeService.GetChartData(
                 options,

@@ -229,25 +229,70 @@ namespace Utah.Udot.Atspm.Business.Common
             return cycles;
         }
 
-        public List<CycleSplitFail> GetSplitFailCycles(SplitFailOptions options, IReadOnlyList<IndianaEvent> cycleEvents, IReadOnlyList<IndianaEvent> terminationEvents)
+        public List<CycleSplitFail> GetSplitFailCycles(
+    SplitFailOptions options,
+    IReadOnlyList<IndianaEvent> cycleEvents,
+    IReadOnlyList<IndianaEvent> terminationEvents)
         {
-            var cycles = Enumerable.Range(0, cycleEvents.Count - 3)
-                .Where(i => GetEventType(cycleEvents[i].EventCode) == RedToRedCycle.EventType.ChangeToGreen &&
-                            GetEventType(cycleEvents[i + 1].EventCode) == RedToRedCycle.EventType.ChangeToYellow &&
-                            GetEventType(cycleEvents[i + 2].EventCode) == RedToRedCycle.EventType.ChangeToRed &&
-                            (GetEventType(cycleEvents[i + 3].EventCode) == RedToRedCycle.EventType.ChangeToGreen ||
-                            cycleEvents[i + 3].EventCode == 66))
-                .Select(i =>
-                {
-                    var termEvent = GetTerminationTypeBetweenStartAndEnd(cycleEvents[i].Timestamp, cycleEvents[i + 3].Timestamp, terminationEvents);
-                    return new CycleSplitFail(cycleEvents[i].Timestamp, cycleEvents[i + 2].Timestamp, cycleEvents[i + 1].Timestamp,
-                                              cycleEvents[i + 3].Timestamp, termEvent, options.FirstSecondsOfRed);
-                })
-                .Where(c => c.EndTime >= options.Start && c.EndTime <= options.End || c.StartTime <= options.End && c.StartTime >= options.Start)
-                .ToList();
+            var result = new List<CycleSplitFail>();
+            if (cycleEvents == null || cycleEvents.Count < 4) return result;
 
-            return cycles;
+            static bool Overlaps(DateTime start, DateTime end, DateTime winStart, DateTime winEnd)
+                => start <= winEnd && end >= winStart;
+
+            for (int i = 0; i + 3 < cycleEvents.Count; i++)
+            {
+                if (GetEventType(cycleEvents[i + 0].EventCode) != RedToRedCycle.EventType.ChangeToGreen) continue;
+                if (GetEventType(cycleEvents[i + 1].EventCode) != RedToRedCycle.EventType.ChangeToYellow) continue;
+                if (GetEventType(cycleEvents[i + 2].EventCode) != RedToRedCycle.EventType.ChangeToRed) continue;
+
+                var lastIsGreen = GetEventType(cycleEvents[i + 3].EventCode) == RedToRedCycle.EventType.ChangeToGreen;
+                var lastIs66 = cycleEvents[i + 3].EventCode == 66;
+                if (!(lastIsGreen || lastIs66)) continue;
+
+                var firstGreen = cycleEvents[i + 0].Timestamp;
+                var yellow = cycleEvents[i + 1].Timestamp;
+                var red = cycleEvents[i + 2].Timestamp;
+                var lastGreen = cycleEvents[i + 3].Timestamp;
+
+                if (!Overlaps(firstGreen, lastGreen, options.Start, options.End)) continue;
+
+                var term = GetTerminationTypeBetweenStartAndEnd(firstGreen, lastGreen, terminationEvents);
+
+                result.Add(new CycleSplitFail(
+                    firstGreenEvent: firstGreen,
+                    redEvent: red,
+                    yellowEvent: yellow,
+                    lastGreenEvent: lastGreen,
+                    terminationType: term,
+                    firstSecondsOfRed: options.FirstSecondsOfRed));
+            }
+
+            return result;
         }
+
+
+
+
+        //public List<CycleSplitFail> GetSplitFailCycles(SplitFailOptions options, IReadOnlyList<IndianaEvent> cycleEvents, IReadOnlyList<IndianaEvent> terminationEvents)
+        //{
+        //    var cycles = Enumerable.Range(0, cycleEvents.Count - 3)
+        //        .Where(i => GetEventType(cycleEvents[i].EventCode) == RedToRedCycle.EventType.ChangeToGreen &&
+        //                    GetEventType(cycleEvents[i + 1].EventCode) == RedToRedCycle.EventType.ChangeToYellow &&
+        //                    GetEventType(cycleEvents[i + 2].EventCode) == RedToRedCycle.EventType.ChangeToRed &&
+        //                    (GetEventType(cycleEvents[i + 3].EventCode) == RedToRedCycle.EventType.ChangeToGreen ||
+        //                    cycleEvents[i + 3].EventCode == 66))
+        //        .Select(i =>
+        //        {
+        //            var termEvent = GetTerminationTypeBetweenStartAndEnd(cycleEvents[i].Timestamp, cycleEvents[i + 3].Timestamp, terminationEvents);
+        //            return new CycleSplitFail(cycleEvents[i].Timestamp, cycleEvents[i + 2].Timestamp, cycleEvents[i + 1].Timestamp,
+        //                                      cycleEvents[i + 3].Timestamp, termEvent, options.FirstSecondsOfRed);
+        //        })
+        //        .Where(c => c.EndTime >= options.Start && c.EndTime <= options.End || c.StartTime <= options.End && c.StartTime >= options.Start)
+        //        .ToList();
+
+        //    return cycles;
+        //}
 
         public List<TransitSignalPriorityCycle> GetTransitSignalPriorityCycles(int phaseNumber, List<IndianaEvent> cycleEvents, List<IndianaEvent> terminationEvents, List<IndianaEvent> minGreenEvents)
         {

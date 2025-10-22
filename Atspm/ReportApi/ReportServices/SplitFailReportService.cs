@@ -63,6 +63,11 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 return await Task.FromException<IEnumerable<SplitFailsResult>>(new NullReferenceException("No Controller Event Logs found for Location"));
             }
 
+            return await ProcessData(parameter, Location, controllerEventLogs);
+        }
+
+        public async Task<IEnumerable<SplitFailsResult>> ProcessData(SplitFailOptions parameter, Location Location, List<IndianaEvent> controllerEventLogs)
+        {
             var planEvents = controllerEventLogs.GetPlanEvents(
             parameter.Start.AddHours(-12),
                parameter.End.AddHours(12)).ToList();
