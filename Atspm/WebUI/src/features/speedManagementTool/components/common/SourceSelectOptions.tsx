@@ -1,7 +1,4 @@
-import {
-  ReportManagementType,
-  SpeedDataType,
-} from '@/api/speedManagement/aTSPMSpeedManagementApi.schemas'
+import { ReportManagementType } from '@/api/speedManagement/aTSPMSpeedManagementApi.schemas'
 import {
   Box,
   FormControl,
@@ -44,7 +41,7 @@ export default function SourceSelectOptions(props: Props) {
           </Select>
         </FormControl>
 
-        <FormControl fullWidth size="medium">
+        {/* <FormControl fullWidth size="medium">
           <InputLabel>Granularity</InputLabel>
           <Select
             label="Granularity"
@@ -56,7 +53,7 @@ export default function SourceSelectOptions(props: Props) {
             <MenuItem value={SpeedDataType.H}>Hourly</MenuItem>
             <MenuItem value={SpeedDataType.M}>Monthly</MenuItem>
           </Select>
-        </FormControl>
+        </FormControl> */}
       </Box>
       <Box sx={{ mt: 2, mb: 2 }}>
         <Typography

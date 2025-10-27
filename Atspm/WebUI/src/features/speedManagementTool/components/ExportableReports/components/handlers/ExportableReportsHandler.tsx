@@ -40,7 +40,7 @@ export interface ERBaseHandler
 export const useERBaseHandler = (): ERBaseHandler => {
   const [sourceId, setSourceId] = useState<DataSource[]>([DataSource.ATSPM])
   const [speedDataType, setSpeedDataType] = useState<SpeedDataType>(
-    SpeedDataType.H
+    SpeedDataType.M
   )
   const [managementType, setManagementType] = useState<ReportManagementType>(
     ReportManagementType.Engineer
