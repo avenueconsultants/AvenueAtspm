@@ -53,6 +53,17 @@ const columnMapping = {
     'flow',
     'percentObserved',
   ],
+  'Minimum Speed': [
+    'minSpeed',
+    'variability',
+    'averageEightyFifthSpeed',
+    'averageSpeed',
+    'percentViolations',
+    'percentExtremeViolations',
+    'speedLimit',
+    'flow',
+    'percentObserved',
+  ],
   Variability: [
     'variability',
     'maxSpeed',

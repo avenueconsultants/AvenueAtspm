@@ -230,9 +230,6 @@ function transformData(
   })
 
   const dataZoom = createDataZoom()
-  console.log('titleHeader', titleHeader)
-  console.log('source', source)
-  console.log('dateRange', dateRange)
   const toolbox = {}
   const tooltip = createTooltip()
 

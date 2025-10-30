@@ -22,6 +22,7 @@ export const ExportableReports = () => {
   const monthlyHandler = useERMonthlyReportHandler({
     baseHandler: reportsHandler,
   })
+
   const currentHandler =
     reportsHandler.speedDataType === SpeedDataType.H
       ? hourlyHandler

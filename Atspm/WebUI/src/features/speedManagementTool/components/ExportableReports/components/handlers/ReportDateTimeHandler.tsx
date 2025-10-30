@@ -1,5 +1,14 @@
 import { DateTimeProps } from '@/types/TimeProps'
-import { format, isValid, lastDayOfMonth, parse, set, subDays } from 'date-fns'
+import { toUTCDateStamp } from '@/utils/dateTime'
+import {
+  format,
+  isValid,
+  lastDayOfMonth,
+  parse,
+  startOfMonth,
+  subDays,
+  subMonths,
+} from 'date-fns'
 import { useState } from 'react'
 
 export interface ReportDateTimeHandler extends DateTimeProps {
@@ -12,17 +21,15 @@ export interface ReportDateTimeHandler extends DateTimeProps {
 export const useReportDateTimeHandler = () => {
   const yesterday = subDays(new Date(), 1)
 
-  const [startDateTime, setStartDateTime] = useState(
-    set(yesterday, { hours: 16, minutes: 0 })
-  )
-  const [endDateTime, setEndDateTime] = useState(
-    set(yesterday, { hours: 16, minutes: 20 })
-  )
+  const [startDateTime, setStartDateTime] = useState(yesterday)
+  const [endDateTime, setEndDateTime] = useState(new Date())
 
-  const [startMonthDateString, setStartMonthDateString] =
-    useState<string>('2023-01-01')
-  const [endMonthDateString, setEndMonthDateString] =
-    useState<string>('2023-02-01')
+  const [startMonthDateString, setStartMonthDateString] = useState<string>(
+    toUTCDateStamp(startOfMonth(subMonths(new Date(), 1)))
+  )
+  const [endMonthDateString, setEndMonthDateString] = useState<string>(
+    toUTCDateStamp(startOfMonth(new Date()))
+  )
 
   const parsedStartMonthDate = startDateTime
     ? parse(startMonthDateString, 'yyyy-MM-dd', new Date())

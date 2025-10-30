@@ -57,6 +57,7 @@ export default function DateTimeOptions(props: Props) {
         />
         <FormHelperText sx={{ mt: -2 }}>
           Includes every month from the start through the end month (inclusive).
+          The current month will be excluded if it is not complete.
         </FormHelperText>
       </Box>
     </>

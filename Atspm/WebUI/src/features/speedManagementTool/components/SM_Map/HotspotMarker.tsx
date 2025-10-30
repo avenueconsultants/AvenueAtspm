@@ -31,21 +31,21 @@ const RankMarker = ({
 
   if (map && isHovered) {
     const bounds = map.getBounds()
-    // Use buffered bounds (10% inward) to decide if off-screen.
-    const bufferedBounds = bounds.pad(-0.1)
     const actualLatLng = L.latLng(position)
-    if (!bufferedBounds.contains(actualLatLng)) {
+
+    if (!bounds.contains(actualLatLng)) {
       const center = map.getCenter()
       const dx = position[1] - center.lng
       const dy = position[0] - center.lat
 
-      const north = bufferedBounds.getNorth()
-      const south = bufferedBounds.getSouth()
-      const east = bufferedBounds.getEast()
-      const west = bufferedBounds.getWest()
+      const north = bounds.getNorth()
+      const south = bounds.getSouth()
+      const east = bounds.getEast()
+      const west = bounds.getWest()
 
-      let tX = Infinity,
-        tY = Infinity
+      let tX = Infinity
+      let tY = Infinity
+
       if (dx > 0) {
         tX = (east - center.lng) / dx
       } else if (dx < 0) {
@@ -57,8 +57,7 @@ const RankMarker = ({
         tY = (south - center.lat) / dy
       }
       const t = Math.min(tX, tY)
-      // Nudge the arrow inward slightly.
-      const bufferFactor = 1.1
+      const bufferFactor = 0.9
       arrowDisplayPosition = [
         center.lat + dy * t * bufferFactor,
         center.lng + dx * t * bufferFactor,
@@ -180,7 +179,7 @@ const RankMarker = ({
   const arrowIcon = L.divIcon({
     html: arrowIconHtml,
     className: '',
-    iconAnchor: [5, 15],
+    iconAnchor: [22, 22],
   })
 
   // Refs for the markers so we can update their icons or z-index.

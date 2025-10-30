@@ -27,6 +27,7 @@ export interface EnvVariables {
   MAP_TILE_LAYER: string | undefined
   MAP_TILE_ATTRIBUTION: string | undefined
   POWERED_BY_IMAGE_URL: string | undefined
+  SPEED_LIMIT_MAP_LAYER: string | undefined
 }
 let cachedEnv: EnvVariables | null = null
 export const getEnv = async (): Promise<EnvVariables | null> => {

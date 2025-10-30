@@ -2,7 +2,7 @@ import OptionsPopupWrapper from '@/features/speedManagementTool/components/SM_To
 import useStore from '@/features/speedManagementTool/speedManagementStore'
 import { Box, FormHelperText } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers'
-import { endOfMonth, format, isValid, parse } from 'date-fns'
+import { endOfMonth, format, isValid, parse, subMonths } from 'date-fns'
 
 export default function DateRangeOptionsPopup() {
   const { setRouteSpeedRequest, routeSpeedRequest } = useStore()
@@ -99,11 +99,15 @@ export default function DateRangeOptionsPopup() {
               value={isEndDateValid ? parsedEndDate : null}
               onChange={handleEndDateChange}
               sx={{ width: '200px' }}
+              // disable current month
+              maxDate={subMonths(new Date(), 1)}
             />
           </Box>
         </Box>
         <FormHelperText sx={{ mt: -0.5 }}>
           Includes every month from the start through the end month (inclusive).
+          <br />
+          Only complete months can be selected.
         </FormHelperText>
       </Box>
     </OptionsPopupWrapper>

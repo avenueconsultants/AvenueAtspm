@@ -120,23 +120,7 @@ const RoutePolyline: React.FC<RoutePolylineProps> = ({
   return (
     <>
       {/* Border Polyline (drawn first, thicker with rounded ends) */}
-      <Polyline
-        ref={borderRef}
-        pathOptions={{
-          color: 'black',
-          weight: borderWeight,
-          lineCap: 'square',
-          opacity: 1,
-        }}
-        smoothFactor={0}
-        positions={route.geometry.coordinates}
-        interactive={false}
-        eventHandlers={{
-          add: (e) => {
-            e.target.bringToFront()
-          },
-        }}
-      />
+
       <Polyline
         ref={mainRef}
         pathOptions={{

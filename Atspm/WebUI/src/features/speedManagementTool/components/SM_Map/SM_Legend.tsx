@@ -9,75 +9,75 @@ export const routeSpeeds = [
   {
     min: 0,
     max: 19,
-    color: 'rgba(0, 115, 255, 1)',
+    color: 'rgba(44, 123, 182, 1)',
     get display() {
       return `<${this.max + 1}`
     },
-  },
+  }, // blue
   {
     min: 20,
     max: 29,
-    color: 'rgba(0, 255, 170, 1)',
+    color: 'rgba(0, 163, 163, 1)',
     get display() {
       return `${this.min}–${this.max}`
     },
-  },
+  }, // teal
   {
     min: 30,
     max: 34,
-    color: 'rgba(55, 255, 0, 1)',
+    color: 'rgba(30, 142, 62, 1)',
     get display() {
       return `${this.min}–${this.max}`
     },
-  },
+  }, // dark green
   {
     min: 35,
     max: 39,
-    color: 'rgba(175, 250, 0, 1)',
+    color: 'rgba(60, 180, 75, 1)',
     get display() {
       return `${this.min}–${this.max}`
     },
-  },
+  }, // medium green
   {
     min: 40,
     max: 49,
-    color: 'rgba(247, 214, 0, 1)',
+    color: 'rgba(181, 189, 0, 1)',
     get display() {
       return `${this.min}–${this.max}`
     },
-  },
+  }, // olive (not neon)
   {
     min: 50,
     max: 59,
-    color: 'rgba(245, 114, 0, 1)',
+    color: 'rgba(253, 174, 97, 1)',
     get display() {
       return `${this.min}–${this.max}`
     },
-  },
+  }, // orange
   {
     min: 60,
     max: 69,
-    color: 'rgba(245, 57, 0, 1)',
+    color: 'rgba(244, 109, 67, 1)',
     get display() {
       return `${this.min}–${this.max}`
     },
-  },
+  }, // orange-red
   {
     min: 70,
     max: 79,
-    color: 'rgba(245, 0, 0, 1)',
+    color: 'rgba(227, 26, 28, 1)',
     get display() {
       return `${this.min}–${this.max}`
     },
-  },
+  }, // red
   {
     min: 80,
     max: Infinity,
-    color: 'rgba(115, 0, 0, 1)',
+    color: 'rgba(127, 0, 0, 1)',
     get display() {
       return `${this.min}+`
     },
-  },
+  }, // dark red
 ] as const
 
 export const getRouteColor = (speed: number) => {

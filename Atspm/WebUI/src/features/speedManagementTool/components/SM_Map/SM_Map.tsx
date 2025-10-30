@@ -1,6 +1,6 @@
 import RouteDisplayToggle from '@/features/speedManagementTool/components/SM_Map/RouteDisplayToggle'
-import RoutePolyline from '@/features/speedManagementTool/components/SM_Map/RoutePolyLine'
 import { SM_Height } from '@/features/speedManagementTool/components/SM_Map/SM_MapWrapper'
+import VectorRoutesSlicerLayer from '@/features/speedManagementTool/components/SM_Map/VectorSliceLayer'
 import { RouteRenderOption } from '@/features/speedManagementTool/enums'
 import useSpeedManagementStore from '@/features/speedManagementTool/speedManagementStore'
 import { SpeedManagementRoute } from '@/features/speedManagementTool/types/routes'
@@ -30,14 +30,12 @@ type SM_MapProps = {
   setSelectedRouteId: (routeId: string) => void
   selectedRouteIds: string[]
   hotspots?: any
-  selectedHotspot: string | null
 }
 
 const SM_Map = ({
   routes,
   setSelectedRouteId,
   selectedRouteIds = [],
-  selectedHotspot,
 }: SM_MapProps) => {
   const { addNotification } = useNotificationStore()
   const [initialLatLong, setInitialLatLong] = useState<[number, number] | null>(
@@ -207,16 +205,12 @@ const SM_Map = ({
           }
           return null
         })}
-        {routes.map((route, i) => (
-          <RoutePolyline
-            key={`${route.properties.route_id}-i${i}`}
-            route={route}
-            selectedRouteIds={selectedRouteIds}
-            setSelectedRouteId={setSelectedRouteId}
-            zoomLevel={zoomLevel}
-            setHoveredSegment={setHoveredSegment}
-          />
-        ))}
+        <VectorRoutesSlicerLayer
+          routes={routes}
+          selectedRouteIds={selectedRouteIds}
+          setSelectedRouteId={setSelectedRouteId}
+          setHoveredSegment={setHoveredSegment}
+        />
         {hotspotRoutes?.map((hotspot, index) => {
           if (!hotspot?.geometry) return null
           // If hotspot has multiple geometries, get the midpoint of the middle one.
@@ -260,56 +254,62 @@ const SM_Map = ({
           <TableContainer>
             <Table size="small">
               <TableBody>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>
-                    Segment ID:
-                  </TableCell>
-                  <TableCell
-                    align="right"
-                    sx={{
-                      fontSize: '12px',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {hoveredSegment.properties.name}
-                  </TableCell>
-                </TableRow>
+                {hoveredSegment.properties.name && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>
+                      Segment ID:
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{
+                        fontSize: '12px',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {hoveredSegment.properties.name}
+                    </TableCell>
+                  </TableRow>
+                )}
                 <TableRow>
                   <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>
                     Speed Limit:
                   </TableCell>
                   <TableCell align="right" sx={{ fontSize: '12px' }}>
-                    {hoveredSegment.properties.speedLimit} mph
+                    {hoveredSegment.properties.speedLimit ?? 'Unknown'} mph
                   </TableCell>
                 </TableRow>
-                <TableRow>
-                  <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>
-                    Avg Speed:
-                  </TableCell>
-                  <TableCell align="right" sx={{ fontSize: '12px' }}>
-                    {Math.round(hoveredSegment.properties.averageSpeed)} mph
-                  </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell
-                    sx={{
-                      fontWeight: 'bold',
-                      fontSize: '12px',
-                      borderBottom: 'none',
-                    }}
-                  >
-                    85th Percentile:
-                  </TableCell>
-                  <TableCell
-                    align="right"
-                    sx={{ fontSize: '12px', borderBottom: 'none' }}
-                  >
-                    {Math.round(
-                      hoveredSegment.properties.averageEightyFifthSpeed
-                    )}{' '}
-                    mph
-                  </TableCell>
-                </TableRow>
+                {hoveredSegment.properties.averageSpeed && (
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 'bold', fontSize: '12px' }}>
+                      Avg Speed:
+                    </TableCell>
+                    <TableCell align="right" sx={{ fontSize: '12px' }}>
+                      {Math.round(hoveredSegment.properties.averageSpeed)} mph
+                    </TableCell>
+                  </TableRow>
+                )}
+                {hoveredSegment.properties.averageEightyFifthSpeed && (
+                  <TableRow>
+                    <TableCell
+                      sx={{
+                        fontWeight: 'bold',
+                        fontSize: '12px',
+                        borderBottom: 'none',
+                      }}
+                    >
+                      85th Percentile:
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      sx={{ fontSize: '12px', borderBottom: 'none' }}
+                    >
+                      {Math.round(
+                        hoveredSegment.properties.averageEightyFifthSpeed
+                      )}{' '}
+                      mph
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </TableContainer>

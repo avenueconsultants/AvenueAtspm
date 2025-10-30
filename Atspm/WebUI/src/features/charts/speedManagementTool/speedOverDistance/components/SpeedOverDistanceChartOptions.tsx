@@ -1,34 +1,13 @@
 import { toUTCDateStamp } from '@/utils/dateTime'
 import { Box } from '@mui/material'
 import { DatePicker } from '@mui/x-date-pickers/DatePicker'
-import { isValid, parse } from 'date-fns'
+import { isValid, startOfMonth, subMonths } from 'date-fns'
 import { useEffect, useState } from 'react'
 
 export interface SpeedOverDistanceChartOptionsValues {
   startDate: string
   endDate: string
 }
-
-const initialStartDateString = '2023-01-01'
-const initialEndDateString = '2023-02-01'
-
-const parsedInitialStartDate = parse(
-  initialStartDateString,
-  'yyyy-MM-dd',
-  new Date()
-)
-const initialStartDate = isValid(parsedInitialStartDate)
-  ? parsedInitialStartDate
-  : null
-
-const parsedInitialEndDate = parse(
-  initialEndDateString,
-  'yyyy-MM-dd',
-  new Date()
-)
-const initialEndDate = isValid(parsedInitialEndDate)
-  ? parsedInitialEndDate
-  : null
 
 interface SpeedOverDistanceChartOptionsProps {
   onOptionsChange: (options: SpeedOverDistanceChartOptionsValues) => void
@@ -37,10 +16,10 @@ interface SpeedOverDistanceChartOptionsProps {
 const SpeedOverDistanceOptions = ({
   onOptionsChange,
 }: SpeedOverDistanceChartOptionsProps) => {
-  const [startDate, setStartDate] = useState<Date | null>(initialStartDate)
-  const [endDate, setEndDate] = useState<Date | null>(initialEndDate)
-  const [startDateError, setStartDateError] = useState<boolean>(false)
-  const [endDateError, setEndDateError] = useState<boolean>(false)
+  const [startDate, setStartDate] = useState<Date | null>(
+    startOfMonth(subMonths(new Date(), 1))
+  )
+  const [endDate, setEndDate] = useState<Date | null>(new Date())
 
   useEffect(() => {
     if (startDate && endDate) {
@@ -54,25 +33,21 @@ const SpeedOverDistanceOptions = ({
         endDate: '',
       })
     }
-  }, [startDate, endDate])
+  }, [startDate, endDate, onOptionsChange])
 
   const handleStartDateChange = (date: Date | null) => {
     if (date && isValid(date)) {
       setStartDate(date)
-      setStartDateError(false)
     } else {
       setStartDate(null)
-      setStartDateError(true)
     }
   }
 
   const handleEndDateChange = (date: Date | null) => {
     if (date && isValid(date)) {
       setEndDate(date)
-      setEndDateError(false)
     } else {
       setEndDate(null)
-      setEndDateError(true)
     }
   }
 

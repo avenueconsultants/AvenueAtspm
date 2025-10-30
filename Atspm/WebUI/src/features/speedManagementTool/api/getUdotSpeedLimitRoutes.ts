@@ -1,10 +1,12 @@
+import { useEnv } from '@/hooks/useEnv'
 import axios from 'axios'
 import { useQuery } from 'react-query'
 
-const route =
-  'https://maps.udot.utah.gov/central/rest/services/TrafficAndSafety/UDOT_Speed_Limits/MapServer/0/query?where=1%3D1&outFields=*&f=geojson'
-
 export function useUdotSpeedLimitRoutes() {
+  const { data: env } = useEnv()
+
+  const route = env?.SPEED_LIMIT_MAP_LAYER
+
   return useQuery([route], () =>
     axios.get(route).then((res) => res.data as UdotSpeedLimitRoute)
   )

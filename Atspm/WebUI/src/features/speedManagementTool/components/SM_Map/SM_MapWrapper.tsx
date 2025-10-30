@@ -58,7 +58,6 @@ const SM_MapWrapper = () => {
   const [selectedRouteIds, setSelectedRouteIds] = useState<string[]>([])
   const [showPopup, setShowPopup] = useState<boolean>(false)
   const [routeData, setRouteData] = useState<RoutesResponse>()
-  const [selectedHotspot, setSelectedHotspot] = useState<string | null>(null)
   const fullScreenRef = useRef<HTMLDivElement>(null)
 
   const {
@@ -117,17 +116,20 @@ const SM_MapWrapper = () => {
 
   const { data: speedLimitData } = useUdotSpeedLimitRoutes()
 
-  const speedLimitRoutes =
-    speedLimitData?.features?.map((feature) => {
-      return {
-        ...feature,
-        geometry: {
-          ...feature.geometry,
-          coordinates: swapCoordinates(feature.geometry.coordinates),
-        },
-        properties: feature.properties,
-      }
-    }) || []
+  const speedLimitRoutes = useMemo(
+    () =>
+      speedLimitData?.features?.map((feature) => {
+        return {
+          ...feature,
+          geometry: {
+            ...feature.geometry,
+            coordinates: swapCoordinates(feature.geometry.coordinates),
+          },
+          properties: feature.properties,
+        }
+      }) || [],
+    [speedLimitData]
+  )
 
   const filteredRoutes = useMemo(
     () => routeData?.features.filter((route) => route?.geometry?.coordinates),
@@ -271,7 +273,6 @@ const SM_MapWrapper = () => {
                 }
                 selectedRouteIds={selectedRouteIds}
                 setSelectedRouteId={handleRouteSelection}
-                selectedHotspot={selectedHotspot}
               />
 
               {/* Loading Overlay */}
