@@ -5,7 +5,6 @@ import {
 import { Box, useTheme } from '@mui/material'
 import { RoutesResponse } from '../../types/routes'
 import { ReportDisplayComponent } from './ReportComponent'
-import { HourlyReportOptionsComponent } from './components/HourlyReportOptionsComponent'
 import { MonthlyReportOptionsComponent } from './components/MonthlyReportOptionsComponent'
 import { useERBaseHandler } from './components/handlers/ExportableReportsHandler'
 import {
@@ -30,20 +29,22 @@ export const ExportableReports = () => {
 
   return (
     <Box>
-      <Box
+      {/* <Box
         sx={{
           padding: 2,
           gap: 2,
           alignItems: 'center',
           flexWrap: 'wrap',
         }}
-      >
-        {reportsHandler.speedDataType === SpeedDataType.H ? (
-          <HourlyReportOptionsComponent handler={hourlyHandler} />
-        ) : (
-          <MonthlyReportOptionsComponent handler={monthlyHandler} />
-        )}
-      </Box>
+      > */}
+      {
+        //reportsHandler.speedDataType === SpeedDataType.H ? (
+        //<HourlyReportOptionsComponent handler={hourlyHandler} />
+        //) : (
+        <MonthlyReportOptionsComponent handler={monthlyHandler} />
+        // )
+      }
+      {/* </Box> */}
       {!currentHandler.isPdfDownloading && reportsHandler.options && (
         <Box
           sx={{
