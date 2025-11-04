@@ -79,7 +79,7 @@ export default function Versions() {
   const { mutate: processGeojson, isLoading: isProcessingGeojson } =
     usePostApiV1EntityFileGeojsonFetchFile()
 
-  const { mutate: processShapefile, isLoading: isProcessingShapefile } =
+  const { mutateAsync: processShapefile, isLoading: isProcessingShapefile } =
     usePostApiV1EntityFileShapefileFetchFile()
 
   const { mutate: refreshAtspm, isLoading: isRefreshingAtspm } =
@@ -140,14 +140,15 @@ export default function Versions() {
     if (values.sourceId === 3) {
       if (values.fileType === 'geojson') return submitCommon(values)
       try {
-        processShapefile({
+        await processShapefile({
           params: {
             bucketName: values.bucketName,
             fileName: values.fileName,
             sourceId: values.sourceId,
           },
+        }).then(() => {
+          submitCommon(values)
         })
-        submitCommon(values)
       } catch (e) {
         addNotification({
           title: e?.message ?? 'Failed to preprocess shapefile',
@@ -295,6 +296,13 @@ export default function Versions() {
                   process it and create a new dataset version
                 </Alert>
 
+                {fileType === 'shapefile' && (
+                  <Alert severity="warning" sx={{ mb: 3 }}>
+                    Make sure a .shx, .shp, and .dbf file are all included in
+                    the bucket
+                  </Alert>
+                )}
+
                 <Stack spacing={2.5}>
                   <TextField
                     label="Bucket Name"
@@ -312,7 +320,7 @@ export default function Versions() {
                     {...register('fileName')}
                     placeholder={
                       sourceId === 3 && fileType === 'shapefile'
-                        ? 'e.g., path/to/archive.zip'
+                        ? 'e.g., path/to/files.shp'
                         : 'e.g., path/to/file.geojson'
                     }
                     autoComplete="off"

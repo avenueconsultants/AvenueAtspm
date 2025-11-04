@@ -19,6 +19,7 @@ type Props = {
   autoPlayEnabled?: boolean
   height?: number | string
   style?: React.CSSProperties
+  normalizeData?: boolean
 }
 
 const toKey = (v: number | string | null | undefined) => String(v ?? '').trim()
@@ -36,8 +37,8 @@ const colorBetween = (
   t: number
 ) => rgb(lerp(c1[0], c2[0], t), lerp(c1[1], c2[1], t), lerp(c1[2], c2[2], t))
 
-// max color at 70, but clamp color plateau at >=50 to green
-const colorRamp = (v: number) => {
+// mph ramp: green plateau at >=50 mph; legend max is 70 mph
+const colorRampMph = (v: number) => {
   if (!Number.isFinite(v) || v <= 0) return '#000000'
   if (v >= 50) return 'rgb(0,255,0)'
   const minV = 1
@@ -47,7 +48,7 @@ const colorRamp = (v: number) => {
     [0, [255, 0, 0]], // red
     [1 / 3, [255, 165, 0]], // orange
     [2 / 3, [255, 255, 0]], // yellow
-    [1, [0, 255, 0]], // green at 50
+    [1, [0, 255, 0]], // green
   ]
   let i = 0
   while (i < stops.length - 1 && t > stops[i + 1][0]) i++
@@ -55,6 +56,17 @@ const colorRamp = (v: number) => {
   const [t2, c2] = stops[i + 1]
   const localT = (t - t1) / (t2 - t1)
   return colorBetween(c1, c2, localT)
+}
+
+// percent ramp: values are 0–100; green at >=100% (plateau)
+// replace the whole function
+const colorRampPct = (v: number) => {
+  if (!Number.isFinite(v)) return '#000000'
+  if (v >= 80) return 'rgb(0,255,0)' // green plateau ≥ 80%
+  if (v <= 30) return 'rgb(255,0,0)' // red plateau ≤ 30%
+  // gradient between 30% → 80% (orange → green)
+  const t = (v - 30) / 50
+  return colorBetween([255, 165, 0], [0, 255, 0], t)
 }
 
 const onlyTimeFromLabel = (label: string) => {
@@ -72,6 +84,7 @@ export default function SpeedTimelapseLocal({
   autoPlayEnabled = true,
   height = 640,
   style,
+  normalizeData = false,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const chart = useRef<ECharts | null>(null)
@@ -122,6 +135,8 @@ export default function SpeedTimelapseLocal({
       .map(Number)
       .sort((a, b) => a - b)
     const times = keys.map((k) => byTime[k].label)
+    const colorFn = normalizeData ? colorRampPct : colorRampMph
+
     const frames = keys.map((k) =>
       byTime[k].items.map((d) => ({
         coords: d.coords,
@@ -129,7 +144,7 @@ export default function SpeedTimelapseLocal({
         name: d.segmentId,
         segmentId: d.segmentId,
         timeLabel: d.timeLabel,
-        lineStyle: { color: colorRamp(d.value), width: 3, opacity: 0.95 },
+        lineStyle: { color: colorFn(d.value), width: 3, opacity: 0.95 },
       }))
     )
 
@@ -169,7 +184,13 @@ export default function SpeedTimelapseLocal({
           const seg = p?.data?.segmentId ?? p?.name ?? ''
           const val = p?.data?.value
           const t = p?.data?.timeLabel
-          return `<b>${seg}</b><br/>${t ?? ''}<br/>Avg Speed: ${val ?? '—'}`
+          const unitVal =
+            val == null
+              ? '—'
+              : normalizeData
+                ? `${Math.round(val)}%`
+                : `${Math.round(val)} mph`
+          return `<b>${seg}</b><br/>${t ?? ''}<br/>Avg Speed: ${unitVal}`
         },
       },
       timeline: {
@@ -207,14 +228,15 @@ export default function SpeedTimelapseLocal({
         emphasis: { disabled: true },
       },
       visualMap: {
-        min: 1,
-        max: 70,
+        min: normalizeData ? 30 : 1,
+        max: normalizeData ? 80 : 70,
         right: 18,
         bottom: 36,
-        text: ['speed (mph)'],
+        text: [normalizeData ? '% of segment max' : 'speed (mph)'],
         inRange: { color: ['#ff0000', '#ffa500', '#ffff00', '#00ff00'] },
         calculable: true,
-        formatter: (v: number) => `${Math.round(v)}`,
+        formatter: (v: number) =>
+          normalizeData ? `${Math.round(v)}%` : `${Math.round(v)}`,
       },
     }
 
@@ -241,7 +263,7 @@ export default function SpeedTimelapseLocal({
     )
 
     return { baseOption, options } as EChartsOption
-  }, [routes, geomByOsmId, title, autoPlayMs, autoPlayEnabled])
+  }, [routes, geomByOsmId, title, autoPlayMs, autoPlayEnabled, normalizeData])
 
   useEffect(() => {
     if (!ref.current) return

@@ -1,9 +1,9 @@
 // pages/ExamplePage.tsx
-import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import SpeedTimelapseChart from '@/components/arizona/SpeedTimelapse'
 import { geojson } from '@/components/arizona/arizona'
 import routes from '@/components/arizona/routes.json'
 import {
+  Box,
   Card,
   CardContent,
   CardHeader,
@@ -49,8 +49,21 @@ const monthNice = (key: string) => {
   })
 }
 
-export default function ExamplePage() {
+const ExamplePage = () => {
   const allRoutes = routes as unknown as RouteRow[]
+
+  // Per-segment max observed speed across the whole dataset
+  const maxSpeedBySegment = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const r of allRoutes) {
+      const id = String(r.osm_id)
+      const v = Number(r['Avg Speed'])
+      if (!Number.isFinite(v)) continue
+      const prev = m.get(id)
+      if (prev === undefined || v > prev) m.set(id, v)
+    }
+    return m
+  }, [allRoutes])
 
   const grouped = useMemo(() => {
     const map = new Map<string, string[]>()
@@ -92,11 +105,31 @@ export default function ExamplePage() {
     [allRoutes, day]
   )
 
+  // NEW: normalize toggle
+  const [normalizeData, setNormalizeData] = useState(false)
+
+  // When normalized, convert each row's Avg Speed to % of that segment's max observed speed
+  const displayRoutes = useMemo(() => {
+    if (!normalizeData) return dayRoutes
+    return dayRoutes.map((r) => {
+      const id = String(r.osm_id)
+      const current = Number(r['Avg Speed'])
+      const max = maxSpeedBySegment.get(id)
+      const pct =
+        Number.isFinite(current) && max && max > 0 ? (current / max) * 100 : 0
+      return {
+        ...r,
+        // Overwrite the value the chart reads; the chart can switch its axis/legend when normalizeData is true
+        'Avg Speed': pct,
+      }
+    })
+  }, [dayRoutes, normalizeData, maxSpeedBySegment])
+
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true)
   const [autoPlayMs, setAutoPlayMs] = useState<number>(1200)
 
   return (
-    <ResponsivePageLayout title="Timelapse">
+    <Box sx={{ p: 2, maxWidth: 1200, margin: 'auto' }}>
       <Card
         variant="outlined"
         sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
@@ -142,18 +175,31 @@ export default function ExamplePage() {
               </Select>
             </FormControl>
 
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={autoPlayEnabled}
-                  onChange={(e) => setAutoPlayEnabled(e.target.checked)}
-                  size="small"
-                />
-              }
-              label="Autoplay"
-              sx={{ ml: 2 }}
-            />
+            <Box display={'flex'} flexDirection={'column'}>
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={normalizeData}
+                    onChange={(e) => setNormalizeData(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="Normalize data"
+                sx={{ ml: 2 }}
+              />
 
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={autoPlayEnabled}
+                    onChange={(e) => setAutoPlayEnabled(e.target.checked)}
+                    size="small"
+                  />
+                }
+                label="Autoplay"
+                sx={{ ml: 2 }}
+              />
+            </Box>
             <Stack
               direction="row"
               alignItems="center"
@@ -194,21 +240,29 @@ export default function ExamplePage() {
       >
         <CardHeader
           title="Speed Timelapse"
-          subheader={day ? fmtNice(day) : ''}
+          subheader={
+            day
+              ? `${fmtNice(day)}${normalizeData ? ' • normalized (0–100%)' : ''}`
+              : ''
+          }
           sx={{ pb: 0.5 }}
         />
         <Divider />
         <CardContent sx={{ p: 0 }}>
           <SpeedTimelapseChart
             geojson={geojson as any}
-            routes={dayRoutes as any}
+            routes={displayRoutes as any}
             subtext={day ? fmtNice(day) : ''}
             autoPlayMs={autoPlayMs}
             autoPlayEnabled={autoPlayEnabled}
             height={640}
+            normalizeData={normalizeData} // <-- let the chart adjust axis/legend/color scale
           />
         </CardContent>
       </Card>
-    </ResponsivePageLayout>
+    </Box>
   )
 }
+
+;(ExamplePage as any).noLayout = true
+export default ExamplePage

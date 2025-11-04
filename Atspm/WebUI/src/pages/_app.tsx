@@ -29,6 +29,8 @@ export default function App({ Component, pageProps }: AppProps) {
     initialize()
   }, [])
 
+  if ((Component as any).noLayout) return <Component {...pageProps} />
+
   if (!isAxiosInitialized) {
     return null
   }
