@@ -48,8 +48,10 @@ namespace Utah.Udot.Atspm.DataApi.Controllers
 
         /// <summary>
         /// Save Events for a location
+        /// This must be a json file gzipped so for example it should be a file like this (7115CEL.json.gz)
         /// </summary>
         /// <param name="locationIdentifier">Location identifier</param>
+        /// <body name="CompressedJson">This must be a json file gzipped so for example it should be a file like this (7115CEL.json.gz) </body>
         /// <returns></returns>
         /// <response code="200">Call completed successfully</response>
         /// <response code="400">Invalid request </response>
@@ -90,8 +92,8 @@ namespace Utah.Udot.Atspm.DataApi.Controllers
                 foreach (var e in events)
                     e.LocationIdentifier = locationIdentifier;
 
-                var compressedEventLog = _eventLogImporterService.CompressEvents(locationIdentifier, events);
-                bool success = await _eventLogImporterService.InsertLogWithRetryAsync(compressedEventLog);
+                var compressedEventLogs = _eventLogImporterService.CompressEvents(locationIdentifier, events);
+                bool success = await _eventLogImporterService.InsertLogsWithRetryAsync(compressedEventLogs);
 
                 return success
                     ? Ok(new { message = "Log inserted successfully or already exists" })

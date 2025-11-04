@@ -40,34 +40,50 @@ namespace Utah.Udot.ATSPM.DataApi.Services
             _deviceRepository = deviceRepository;
         }
 
-        public CompressedEventLogs<IndianaEvent> CompressEvents(string locationIdentifier, List<IndianaEvent> events)
+        public List<CompressedEventLogs<IndianaEvent>> CompressEvents(string locationIdentifier, List<IndianaEvent> events)
         {
             var location = _locationRepository.GetLatestVersionOfLocation(locationIdentifier);
-            if (events.Any())
+            var results = new List<CompressedEventLogs<IndianaEvent>>();
+
+            if (!events.Any())
+                return results;
+
+            var device = _deviceRepository.GetActiveDevicesByLocation(location.Id)
+                .FirstOrDefault(d => d.DeviceType == DeviceTypes.SignalController);
+
+            if (device == null)
+                return results;
+
+            // Sort the events by timestamp
+            var orderedEvents = events.OrderBy(e => e.Timestamp).ToList();
+
+            // Group by the day (you can adjust to local time if needed)
+            var groupedByDay = orderedEvents
+                .GroupBy(e => DateOnly.FromDateTime(e.Timestamp))
+                .OrderBy(g => g.Key);
+
+            foreach (var dayGroup in groupedByDay)
             {
-                var device = _deviceRepository.GetActiveDevicesByLocation(location.Id)
-                    .FirstOrDefault(d => d.DeviceType == DeviceTypes.SignalController);
+                var dayEvents = dayGroup.ToList();
+                var start = dayEvents.First().Timestamp;
+                var end = dayEvents.Last().Timestamp;
 
-                events.OrderBy(i => i.Timestamp);
-                DateTime start = events.First().Timestamp;
-                DateTime end = events.Last().Timestamp;
-                if (device != null)
+                var compressedLog = new CompressedEventLogs<IndianaEvent>
                 {
-                    return new CompressedEventLogs<IndianaEvent>
-                    {
-                        LocationIdentifier = locationIdentifier,
-                        DeviceId = device.Id,
-                        ArchiveDate = DateOnly.FromDateTime(start),
-                        Start = start,
-                        End = end,
-                        Data = events
-                    };
-                }
-                else { return null; }
+                    LocationIdentifier = locationIdentifier,
+                    DeviceId = device.Id,
+                    ArchiveDate = dayGroup.Key,
+                    Start = start,
+                    End = end,
+                    Data = dayEvents
+                };
 
+                results.Add(compressedLog);
             }
-            else { return null; }
+
+            return results;
         }
+
 
 
 
@@ -112,6 +128,47 @@ namespace Utah.Udot.ATSPM.DataApi.Services
                 return false;
             }
         }
+
+        public async Task<bool> InsertLogsWithRetryAsync(List<CompressedEventLogs<IndianaEvent>> archiveLogs)
+        {
+            if (archiveLogs == null || !archiveLogs.Any())
+            {
+                return false; // Nothing to insert
+            }
+
+            try
+            {
+                await _retryPolicy.ExecuteAsync(async () =>
+                {
+                    using var scope = _serviceProvider.CreateScope();
+                    var context = scope.ServiceProvider.GetService<EventLogContext>();
+
+                    if (context == null)
+                    {
+                        throw new InvalidOperationException("EventLogContext is not available.");
+                    }
+
+                    context.CompressedEvents.AddRange(archiveLogs);
+
+                    try
+                    {
+                        await context.SaveChangesAsync();
+                    }
+                    catch (DbUpdateException ex) when (
+                        ex.InnerException is PostgresException pgEx && pgEx.SqlState == "23505")
+                    {
+                        // Handle duplicate key 
+                    }
+                });
+
+                return true; // Successfully inserted (or already exists)
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+
 
 
     }
