@@ -9,7 +9,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useState } from 'react'
-import AtspmSourcePanel from './ATSPMSourcePanel'
+import AtspmSourcePanel from './AtspmSourcePanel'
 import ClearGuideSourcePanel from './ClearGuideSourcePanel'
 import PemsSourcePanel from './PemsSourcePanel'
 
