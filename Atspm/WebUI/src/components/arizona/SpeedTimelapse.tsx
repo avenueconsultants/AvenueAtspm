@@ -1,6 +1,4 @@
-// SpeedTimelapseLocal.tsx
-import type { ECharts, EChartsOption } from 'echarts'
-import * as echarts from 'echarts'
+import 'leaflet/dist/leaflet.css'
 import { useEffect, useMemo, useRef } from 'react'
 
 type LineStringFC = GeoJSON.FeatureCollection<GeoJSON.LineString>
@@ -14,59 +12,35 @@ type RouteRow = {
 type Props = {
   geojson: LineStringFC
   routes: RouteRow[]
-  title?: string
-  autoPlayMs?: number
+  subtext?: string
   autoPlayEnabled?: boolean
+  autoPlayMs?: number
   height?: number | string
   style?: React.CSSProperties
-  normalizeData?: boolean
 }
 
-const toKey = (v: number | string | null | undefined) => String(v ?? '').trim()
+const baseLmap = {
+  center: [-112.07525, 33.681667],
+  zoom: 12,
+  resizeEnable: true,
+  renderOnMoving: true,
+  echartsLayerInteractive: true,
+  largeMode: false,
+}
+
+// helpers
+const toKey = (v: unknown) => String(v ?? '').trim()
 const makeKeyAndLabel = (dateStr: string, timeStr: string) => {
   const d = new Date(`${dateStr} ${timeStr}`)
   return { key: d.getTime(), label: `${dateStr} ${timeStr}` }
 }
-
-const lerp = (a: number, b: number, t: number) => a + (b - a) * t
-const rgb = (r: number, g: number, b: number) =>
-  `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`
-const colorBetween = (
-  c1: [number, number, number],
-  c2: [number, number, number],
-  t: number
-) => rgb(lerp(c1[0], c2[0], t), lerp(c1[1], c2[1], t), lerp(c1[2], c2[2], t))
-
-// mph ramp: green plateau at >=50 mph; legend max is 70 mph
-const colorRampMph = (v: number) => {
-  if (!Number.isFinite(v) || v <= 0) return '#000000'
-  if (v >= 50) return 'rgb(0,255,0)'
-  const minV = 1
-  const maxColorV = 50
-  const t = Math.max(0, Math.min(1, (v - minV) / (maxColorV - minV)))
-  const stops: [number, [number, number, number]][] = [
-    [0, [255, 0, 0]], // red
-    [1 / 3, [255, 165, 0]], // orange
-    [2 / 3, [255, 255, 0]], // yellow
-    [1, [0, 255, 0]], // green
-  ]
-  let i = 0
-  while (i < stops.length - 1 && t > stops[i + 1][0]) i++
-  const [t1, c1] = stops[i]
-  const [t2, c2] = stops[i + 1]
-  const localT = (t - t1) / (t2 - t1)
-  return colorBetween(c1, c2, localT)
-}
-
-// percent ramp: values are 0–100; green at >=100% (plateau)
-// replace the whole function
-const colorRampPct = (v: number) => {
-  if (!Number.isFinite(v)) return '#000000'
-  if (v >= 80) return 'rgb(0,255,0)' // green plateau ≥ 80%
-  if (v <= 30) return 'rgb(255,0,0)' // red plateau ≤ 30%
-  // gradient between 30% → 80% (orange → green)
-  const t = (v - 30) / 50
-  return colorBetween([255, 165, 0], [0, 255, 0], t)
+const colorFor = (v: number) => {
+  if (!Number.isFinite(v) || v <= 0) return '#000'
+  if (v >= 50) return '#00ff00'
+  const t = Math.max(0, Math.min(1, (v - 1) / (50 - 1)))
+  const r = Math.round(255 * (1 - t))
+  const g = Math.round(255 * t)
+  return `rgb(${r},${g},0)`
 }
 
 const onlyTimeFromLabel = (label: string) => {
@@ -76,19 +50,18 @@ const onlyTimeFromLabel = (label: string) => {
   return parts[1] ?? label
 }
 
-export default function SpeedTimelapseLocal({
+export default function SpeedTimelapse({
   geojson,
   routes,
-  title = 'Segment Timelapse',
-  autoPlayMs,
+  subtext,
   autoPlayEnabled = true,
+  autoPlayMs = 1200,
   height = 640,
   style,
-  normalizeData = false,
 }: Props) {
-  const ref = useRef<HTMLDivElement>(null)
-  const chart = useRef<ECharts | null>(null)
+  const hostRef = useRef<HTMLDivElement>(null)
 
+  // geometry index: keep [lng, lat] (the lmap plugin converts internally)
   const geomByOsmId = useMemo(() => {
     const idx: Record<string, [number, number][]> = {}
     for (const f of geojson.features) {
@@ -102,186 +75,204 @@ export default function SpeedTimelapseLocal({
     return idx
   }, [geojson])
 
-  const option = useMemo(() => {
+  // build timeline frames
+  const { times, frames } = useMemo(() => {
     const byTime: Record<
       number,
       {
-        label: string
-        items: {
-          coords: [number, number][]
-          value: number
-          segmentId: string
-          timeLabel: string
-        }[]
-      }
+        coords: [number, number][]
+        value: number
+        id: string
+        timeLabel: string
+      }[]
     > = {}
+
     for (const r of routes) {
-      const segId = toKey(r.osm_id)
-      const coords = geomByOsmId[segId]
+      const id = toKey(r.osm_id)
+      const coords = geomByOsmId[id]
       if (!coords) continue
       const v = Number(r['Avg Speed'])
       if (!Number.isFinite(v)) continue
       const { key, label } = makeKeyAndLabel(r.Date, r.Epoch)
-      if (!byTime[key]) byTime[key] = { label, items: [] }
-      byTime[key].items.push({
-        coords,
-        value: v,
-        segmentId: segId,
-        timeLabel: label,
-      })
+      ;(byTime[key] ||= []).push({ coords, value: v, id, timeLabel: label })
     }
 
     const keys = Object.keys(byTime)
       .map(Number)
       .sort((a, b) => a - b)
-    const times = keys.map((k) => byTime[k].label)
-    const colorFn = normalizeData ? colorRampPct : colorRampMph
-
+    const times = keys.map((k) => byTime[k][0].timeLabel)
     const frames = keys.map((k) =>
-      byTime[k].items.map((d) => ({
-        coords: d.coords,
+      byTime[k].map((d) => ({
+        coords: d.coords, // [lng, lat] polyline path
         value: d.value,
-        name: d.segmentId,
-        segmentId: d.segmentId,
+        name: d.id,
+        segmentId: d.id,
         timeLabel: d.timeLabel,
-        lineStyle: { color: colorFn(d.value), width: 3, opacity: 0.95 },
+        lineStyle: { color: colorFor(d.value), width: 3, opacity: 0.95 },
       }))
     )
-
-    const step = Math.ceil(times.length / 6) || 1
-    const TL_TOP = 60
-    const TL_HEIGHT = 48
-    const TL_PAD = 8
-
-    const baseOption: EChartsOption = {
-      backgroundColor: '#ffffff',
-      title: {
-        text: title,
-        left: 'center',
-        top: 8,
-        backgroundColor: '#ffffff',
-        padding: [6, 10],
-        z: 1200,
-      },
-      graphic: [
-        {
-          type: 'rect',
-          left: 0,
-          right: 0,
-          top: TL_TOP - TL_PAD,
-          height: TL_HEIGHT + TL_PAD * 2,
-          z: 1095,
-          zlevel: 4,
-          silent: true,
-          shape: { x: 0, y: 0, width: 0, height: TL_HEIGHT + TL_PAD * 2 },
-          style: { fill: '#ffffff' },
-        },
-      ],
-      tooltip: {
-        trigger: 'item',
-        confine: true,
-        formatter: (p: any) => {
-          const seg = p?.data?.segmentId ?? p?.name ?? ''
-          const val = p?.data?.value
-          const t = p?.data?.timeLabel
-          const unitVal =
-            val == null
-              ? '—'
-              : normalizeData
-                ? `${Math.round(val)}%`
-                : `${Math.round(val)} mph`
-          return `<b>${seg}</b><br/>${t ?? ''}<br/>Avg Speed: ${unitVal}`
-        },
-      },
-      timeline: {
-        axisType: 'category',
-        data: times,
-        autoPlay: autoPlayEnabled,
-        playInterval: autoPlayMs,
-        loop: false,
-        symbol: 'none',
-        top: TL_TOP,
-        height: TL_HEIGHT,
-        backgroundColor: '#ffffff',
-        padding: [8, 12],
-        z: 1100,
-        zlevel: 5,
-        label: {
-          show: true,
-          interval: (idx: number) => idx % step === 0,
-          formatter: (val: string) => onlyTimeFromLabel(val),
-        },
-      },
-      geo: {
-        map: 'arizona-lines',
-        roam: true,
-        silent: true,
-        label: { show: false },
-        top: 300,
-        itemStyle: {
-          areaColor: '#f3f4f6',
-          borderColor: '#e5e7eb',
-          borderWidth: 0.75,
-        },
-        center: [-112.1151369, 33.6808654],
-        zoom: 12,
-        emphasis: { disabled: true },
-      },
-      visualMap: {
-        min: normalizeData ? 30 : 1,
-        max: normalizeData ? 80 : 70,
-        right: 18,
-        bottom: 36,
-        text: [normalizeData ? '% of segment max' : 'speed (mph)'],
-        inRange: { color: ['#ff0000', '#ffa500', '#ffff00', '#00ff00'] },
-        calculable: true,
-        formatter: (v: number) =>
-          normalizeData ? `${Math.round(v)}%` : `${Math.round(v)}`,
-      },
-    }
-
-    const options = frames.map(
-      (frame, i): EChartsOption => ({
-        title: { subtext: times[i] },
-        series: [
-          {
-            type: 'lines',
-            coordinateSystem: 'geo',
-            polyline: true,
-            data: frame,
-            z: 2,
-            progressive: 3000,
-            progressiveThreshold: 8000,
-            progressiveChunkMode: 'mod',
-            effect: { show: false },
-            lineStyle: { width: 3, opacity: 0.95 },
-            animation: false,
-          },
-        ],
-        animation: false,
-      })
-    )
-
-    return { baseOption, options } as EChartsOption
-  }, [routes, geomByOsmId, title, autoPlayMs, autoPlayEnabled, normalizeData])
+    return { times, frames }
+  }, [routes, geomByOsmId])
 
   useEffect(() => {
-    if (!ref.current) return
-    if (!chart.current) {
-      chart.current = echarts.init(ref.current, undefined, {
-        useDirtyRect: true,
-      })
-      echarts.registerMap('arizona-lines', geojson as any)
-    }
-    chart.current.setOption(option as any, { notMerge: true })
-    const onResize = () => chart.current && chart.current.resize()
-    window.addEventListener('resize', onResize)
-    return () => {
-      window.removeEventListener('resize', onResize)
-      chart.current?.dispose()
-      chart.current = null
-    }
-  }, [geojson, option])
+    let disposed = false
+    let chart: any | null = null
 
-  return <div ref={ref} style={{ width: '100%', height, ...style }} />
+    ;(async () => {
+      // ECharts + Leaflet on demand
+      const ecMod = await import('echarts')
+      const echarts: any = (ecMod as any).default || ecMod
+
+      const lfMod = await import('leaflet')
+      const L: any = (lfMod as any).default || lfMod
+      const { tileLayer: LtileLayer } = L
+
+      // Register the Leaflet extension (scoped package)
+      const plug = await import('@joakimono/echarts-extension-leaflet')
+      const install =
+        (plug as any).install ||
+        (plug as any).default ||
+        (plug as any).registerLeaflet
+      if (typeof install === 'function') {
+        try {
+          install(echarts, L)
+        } catch {
+          install(echarts)
+        }
+      }
+
+      if (disposed || !hostRef.current) return
+
+      // init echart
+      chart = echarts.init(hostRef.current, undefined, { useDirtyRect: true })
+
+      // timeline + lmap option (follows your working pattern)
+      const step = Math.ceil((times.length || 1) / 6) || 1
+      const option = {
+        // Leaflet map config via lmap (note: center is [lng, lat])
+        lmap: baseLmap,
+        title: {
+          z: 33,
+          text: 'Timelapse',
+          subtext,
+          left: 'center',
+          top: 8,
+        },
+        tooltip: {
+          trigger: 'item',
+          confine: true,
+          formatter: (p: any) => {
+            const seg = p?.data?.segmentId ?? p?.name ?? ''
+            const val = p?.data?.value
+            const t = p?.data?.timeLabel
+            return `<b>${seg}</b><br/>${t ?? ''}<br/>Avg Speed: ${val ?? '—'}`
+          },
+        },
+        graphic: [
+          {
+            type: 'group',
+            top: 0,
+            left: 'center',
+            children: [
+              {
+                type: 'rect',
+                z: 20,
+                shape: {
+                  width: 740,
+                  height: 140,
+                },
+                style: {
+                  fill: '#ffffff',
+                },
+              },
+            ],
+          },
+        ],
+        timeline: {
+          axisType: 'category',
+          data: times,
+          autoPlay: !!autoPlayEnabled,
+          playInterval: autoPlayMs,
+          loop: false,
+          symbol: 'none',
+          top: 56,
+          height: 44,
+          z: 33,
+          label: {
+            show: true,
+            interval: (i: number) => i % step === 0,
+            formatter: (s: string) => onlyTimeFromLabel(s),
+          },
+        },
+        visualMap: {
+          min: 1,
+          max: 70,
+          right: 18,
+          bottom: 36,
+          text: ['speed (mph)'],
+          inRange: { color: ['#ff0000', '#ffa500', '#ffff00', '#00ff00'] },
+          calculable: true,
+          formatter: (v: number) => `${Math.round(v)}`,
+        },
+        options: frames.map((frame, i) => ({
+          title: { subtext: times[i] },
+          series: [
+            {
+              type: 'lines',
+              coordinateSystem: 'lmap', // <<< key change
+              polyline: true,
+              data: frame,
+              lineStyle: { width: 3, opacity: 0.95 },
+              animation: false,
+              z: 2,
+              progressive: 3000,
+              progressiveThreshold: 8000,
+              progressiveChunkMode: 'mod',
+            },
+          ],
+          animation: false,
+        })),
+      } as any
+
+      chart.setOption(option, { notMerge: true })
+
+      // access Leaflet instance and add Esri Topo tiles (exact pattern you liked)
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const lmapComponent = chart.getModel().getComponent('lmap')
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const lmap = lmapComponent.getLeaflet()
+
+      LtileLayer(
+        'https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png',
+        {
+          attribution: '',
+          maxZoom: 19,
+          center: [-110.07525, 30.681667],
+        }
+      ).addTo(lmap)
+
+      const onResize = () => chart && chart.resize()
+      window.addEventListener('resize', onResize)
+
+      lmap.setView
+
+      const cleanup = () => {
+        window.removeEventListener('resize', onResize)
+        if (chart) {
+          chart.dispose()
+          chart = null
+        }
+      }
+      if (disposed) cleanup()
+      else return cleanup
+    })()
+
+    return () => {
+      disposed = true
+    }
+  }, [autoPlayEnabled, autoPlayMs, subtext, frames, times])
+
+  return <div ref={hostRef} style={{ width: '100%', height, ...style }} />
 }

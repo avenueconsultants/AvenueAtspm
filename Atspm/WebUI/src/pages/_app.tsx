@@ -29,7 +29,32 @@ export default function App({ Component, pageProps }: AppProps) {
     initialize()
   }, [])
 
-  if ((Component as any).noLayout) return <Component {...pageProps} />
+  if ((Component as any).noLayout)
+    return (
+      <QueryClientProvider client={queryClient}>
+        <Hydrate state={pageProps.dehydratedState}>
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <FeatureFlagProvider>
+              <ColorModeContext.Provider value={colorMode}>
+                <ThemeProvider theme={theme}>
+                  <CssBaseline />
+                  <Head>
+                    <meta
+                      name="viewport"
+                      content="width=device-width, minimum-scale=1, maximum-scale=5"
+                    />
+                  </Head>
+                  <Component {...pageProps} />
+                  {process.env.NODE_ENV === 'development' && (
+                    <ReactQueryDevtools initialIsOpen={false} />
+                  )}
+                </ThemeProvider>
+              </ColorModeContext.Provider>
+            </FeatureFlagProvider>
+          </LocalizationProvider>
+        </Hydrate>
+      </QueryClientProvider>
+    )
 
   if (!isAxiosInitialized) {
     return null

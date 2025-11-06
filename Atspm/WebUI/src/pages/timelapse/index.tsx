@@ -6,8 +6,6 @@ import {
   Box,
   Card,
   CardContent,
-  CardHeader,
-  Divider,
   FormControl,
   FormControlLabel,
   InputLabel,
@@ -49,21 +47,8 @@ const monthNice = (key: string) => {
   })
 }
 
-const ExamplePage = () => {
+const TimelapsePage = () => {
   const allRoutes = routes as unknown as RouteRow[]
-
-  // Per-segment max observed speed across the whole dataset
-  const maxSpeedBySegment = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const r of allRoutes) {
-      const id = String(r.osm_id)
-      const v = Number(r['Avg Speed'])
-      if (!Number.isFinite(v)) continue
-      const prev = m.get(id)
-      if (prev === undefined || v > prev) m.set(id, v)
-    }
-    return m
-  }, [allRoutes])
 
   const grouped = useMemo(() => {
     const map = new Map<string, string[]>()
@@ -105,36 +90,37 @@ const ExamplePage = () => {
     [allRoutes, day]
   )
 
-  // NEW: normalize toggle
-  const [normalizeData, setNormalizeData] = useState(false)
-
-  // When normalized, convert each row's Avg Speed to % of that segment's max observed speed
-  const displayRoutes = useMemo(() => {
-    if (!normalizeData) return dayRoutes
-    return dayRoutes.map((r) => {
-      const id = String(r.osm_id)
-      const current = Number(r['Avg Speed'])
-      const max = maxSpeedBySegment.get(id)
-      const pct =
-        Number.isFinite(current) && max && max > 0 ? (current / max) * 100 : 0
-      return {
-        ...r,
-        // Overwrite the value the chart reads; the chart can switch its axis/legend when normalizeData is true
-        'Avg Speed': pct,
-      }
-    })
-  }, [dayRoutes, normalizeData, maxSpeedBySegment])
-
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true)
   const [autoPlayMs, setAutoPlayMs] = useState<number>(1200)
 
   return (
     <Box sx={{ p: 2, maxWidth: 1200, margin: 'auto' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mb: 1.5,
+        }}
+      >
+        <Box
+          component="img"
+          src="/images/atspm-logo-new.png"
+          alt="ATSPM logo"
+          sx={{ height: 40, width: 'auto' }}
+        />
+        <Box
+          component="img"
+          src="/images/partners/avenue-consultants.png"
+          alt="Avenue Consultants logo"
+          sx={{ height: 40, width: 'auto' }}
+        />
+      </Box>
       <Card
         variant="outlined"
         sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}
       >
-        <CardContent sx={{ py: 4 }}>
+        <CardContent sx={{ py: 4, m: 0 }}>
           <Stack
             direction="row"
             spacing={2}
@@ -175,31 +161,17 @@ const ExamplePage = () => {
               </Select>
             </FormControl>
 
-            <Box display={'flex'} flexDirection={'column'}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={normalizeData}
-                    onChange={(e) => setNormalizeData(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label="Normalize data"
-                sx={{ ml: 2 }}
-              />
-
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={autoPlayEnabled}
-                    onChange={(e) => setAutoPlayEnabled(e.target.checked)}
-                    size="small"
-                  />
-                }
-                label="Autoplay"
-                sx={{ ml: 2 }}
-              />
-            </Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={autoPlayEnabled}
+                  onChange={(e) => setAutoPlayEnabled(e.target.checked)}
+                  size="small"
+                />
+              }
+              label="Autoplay"
+              sx={{ ml: 2 }}
+            />
             <Stack
               direction="row"
               alignItems="center"
@@ -236,27 +208,17 @@ const ExamplePage = () => {
           borderTopLeftRadius: 0,
           borderTopRightRadius: 0,
           overflow: 'hidden',
+          m: 0,
         }}
       >
-        <CardHeader
-          title="Speed Timelapse"
-          subheader={
-            day
-              ? `${fmtNice(day)}${normalizeData ? ' • normalized (0–100%)' : ''}`
-              : ''
-          }
-          sx={{ pb: 0.5 }}
-        />
-        <Divider />
-        <CardContent sx={{ p: 0 }}>
+        <CardContent sx={{ p: 0, mb: 0 }}>
           <SpeedTimelapseChart
             geojson={geojson as any}
-            routes={displayRoutes as any}
+            routes={dayRoutes as any}
             subtext={day ? fmtNice(day) : ''}
             autoPlayMs={autoPlayMs}
             autoPlayEnabled={autoPlayEnabled}
             height={640}
-            normalizeData={normalizeData} // <-- let the chart adjust axis/legend/color scale
           />
         </CardContent>
       </Card>
@@ -264,5 +226,5 @@ const ExamplePage = () => {
   )
 }
 
-;(ExamplePage as any).noLayout = true
-export default ExamplePage
+;(TimelapsePage as any).noLayout = true
+export default TimelapsePage
