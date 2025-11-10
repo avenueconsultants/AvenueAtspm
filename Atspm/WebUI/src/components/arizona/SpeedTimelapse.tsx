@@ -253,6 +253,49 @@ export default function SpeedTimelapse({
         }
       ).addTo(lmap)
 
+      const hostEl = hostRef.current
+      const TIMELINE_HIT_HEIGHT = 180 // px from top of chart: title + controls + timeline
+
+      let onPointerDown: ((e: PointerEvent) => void) | undefined
+      let onPointerUpOrCancel: ((e: PointerEvent) => void) | undefined
+      let onWheel: ((e: WheelEvent) => void) | undefined
+
+      if (hostEl) {
+        const inTimelineBand = (clientY: number) => {
+          const rect = hostEl.getBoundingClientRect()
+          const localY = clientY - rect.top
+          return localY <= TIMELINE_HIT_HEIGHT
+        }
+
+        onPointerDown = (e: PointerEvent) => {
+          if (inTimelineBand(e.clientY)) {
+            // user is grabbing the timelapse UI – freeze map drag
+            lmap.dragging.disable()
+          } else {
+            lmap.dragging.enable()
+          }
+        }
+
+        onPointerUpOrCancel = () => {
+          // re-enable after drag finishes
+          lmap.dragging.enable()
+        }
+
+        onWheel = (e: WheelEvent) => {
+          if (inTimelineBand(e.clientY)) {
+            // let ECharts use the wheel, but block Leaflet zoom
+            e.preventDefault()
+            e.stopPropagation()
+          }
+        }
+
+        hostEl.addEventListener('pointerdown', onPointerDown)
+        hostEl.addEventListener('pointerup', onPointerUpOrCancel)
+        hostEl.addEventListener('pointercancel', onPointerUpOrCancel)
+        hostEl.addEventListener('pointerleave', onPointerUpOrCancel)
+        hostEl.addEventListener('wheel', onWheel, { passive: false })
+      }
+
       const onResize = () => chart && chart.resize()
       window.addEventListener('resize', onResize)
 
