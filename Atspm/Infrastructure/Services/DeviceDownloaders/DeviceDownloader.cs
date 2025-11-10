@@ -15,6 +15,7 @@
 // limitations under the License.
 #endregion
 
+using FluentFTP.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -169,27 +170,34 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.DeviceDownloaders
 
                         foreach (var resource in resources)
                         {
-                            var locatlPath = GenerateLocalFilePath(parameter, resource);
+                            var localPath = GenerateLocalFilePath(parameter, resource);
                             FileInfo downloadedFile = null;
+                            if (File.Exists(localPath.LocalPath))
+                            {
+                                downloadedFile = new FileInfo(localPath.LocalPath);
+                                logMessages.DownloadResourceException(localPath, deviceIdentifier, ipaddress, new  Exception("File already exists locally."));
+                            }
+                            else
+                            {
+                                try
+                                {
+                                    logMessages.DownloadingResourceMessage(resource, deviceIdentifier, ipaddress);
 
-                            try
-                            {
-                                logMessages.DownloadingResourceMessage(resource, deviceIdentifier, ipaddress);
-
-                                downloadedFile = await client.DownloadResourceAsync(locatlPath, resource, cancelToken);
-                                current++;
-                            }
-                            catch (DownloaderClientDownloadResourceException e)
-                            {
-                                logMessages.DownloadResourceException(resource, deviceIdentifier, ipaddress, e);
-                            }
-                            catch (DownloaderClientConnectionException e)
-                            {
-                                logMessages.NotConnectedToHostException(deviceIdentifier, ipaddress, e);
-                            }
-                            catch (OperationCanceledException e)
-                            {
-                                logMessages.OperationCancelledException(deviceIdentifier, ipaddress, e);
+                                    downloadedFile = await client.DownloadResourceAsync(localPath, resource, cancelToken);
+                                    current++;
+                                }
+                                catch (DownloaderClientDownloadResourceException e)
+                                {
+                                    logMessages.DownloadResourceException(resource, deviceIdentifier, ipaddress, e);
+                                }
+                                catch (DownloaderClientConnectionException e)
+                                {
+                                    logMessages.NotConnectedToHostException(deviceIdentifier, ipaddress, e);
+                                }
+                                catch (OperationCanceledException e)
+                                {
+                                    logMessages.OperationCancelledException(deviceIdentifier, ipaddress, e);
+                                }
                             }
 
                             //HACK: don't know why files aren't downloading without throwing an error
@@ -224,7 +232,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.DeviceDownloaders
 
                                     logMessages.DeletedResourceMessage(resource, deviceIdentifier, ipaddress);
                                 }
-                            }
+                            } 
                             //else
                             //{
                             //    _log.LogWarning(new EventId(Convert.ToInt32(deviceIdentifier)), "File failed to download on {Location} file name: {file}", deviceIdentifier, resource);
