@@ -173,6 +173,9 @@ export default function SpeedTimelapse({
             type: 'group',
             top: 0,
             left: 'center',
+            onclick: (e: any) => {
+              e.event.stopPropagation()
+            },
             children: [
               {
                 type: 'rect',
@@ -254,22 +257,37 @@ export default function SpeedTimelapse({
       ).addTo(lmap)
 
       const hostEl = hostRef.current
-      const TIMELINE_HIT_HEIGHT = 180 // px from top of chart: title + controls + timeline
+      const PANEL_WIDTH = 740
+      const PANEL_HEIGHT = 140
+      const PANEL_TOP = 0 // same as graphic.top
 
       let onPointerDown: ((e: PointerEvent) => void) | undefined
       let onPointerUpOrCancel: ((e: PointerEvent) => void) | undefined
       let onWheel: ((e: WheelEvent) => void) | undefined
 
       if (hostEl) {
-        const inTimelineBand = (clientY: number) => {
+        const inTimelapsePanel = (clientX: number, clientY: number) => {
           const rect = hostEl.getBoundingClientRect()
+
+          const localX = clientX - rect.left
           const localY = clientY - rect.top
-          return localY <= TIMELINE_HIT_HEIGHT
+
+          const panelLeft = (rect.width - PANEL_WIDTH) / 2 // left: 'center'
+          const panelRight = panelLeft + PANEL_WIDTH
+          const panelTop = PANEL_TOP
+          const panelBottom = PANEL_TOP + PANEL_HEIGHT
+
+          return (
+            localX >= panelLeft &&
+            localX <= panelRight &&
+            localY >= panelTop &&
+            localY <= panelBottom
+          )
         }
 
         onPointerDown = (e: PointerEvent) => {
-          if (inTimelineBand(e.clientY)) {
-            // user is grabbing the timelapse UI – freeze map drag
+          if (inTimelapsePanel(e.clientX, e.clientY)) {
+            // pointer interacting with timelapse UI: freeze map drag
             lmap.dragging.disable()
           } else {
             lmap.dragging.enable()
@@ -277,13 +295,13 @@ export default function SpeedTimelapse({
         }
 
         onPointerUpOrCancel = () => {
-          // re-enable after drag finishes
+          // when interaction ends, restore map dragging
           lmap.dragging.enable()
         }
 
         onWheel = (e: WheelEvent) => {
-          if (inTimelineBand(e.clientY)) {
-            // let ECharts use the wheel, but block Leaflet zoom
+          if (inTimelapsePanel(e.clientX, e.clientY)) {
+            // allow ECharts wheel, block Leaflet zoom
             e.preventDefault()
             e.stopPropagation()
           }
@@ -295,7 +313,6 @@ export default function SpeedTimelapse({
         hostEl.addEventListener('pointerleave', onPointerUpOrCancel)
         hostEl.addEventListener('wheel', onWheel, { passive: false })
       }
-
       const onResize = () => chart && chart.resize()
       window.addEventListener('resize', onResize)
 
@@ -303,11 +320,24 @@ export default function SpeedTimelapse({
 
       const cleanup = () => {
         window.removeEventListener('resize', onResize)
+
+        if (hostEl) {
+          if (onPointerDown)
+            hostEl.removeEventListener('pointerdown', onPointerDown)
+          if (onPointerUpOrCancel) {
+            hostEl.removeEventListener('pointerup', onPointerUpOrCancel)
+            hostEl.removeEventListener('pointercancel', onPointerUpOrCancel)
+            hostEl.removeEventListener('pointerleave', onPointerUpOrCancel)
+          }
+          if (onWheel) hostEl.removeEventListener('wheel', onWheel)
+        }
+
         if (chart) {
           chart.dispose()
           chart = null
         }
       }
+
       if (disposed) cleanup()
       else return cleanup
     })()
