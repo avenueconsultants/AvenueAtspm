@@ -7,7 +7,7 @@ import { lineString } from '@turf/helpers'
 import lineOffset from '@turf/line-offset'
 import L from 'leaflet'
 import 'leaflet.vectorgrid'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useMap } from 'react-leaflet'
 
 type Props = {
@@ -70,7 +70,6 @@ const dirSignedOffset = (name?: string, z = 12) => {
   return 0
 }
 
-// --- minimal validation helpers (NEW) ---
 const isNum = (n: any) => Number.isFinite(n)
 const isPt = (p: any) =>
   Array.isArray(p) && p.length >= 2 && isNum(p[0]) && isNum(p[1])
@@ -83,7 +82,6 @@ const cleanMulti = (multi: any): number[][][] =>
         .filter((part: number[][]) => part.length >= 2)
     : []
 
-// normalize to [lng,lat]
 const isLatLng = (c: number[]) => Math.abs(c[0]) <= 90 && Math.abs(c[1]) <= 180
 const swap = (c: number[]) => [c[1], c[0]]
 const normalizeLine = (coords: number[][]) =>
@@ -99,31 +97,42 @@ export default function VectorRoutesSlicerLayer({
   const layerRef = useRef<L.VectorGrid>(null)
   const [zoom, setZoom] = useState(map.getZoom())
 
+  const onSelectRef = useRef(setSelectedRouteId)
+  const onHoverRef = useRef(setHoveredSegment)
+  const selectedIdsRef = useRef<string[]>(selectedRouteIds)
+  const prevSelectedRef = useRef<string[]>(selectedRouteIds)
+
+  useEffect(() => {
+    onSelectRef.current = setSelectedRouteId
+  }, [setSelectedRouteId])
+
+  useEffect(() => {
+    onHoverRef.current = setHoveredSegment
+  }, [setHoveredSegment])
+
+  useEffect(() => {
+    selectedIdsRef.current = selectedRouteIds
+  }, [selectedRouteIds])
+
   useEffect(() => {
     const onZoom = () => setZoom(map.getZoom())
     map.on('zoomend', onZoom)
     return () => map.off('zoomend', onZoom)
   }, [map])
 
-  // Build FeatureCollection with per-feature offset based on name + zoom
   const featureCollection = useMemo(() => {
     const feats = routes
       .map((f) => {
         const name = f?.properties?.name as string | undefined
         const meters = dirSignedOffset(name, zoom)
-
-        // base geometry in [lng,lat]
         const baseCoords =
           f.geometry.type === 'LineString'
-            ? normalizeLine(f.geometry.coordinates as any)
+            ? normalizeLine(f.geometry.coordinates)
             : f.geometry.type === 'MultiLineString'
-              ? (f.geometry.coordinates as any).map(normalizeLine)
+              ? f.geometry.coordinates.map(normalizeLine)
               : null
-
-        if (!baseCoords) return null // not a line
-
+        if (!baseCoords) return null
         if (meters === 0) {
-          // just clean & return
           if (f.geometry.type === 'LineString') {
             const coords = cleanLine(baseCoords as number[][])
             return coords.length >= 2
@@ -139,18 +148,14 @@ export default function VectorRoutesSlicerLayer({
               : null
           }
         }
-
-        // apply turf offset (meters) — handle types separately, with cleaning
         if (f.geometry.type === 'LineString') {
           let coords = cleanLine(baseCoords as number[][])
           if (coords.length < 2) return null
           try {
-            const off = lineOffset(
-              lineString(coords as any, f.properties),
-              meters,
-              { units: 'meters' }
-            )
-            coords = cleanLine(off.geometry.coordinates as any)
+            const off = lineOffset(lineString(coords, f.properties), meters, {
+              units: 'meters',
+            })
+            coords = cleanLine(off.geometry.coordinates)
           } catch {
             return null
           }
@@ -158,18 +163,15 @@ export default function VectorRoutesSlicerLayer({
             ? { ...f, geometry: { type: 'LineString', coordinates: coords } }
             : null
         } else {
-          // MultiLineString: offset each part, drop bad ones
           let parts = cleanMulti(baseCoords as number[][][])
           if (!parts.length) return null
           try {
             parts = parts
               .map((part) => {
-                const off = lineOffset(
-                  lineString(part as any, f.properties),
-                  meters,
-                  { units: 'meters' }
-                )
-                return cleanLine(off.geometry.coordinates as any)
+                const off = lineOffset(lineString(part, f.properties), meters, {
+                  units: 'meters',
+                })
+                return cleanLine(off.geometry.coordinates)
               })
               .filter((p) => p.length >= 2)
           } catch {
@@ -183,8 +185,7 @@ export default function VectorRoutesSlicerLayer({
             : null
         }
       })
-      .filter(Boolean) as any[]
-
+      .filter(Boolean)
     return { type: 'FeatureCollection', features: feats } as const
   }, [routes, zoom])
 
@@ -200,33 +201,42 @@ export default function VectorRoutesSlicerLayer({
     [routeRenderOption, mediumMin, mediumMax]
   )
 
+  const applySelected = useCallback(
+    (vg: L.VectorGrid, id: string) => {
+      vg.setFeatureStyle(id, (pp: any, z: number) => ({
+        ...styleFn(pp, z),
+        color: 'blue',
+        weight: getPolylineWeight(z) + 3,
+      }))
+    },
+    [styleFn]
+  )
+
   useEffect(() => {
     if (!featureCollection.features?.length) return
-
     if (layerRef.current) {
       map.removeLayer(layerRef.current)
       layerRef.current = null
     }
-
-    const vg = (L as any).vectorGrid.slicer(featureCollection, {
+    const vg = L.vectorGrid.slicer(featureCollection, {
       maxZoom: 22,
       indexMaxZoom: 14,
-      indexMaxPoints: 100000,
+      indexMaxPoints: 100_000,
       tolerance: 3,
       interactive: true,
       vectorTileLayerStyles: { sliced: styleFn },
-      getFeatureId: (f: any) => f.properties.route_id,
+      getFeatureId: (f) => f.properties.route_id,
     })
-
-    vg.on('click', (e: any) => {
-      const id = e.layer?.properties?.route_id
-      if (id) setSelectedRouteId(id)
+    vg.on('click', (e) => {
+      const id = e.propagatedFrom?.properties?.route_id
+      if (!id) return
+      applySelected(vg, id)
+      onSelectRef.current(id)
     })
-
-    vg.on('mouseover', (e: any) => {
-      const p = e.layer?.properties
+    vg.on('mouseover', (e) => {
+      const p = e.propagatedFrom?.properties
       if (!p) return
-      setHoveredSegment({
+      onHoverRef.current({
         type: 'Feature',
         geometry: { type: 'LineString', coordinates: [] },
         properties: {
@@ -238,45 +248,51 @@ export default function VectorRoutesSlicerLayer({
           violations: p.violations,
         },
       } as unknown as SpeedManagementRoute)
-
       const id = p.route_id
-      if (id) {
-        const z = map.getZoom()
-        const w = z >= 18 ? 10 : z >= 15 ? 5 : z >= 12 ? 4 : z >= 10 ? 3 : 2
-        vg.setFeatureStyle(id, (pp: any, z: number) => ({
-          ...styleFn(pp, z),
-          color: 'blue',
-          weight: w,
-        }))
+      if (!id) return
+      if (selectedIdsRef.current.includes(id)) {
+        applySelected(vg, id)
+        return
+      }
+      const zNow = map.getZoom()
+      const w =
+        zNow >= 18 ? 10 : zNow >= 15 ? 5 : zNow >= 12 ? 4 : zNow >= 10 ? 3 : 2
+      vg.setFeatureStyle(id, (pp: any, z: number) => ({
+        ...styleFn(pp, z),
+        color: 'blue',
+        weight: w,
+      }))
+    })
+    vg.on('mouseout', (e) => {
+      onHoverRef.current(null)
+      const id = e.propagatedFrom?.properties?.route_id
+      if (!id) return
+      if (selectedIdsRef.current.includes(id)) {
+        applySelected(vg, id)
+      } else {
+        vg.resetFeatureStyle(id)
       }
     })
-
-    vg.on('mouseout', (e: any) => {
-      setHoveredSegment(null)
-      const id = e.layer?.properties?.route_id
-      if (id) vg.resetFeatureStyle(id)
-    })
-
     vg.addTo(map)
     layerRef.current = vg
-
+    selectedIdsRef.current.forEach((id) => applySelected(vg, id))
     return () => {
       if (layerRef.current) map.removeLayer(layerRef.current)
       layerRef.current = null
     }
-  }, [map, featureCollection, styleFn, setHoveredSegment])
+  }, [map, featureCollection, styleFn, applySelected])
 
   useEffect(() => {
     const vg = layerRef.current
     if (!vg) return
-    selectedRouteIds.forEach((id) => {
-      vg.setFeatureStyle(id, (pp: any, z: number) => ({
-        ...styleFn(pp, z),
-        color: 'blue',
-        weight: getPolylineWeight(z) + 3,
-      }))
+    const prev = prevSelectedRef.current
+    const next = new Set(selectedRouteIds)
+    prev.forEach((id) => {
+      if (!next.has(id)) vg.resetFeatureStyle(id)
     })
-  }, [selectedRouteIds, styleFn])
+    selectedRouteIds.forEach((id) => applySelected(vg, id))
+    prevSelectedRef.current = selectedRouteIds
+  }, [selectedRouteIds, styleFn, applySelected])
 
   return null
 }

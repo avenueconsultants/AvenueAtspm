@@ -15,6 +15,7 @@ import {
 import { ExtendedEChartsOption } from '@/features/charts/types'
 import {
   Color,
+  formatChartDateRange,
   formatChartDateTimeRange,
   lightenColor,
 } from '@/features/charts/utils'
@@ -95,10 +96,9 @@ function transformSingleSegmentAcrossSources(
 
   if (segmentsWithData.length === 0) return null
 
-  const dateRange = formatChartDateTimeRange(
+  const dateRange = formatChartDateRange(
     response[0].startDate,
-    response[0].endDate,
-    'month'
+    response[0].endDate
   )
 
   const title = createTitle({

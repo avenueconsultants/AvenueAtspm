@@ -68,7 +68,7 @@ const RankMarker = ({
     }
   }
 
-  // Build the pin icon.
+  // pin icon.
   const pinIconHtml = useMemo(
     () =>
       ReactDOMServer.renderToString(
@@ -122,7 +122,7 @@ const RankMarker = ({
     iconAnchor: isHovered ? [14, 33] : [12, 30],
   })
 
-  // Build the arrow icon.
+  // arrow icon.
   const arrowIconHtml = useMemo(() => {
     if (!arrowNeeded) return ''
     return ReactDOMServer.renderToString(
@@ -197,14 +197,13 @@ const RankMarker = ({
   useEffect(() => {
     if (arrowNeeded && arrowMarkerRef.current) {
       arrowMarkerRef.current.setIcon(arrowIcon)
-      // Arrow marker is non-interactive.
       arrowMarkerRef.current.setZIndexOffset(999)
     }
   }, [arrowIcon, arrowNeeded])
 
   return (
     <>
-      {/* Pin Marker always rendered at the original position */}
+      {/* Pin Marker */}
       <Marker
         ref={pinMarkerRef}
         position={position}
@@ -213,7 +212,7 @@ const RankMarker = ({
           click: () => onClick(segmentId),
         }}
       />
-      {/* Render arrow marker if needed (only when hovered and off–screen) */}
+      {/* Render arrow marker */}
       {isHovered && arrowNeeded && (
         <Marker
           ref={arrowMarkerRef}

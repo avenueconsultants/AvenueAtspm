@@ -16,7 +16,7 @@ import {
   Color,
   DashedLineSeriesSymbol,
   SolidLineSeriesSymbol,
-  formatChartDateTimeRange,
+  formatChartDateRange,
 } from '@/features/charts/utils'
 import { SM_ChartType } from '@/features/speedManagementTool/api/getSMCharts'
 import {
@@ -61,12 +61,11 @@ function transformData(
       : null
   }
 
-  const dateRange = formatChartDateTimeRange(
+  const dateRange = formatChartDateRange(
     segmentData[0].weeklyEffectiveness[0].startDate,
     segmentData[0].weeklyEffectiveness[
       segmentData[0].weeklyEffectiveness.length - 1
-    ].endDate,
-    'date'
+    ].endDate
   )
 
   const title = createTitle({

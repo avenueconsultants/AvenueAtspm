@@ -13,11 +13,7 @@ import {
 } from '../../common/transformers'
 import { DataPoint } from '../../common/types'
 import { ExtendedEChartsOption } from '../../types'
-import {
-  Color,
-  SolidLineSeriesSymbol,
-  formatChartDateTimeRange,
-} from '../../utils'
+import { Color, SolidLineSeriesSymbol, formatChartDateRange } from '../../utils'
 
 export default function transformSpeedVariabilityData(
   response: SpeedVariabilityDto
@@ -30,7 +26,7 @@ export default function transformSpeedVariabilityData(
 }
 
 function transformData(response: SpeedVariabilityDto) {
-  const dateRange = formatChartDateTimeRange(
+  const dateRange = formatChartDateRange(
     response.startDate,
     response.endDate,
     'date'

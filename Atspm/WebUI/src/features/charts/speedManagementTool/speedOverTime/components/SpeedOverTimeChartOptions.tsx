@@ -73,6 +73,7 @@ const SpeedOverTimeChartOptions = ({
     selectedTimeOptions,
     startTime,
     endTime,
+    onOptionsChange,
   ])
 
   const handleStartDateChange = (date: Date | null) => {

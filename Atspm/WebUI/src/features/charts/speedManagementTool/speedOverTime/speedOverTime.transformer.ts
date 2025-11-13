@@ -14,11 +14,7 @@ import {
   transformSeriesData,
 } from '@/features/charts/common/transformers'
 import { ExtendedEChartsOption } from '@/features/charts/types'
-import {
-  Color,
-  SolidLineSeriesSymbol,
-  formatChartDateTimeRange,
-} from '@/features/charts/utils'
+import { Color, SolidLineSeriesSymbol } from '@/features/charts/utils'
 import { SM_ChartType } from '@/features/speedManagementTool/api/getSMCharts'
 import { SeriesOption } from 'echarts'
 
@@ -33,14 +29,21 @@ export default function transformSpeedOverTimeData(
   }
 }
 
+export const dateFormat: Intl.DateTimeFormatOptions = {
+  weekday: 'short',
+  year: 'numeric',
+  month: 'long',
+  day: '2-digit',
+}
+
 function transformData(
   response: SpeedOverTimeDto,
   impactResponse: SpeedFromImpactDto
 ) {
-  const dateRange = formatChartDateTimeRange(
-    response?.startDate,
-    response?.endDate
-  )
+  const dateRange =
+    new Date(response?.startDate).toLocaleDateString('en-US', dateFormat) +
+    ' - ' +
+    new Date(response?.endDate).toLocaleDateString('en-US', dateFormat)
 
   const title = createTitle({
     title: `Speed Over Time - ${response.segmentName}`,

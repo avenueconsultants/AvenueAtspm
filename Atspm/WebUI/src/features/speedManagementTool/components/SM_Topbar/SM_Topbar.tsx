@@ -2,8 +2,10 @@ import AnalysisPeriodOptionsPopup from '@/features/speedManagementTool/component
 import DateRangeOptionsPopup from '@/features/speedManagementTool/components/SM_Topbar/DateRangeOptionsPopup'
 import FiltersButton from '@/features/speedManagementTool/components/SM_Topbar/Filters'
 import useSpeedManagementStore from '@/features/speedManagementTool/speedManagementStore'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import WarningAmberIcon from '@mui/icons-material/WarningAmber'
 import { LoadingButton } from '@mui/lab'
-import { Alert, Autocomplete, Box, Divider, TextField } from '@mui/material'
+import { Autocomplete, Box, Divider, TextField, Tooltip } from '@mui/material'
 import DaysOfWeekOptionsPopup from './DaysOfWeekOptionsPopup'
 import GeneralOptionsPopup from './GeneralOptionsPopup'
 
@@ -53,7 +55,7 @@ export default function SM_TopBar({
           renderInput={(params) => (
             <TextField {...params} placeholder="Go to segment" />
           )}
-          sx={{ width: 300 }}
+          sx={{ width: 250 }}
         />
         <Divider orientation="vertical" flexItem />
         <GeneralOptionsPopup />
@@ -61,24 +63,30 @@ export default function SM_TopBar({
         <DaysOfWeekOptionsPopup />
         <AnalysisPeriodOptionsPopup />
         <FiltersButton />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <LoadingButton
-            variant="contained"
-            loading={isLoading}
-            onClick={handleOptionClick}
-            disabled={!isRequestChanged}
-            sx={{ textTransform: 'none' }}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Tooltip
+            title={isRequestChanged ? 'Click Update to apply changes' : ''}
+            disableHoverListener={!isRequestChanged}
           >
-            Update
-          </LoadingButton>
-          {isRequestChanged && (
-            <Alert
-              severity="warning"
-              sx={{ p: 0, px: 1, whiteSpace: 'nowrap' }}
-            >
-              click Update to apply changes
-            </Alert>
-          )}
+            <span>
+              <LoadingButton
+                variant="contained"
+                loading={isLoading}
+                onClick={handleOptionClick}
+                disabled={!isRequestChanged}
+                sx={{ textTransform: 'none' }}
+                startIcon={
+                  isRequestChanged ? (
+                    <WarningAmberIcon fontSize="small" />
+                  ) : (
+                    <RefreshIcon fontSize="small" />
+                  )
+                }
+              >
+                Update
+              </LoadingButton>
+            </span>
+          </Tooltip>
         </Box>
       </Box>
     </Box>

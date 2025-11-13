@@ -6,6 +6,7 @@ import {
 import { SM_Height } from '@/features/speedManagementTool/components/SM_Map'
 import HotspotTable from '@/features/speedManagementTool/components/SM_Map/HotspotTable'
 import ImpactHotspotTable from '@/features/speedManagementTool/components/SM_Map/ImpactHotspotsTable'
+import { DataSource } from '@/features/speedManagementTool/enums'
 import useSpeedManagementStore from '@/features/speedManagementTool/speedManagementStore'
 import { addSpaces } from '@/utils/string'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
@@ -111,7 +112,7 @@ const HotspotSidebar = ({ handleRouteSelection }) => {
   const open = Boolean(anchorEl)
   const id = open ? 'hotspot-popover' : undefined
 
-  const handleOpenPopover = (event: MouseEvent<HTMLElement>) => {
+  const handleOpenPopover = (event: MouseEvent) => {
     setAnchorEl(event.currentTarget)
   }
 
@@ -294,6 +295,18 @@ const HotspotSidebar = ({ handleRouteSelection }) => {
     }
   }, [throttledHandleMouseMove, handleMouseUp])
 
+  let categoryFilterOptions = categoryFilters || []
+
+  if (submittedRouteSpeedRequest?.sourceId?.includes(DataSource.ClearGuide)) {
+    categoryFilterOptions = (categoryFilters || []).filter(
+      (filter) =>
+        filter.displayName !== 'Average 85th Percentile Speed' &&
+        filter.displayName !== 'Percentage of Violations' &&
+        filter.displayName !== 'Percentage of Extreme Violations' &&
+        filter.displayName !== '85th Percentile Speed vs Speed Limit'
+    )
+  }
+
   return (
     <Box
       ref={containerRef}
@@ -473,7 +486,7 @@ const HotspotSidebar = ({ handleRouteSelection }) => {
               mt: 3,
             }}
           >
-            {categoryFilters && (
+            {categoryFilterOptions && (
               <>
                 <InputLabel
                   sx={{ typography: 'body2', color: 'black' }}
@@ -489,7 +502,7 @@ const HotspotSidebar = ({ handleRouteSelection }) => {
                     value={sortBy}
                     onChange={handleSortByChange}
                   >
-                    {categoryFilters.map((filter) => (
+                    {categoryFilterOptions.map((filter) => (
                       <MenuItem key={filter.number} value={filter.number}>
                         {filter.displayName}
                       </MenuItem>

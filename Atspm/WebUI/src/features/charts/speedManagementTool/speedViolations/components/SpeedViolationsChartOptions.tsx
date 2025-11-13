@@ -67,7 +67,15 @@ const SpeedViolationsChartOptions = ({
 
       onOptionsChange(options)
     }
-  }, [startDate, endDate, startTime, endTime, daysOfWeek, onOptionsChange])
+  }, [
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+    daysOfWeek,
+    onOptionsChange,
+    sourceId,
+  ])
 
   const handleStartDateChange = (date: Date | null) => {
     if (date === null || isValid(date)) {

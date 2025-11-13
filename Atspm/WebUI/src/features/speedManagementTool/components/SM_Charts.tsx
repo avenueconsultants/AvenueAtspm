@@ -212,7 +212,7 @@ const SM_Charts = ({ routes }: { routes: SpeedManagementRoute[] }) => {
   }, [multiselect])
 
   const chartTypes: SM_ChartType[] = useMemo(() => {
-    return filterChartsBySourceId(baseCharts, sourceId)
+    return filterChartsBySourceId(baseCharts, sourceId?.[0])
   }, [baseCharts, sourceId])
 
   useEffect(() => {
