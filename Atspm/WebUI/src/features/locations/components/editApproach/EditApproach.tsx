@@ -32,7 +32,7 @@ import {
   Divider,
   Paper,
 } from '@mui/material'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface ApproachAdminProps {
   approach: ConfigApproach
@@ -44,17 +44,15 @@ function EditApproach({ approach }: ApproachAdminProps) {
   )
   const deleteDetector = useLocationStore((s) => s.deleteDetector)
   const channelMap = useLocationStore((s) => s.channelMap)
-  const errors = useLocationStore((s) => s.errors)
-  const warnings = useLocationStore((s) => s.warnings)
   const setErrors = useLocationStore((s) => s.setErrors)
-  const setWarnings = useLocationStore((s) => s.setWarnings)
-  const clearErrorsAndWarnings = useLocationStore(
-    (s) => s.clearErrorsAndWarnings
-  )
   const updateApproachInStore = useLocationStore((s) => s.updateApproach)
   const copyApproachInStore = useLocationStore((s) => s.copyApproach)
   const deleteApproachInStore = useLocationStore((s) => s.deleteApproach)
   const addDetectorInStore = useLocationStore((s) => s.addDetector)
+  const scrollToApproach = useLocationStore((s) => s.scrollToApproach)
+  const scrollToDetector = useLocationStore((s) => s.scrollToDetector)
+  const setScrollToApproach = useLocationStore((s) => s.setScrollToApproach)
+  const setScrollToDetector = useLocationStore((s) => s.setScrollToDetector)
   const updateSavedApproaches = useLocationStore((s) => s.updateSavedApproaches)
 
   const [open, setOpen] = useState(false)
@@ -62,11 +60,11 @@ function EditApproach({ approach }: ApproachAdminProps) {
   const [deleteMode, setDeleteMode] = useState(false)
   const [selectedDetectorIds, setSelectedDetectorIds] = useState<number[]>([])
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { addNotification } = useNotificationStore()
   const { mutate: editApproach } = useEditApproach()
 
-  // Lookups
   const { findEnumByNameOrAbbreviation: findDetectionType } = useConfigEnums(
     ConfigEnum.DetectionTypes
   )
@@ -84,10 +82,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
 
   const handleApproachClick = useCallback(() => {
     setOpen((prev) => !prev)
-  }, [])
-
-  const openDeleteApproachModal = useCallback(() => {
-    setOpenModal(true)
   }, [])
 
   const handleSaveApproach = useCallback(() => {
@@ -145,7 +139,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
     }
     setErrors(null)
 
-    // Create a deep clone so we can safely mutate
     const modifiedApproach = JSON.parse(
       JSON.stringify(approach)
     ) as ConfigApproach
@@ -164,12 +157,10 @@ function EditApproach({ approach }: ApproachAdminProps) {
     delete modifiedApproach.open
     delete modifiedApproach.isNew
 
-    // Convert direction type from name -> numeric enum
     modifiedApproach.directionTypeId =
       findDirectionType(modifiedApproach.directionTypeId)?.value ||
       DirectionTypes.NA
 
-    // Detectors
     modifiedApproach.detectors.forEach((det) => {
       if (det.isNew) {
         delete det.id
@@ -216,7 +207,6 @@ function EditApproach({ approach }: ApproachAdminProps) {
               findLaneType(detector.laneType)?.name || LaneTypes.NA
           })
 
-          // Build final approach object for the store
           const normalizedSaved: ConfigApproach = {
             ...saved,
             isNew: false,
@@ -327,6 +317,40 @@ function EditApproach({ approach }: ApproachAdminProps) {
     }
   }, [approach.directionTypeId])
 
+  useEffect(() => {
+    if (scrollToApproach !== approach.id) return
+
+    containerRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start',
+    })
+
+    setTimeout(() => {
+      if (!open) setOpen(true)
+    }, 500)
+
+    setScrollToApproach(null)
+  }, [scrollToApproach, approach.id, open, setScrollToApproach])
+
+  useEffect(() => {
+    if (scrollToDetector) {
+      const hasDetector = approach.detectors.some(
+        (det) => det.id.toString() === scrollToDetector.toString()
+      )
+      if (hasDetector) {
+        if (!open) setOpen(true)
+        // Allow time for the collapse to open.
+        setTimeout(() => {
+          const el = document.getElementById(`detector-${scrollToDetector}`)
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }
+          setScrollToDetector(null)
+        }, 0)
+      }
+    }
+  }, [scrollToDetector, approach.detectors, open, setScrollToDetector])
+
   return (
     <>
       <Paper
@@ -343,7 +367,7 @@ function EditApproach({ approach }: ApproachAdminProps) {
           handleApproachClick={handleApproachClick}
           handleCopyApproach={() => copyApproachInStore(approach)}
           handleSaveApproach={handleSaveApproach}
-          openDeleteApproachModal={openDeleteApproachModal}
+          openDeleteApproachModal={() => setOpenModal(true)}
         />
         <Divider />
         <Collapse in={open} unmountOnExit>

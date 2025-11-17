@@ -31,7 +31,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Application\Application.csproj" />
+	  <ProjectReference Include="..\Data\Data.csproj" />
 	  <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Reference Include="Utah.Udot.NetStandardToolkit">
+	    <HintPath>..\..\..\udot-atspm\Atspm\Utah.Udot.NetStandardToolkit.dll</HintPath>
+	  </Reference>
 	</ItemGroup>
 
 </Project>

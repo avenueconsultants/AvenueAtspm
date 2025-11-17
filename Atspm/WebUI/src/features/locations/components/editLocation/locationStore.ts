@@ -53,8 +53,14 @@ interface ApproachSlice {
   hasUnsavedChanges: () => boolean
   channelMap: Map<number, number>
 
+  scrollToApproach: number | null
+  setScrollToApproach: (approachId: number | null) => void
+
+  scrollToDetector: number | null
+  setScrollToDetector: (detectorId: number | null) => void
+
   updateApproaches: (newApproaches: ConfigApproach[]) => void
-  addApproach: () => void
+  addApproach: (protectedPhaseNumber?: number) => void
   updateApproach: (updatedApproach: ConfigApproach) => void
   updateSavedApproaches: (updatedApproach: ConfigApproach) => void
   updateSavedApproachesFromCurrent: () => void
@@ -62,7 +68,7 @@ interface ApproachSlice {
   deleteApproach: (approach: ConfigApproach) => void
   resetStore: () => void
 
-  addDetector: (approachId: number) => void
+  addDetector: (approachId: number, detectorChannel?: number) => void
   updateDetector: (detectorId: number, name: string, val: unknown) => void
   deleteDetector: (detectorId: number) => void
 }
@@ -75,6 +81,8 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
     errors: null,
     warnings: null,
     savedApproaches: [],
+    scrollToApproach: null,
+    scrollToDetector: null,
 
     setLocation: (location) => {
       const approachList = location?.approaches ?? []
@@ -84,7 +92,6 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
           newMap.set(detector.id, detector.detectorChannel || 0)
         )
       )
-
       set(() => ({
         location: location
           ? {
@@ -153,12 +160,10 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
     updateApproach: (updatedApproach) => {
       const { approaches } = get()
       const idx = approaches.findIndex((a) => a.id === updatedApproach.id)
-
       if (idx === -1) {
         set({ approaches: [...approaches, updatedApproach] })
         return
       }
-
       const copy = [...approaches]
       copy[idx] = updatedApproach
       set({ approaches: copy })
@@ -187,7 +192,6 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
       const { location, approaches } = get()
       const id = Math.round(Math.random() * 10000)
       const index = approaches.length
-
       const newApproach: ConfigApproach = {
         id,
         index,
@@ -207,10 +211,13 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
           description: 'Unknown',
           displayOrder: 0,
         },
-        protectedPhaseNumber: null,
+        protectedPhaseNumber: protectedPhaseNumber ?? null,
       }
 
-      set({ approaches: [newApproach, ...approaches] })
+      set({
+        approaches: [newApproach, ...approaches],
+        scrollToApproach: newApproach.id,
+      })
     },
 
     copyApproach: (approach) => {
@@ -227,13 +234,15 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
           isNew: true,
         })),
       }
-      set({ approaches: [...approaches, newApproach] })
+      set({
+        approaches: [newApproach, ...approaches],
+        scrollToApproach: newApproach.id,
+      })
     },
 
     deleteApproach: (approach) => {
       const { approaches } = get()
       const filtered = approaches.filter((a) => a.id !== approach.id)
-
       if (!approach.isNew) {
         try {
           deleteApproachFromKey(approach.id)
@@ -255,11 +264,10 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
       })
     },
 
-    addDetector: (approachId) => {
-      const { approaches, updateApproach } = get()
+    addDetector: (approachId, detectorChannel) => {
+      const { approaches, updateApproach, setScrollToDetector } = get()
       const approach = approaches.find((a) => a.id === approachId)
       if (!approach) return
-
       const newDetector: ConfigDetector = {
         isNew: true,
         id: Math.floor(Math.random() * 1e8),
@@ -278,16 +286,20 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
         movementType: 'NA',
         laneType: 'NA',
       }
+      if (detectorChannel) {
+        newDetector.detectorChannel = detectorChannel
+      }
 
       updateApproach({
         ...approach,
         detectors: [newDetector, ...approach.detectors],
       })
+      setScrollToDetector(newDetector.id)
     },
 
     updateDetector: (detectorId, name, val) => {
       const { approaches, channelMap } = get()
-
+      if (val === '') val = null
       const updatedApproaches = approaches.map((approach) => {
         let found = false
         const newDetectors = approach.detectors.map((det) => {
@@ -341,5 +353,9 @@ export const useLocationStore = createWithEqualityFn<LocationStore>()(
 
       set({ approaches: updatedApproaches })
     },
+
+    setScrollToApproach: (approachId) => set({ scrollToApproach: approachId }),
+
+    setScrollToDetector: (detectorId) => set({ scrollToDetector: detectorId }),
   }))
 )

@@ -15,6 +15,7 @@
 // limitations under the License.
 #endregion
 
+using Google.Cloud.Diagnostics.Common;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine.Builder;
@@ -62,7 +63,7 @@ cmdBuilder.UseHost(a =>
     .ConfigureServices((h, s) =>
     {
         //s.AddGoogleDiagnostics(loggingOptions: LoggingOptions.Create(LogLevel.Debug));
-
+      
         s.AddAtspmDbContext(h);
         s.AddAtspmEFConfigRepositories();
         s.AddAtspmEFEventLogRepositories();

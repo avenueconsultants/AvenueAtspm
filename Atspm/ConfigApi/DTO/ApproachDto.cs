@@ -16,6 +16,7 @@
 #endregion
 
 using Utah.Udot.Atspm.Data.Enums;
+using Utah.Udot.ATSPM.ConfigApi.DTO;
 
 namespace Utah.Udot.ATSPM.ConfigApi.DTO
 {

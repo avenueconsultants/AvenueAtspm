@@ -1,6 +1,7 @@
 import { useGetLocationSyncLocationFromKey } from '@/api/config/aTSPMConfigurationApi'
 import { AddButton } from '@/components/addButton'
-import ApproachesReconcilationReport from '@/features/locations/components/ApproachesReconcilationReport'
+import ApproachesReconcilationReport from '@/features/locations/components/ApproachesReconcilationReport/ApproachesReconcilationReport'
+import { ConfigApproach } from '@/features/locations/components/editLocation/editLocationConfigHandler'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
 import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import SyncIcon from '@mui/icons-material/Sync'
@@ -8,99 +9,117 @@ import { LoadingButton } from '@mui/lab'
 import { Box } from '@mui/material'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
+export interface LocationDiscrepancyReport {
+  foundPhaseNumbers: number[]
+  notFoundApproaches: ConfigApproach[]
+  foundDetectorChannels: number[]
+  notFoundDetectorChannels: string[]
+}
+
 const ApproachOptions = () => {
   const {
-    shouldSyncApproaches,
-    approachesSynced,
-    setShouldSyncApproaches,
-    setApproachesSynced,
+    approachVerificationStatus,
+    setApproachVerificationStatus,
     setBadApproaches,
     setBadDetectors,
   } = useLocationWizardStore()
-  const { approaches, location, addApproach } = useLocationStore()
 
+  const { approaches, location, addApproach } = useLocationStore()
   const { mutateAsync, isLoading } = useGetLocationSyncLocationFromKey()
 
-  const [categories, setCategories] = useState({
-    foundPhases: [] as string[],
-    foundDetectors: [] as string[],
-    notFoundApproaches: [] as string[],
-    notFoundDetectors: [] as string[],
+  const [categories, setCategories] = useState<LocationDiscrepancyReport>({
+    foundPhaseNumbers: [],
+    notFoundApproaches: [],
+    foundDetectorChannels: [],
+    notFoundDetectorChannels: [],
   })
 
-  const syncedPhases = useMemo(
+  const currentPhaseNumbersUsed = useMemo(
     () =>
-      approaches.flatMap((approach) => [
-        approach.protectedPhaseNumber,
-        approach.permissivePhaseNumber,
-        approach.pedestrianPhaseNumber,
-      ]),
+      approaches
+        .flatMap((approach) => [
+          approach.protectedPhaseNumber,
+          approach.permissivePhaseNumber,
+          approach.pedestrianPhaseNumber,
+        ])
+        .filter((phase) => phase != null),
     [approaches]
   )
 
-  const syncedDetectors = useMemo(
+  const currentDetectorChannelsUsed = useMemo(
     () =>
-      approaches.flatMap((approach) =>
-        approach.detectors.map((det) => det.detectorChannel)
-      ),
+      approaches
+        .flatMap((approach) =>
+          approach.detectors.map((det) => det.detectorChannel)
+        )
+        .filter((chan) => chan != null),
     [approaches]
   )
 
   const handleSyncLocation = useCallback(async () => {
+    if (!location?.id) return
+
     try {
-      const response = await mutateAsync({
-        key: parseInt(location.id, 10),
-      })
+      const response = await mutateAsync({ key: location.id })
 
-      const notFoundApproaches = response.removedApproachIds.map(
-        (id: number) => {
-          const approach = approaches.find((a: any) => a.id === id)
-          return approach
-            ? approach.description
-            : `Unknown Approach (ID: ${id})`
-        }
-      )
+      // Identify removed approaches
+      const notFoundApproaches =
+        response?.removedApproachIds
+          ?.map((id) => approaches.find((a) => a.id === id))
+          .filter(Boolean) || []
 
-      setBadApproaches(response.removedApproachIds)
-      setBadDetectors(response.removedDetectors)
+      if (response?.removedApproachIds) {
+        setBadApproaches(response.removedApproachIds)
+      }
+      if (response?.removedDetectors) {
+        setBadDetectors(response.removedDetectors)
+      }
+
+      const foundPhaseNumbers: number[] = []
+
+      if (response?.loggedButUnusedProtectedOrPermissivePhases) {
+        foundPhaseNumbers.push(
+          ...response.loggedButUnusedProtectedOrPermissivePhases
+        )
+      }
+      if (response?.loggedButUnusedOverlapPhases) {
+        foundPhaseNumbers.push(...response.loggedButUnusedOverlapPhases)
+      }
 
       setCategories({
-        foundPhases: [
-          ...response.loggedButUnusedProtectedOrPermissivePhases,
-          ...response.loggedButUnusedOverlapPhases,
-        ],
-        foundDetectors: response.loggedButUnusedDetectorChannels,
+        foundPhaseNumbers,
         notFoundApproaches,
-        notFoundDetectors: response.removedDetectors,
+        foundDetectorChannels: response?.loggedButUnusedDetectorChannels || [],
+        notFoundDetectorChannels: response?.removedDetectors || [],
       })
     } catch (error) {
       console.error(error)
     }
+    setApproachVerificationStatus('DONE')
   }, [
     mutateAsync,
-    location.id,
+    location?.id,
     approaches,
     setBadApproaches,
     setBadDetectors,
-    setCategories,
+    setApproachVerificationStatus,
   ])
 
-  // If the store says we should sync, and we haven't yet, do it automatically
   useEffect(() => {
-    if (shouldSyncApproaches && !approachesSynced) {
-      ;(async () => {
+    async function handleSyncLocationOnMount() {
+      if (approachVerificationStatus === 'READY_TO_RUN') {
         await handleSyncLocation()
-        setApproachesSynced(true)
-        setShouldSyncApproaches(false)
-      })()
+        setApproachVerificationStatus('DONE')
+      }
     }
+    handleSyncLocationOnMount()
   }, [
-    shouldSyncApproaches,
-    approachesSynced,
+    approachVerificationStatus,
     handleSyncLocation,
-    setApproachesSynced,
-    setShouldSyncApproaches,
+    setApproachVerificationStatus,
   ])
+
+  const approachesSynced = approachVerificationStatus === 'DONE'
 
   return (
     <Box>
@@ -112,29 +131,27 @@ const ApproachOptions = () => {
           mb: 1,
         }}
       >
-        <AddButton label="New Approach" onClick={addApproach} sx={{ mr: 1 }} />
+        <AddButton
+          label="New Approach"
+          onClick={() => addApproach()}
+          sx={{ mr: 1 }}
+        />
+
         <LoadingButton
           startIcon={<SyncIcon />}
           loading={isLoading}
           loadingPosition="start"
           variant="contained"
           color="primary"
-          onClick={async () => {
-            await handleSyncLocation()
-            setApproachesSynced(true)
-            setShouldSyncApproaches(false)
-          }}
+          onClick={handleSyncLocation}
         >
-          Sync
+          Reconcile Approaches
         </LoadingButton>
       </Box>
 
-      <ApproachesReconcilationReport
-        synced={approachesSynced}
-        categories={categories}
-        syncedPhases={syncedPhases}
-        syncedDetectors={syncedDetectors}
-      />
+      {approachesSynced && (
+        <ApproachesReconcilationReport categories={categories} />
+      )}
     </Box>
   )
 }

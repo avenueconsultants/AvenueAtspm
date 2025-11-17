@@ -42,14 +42,16 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
     {
         private readonly ILocationRepository _repository;
         private readonly ILocationManager _locationManager;
+        private readonly IDeviceRepository _deviceRepository;
 
         //HACK: ILocationManager is temporary
 
         /// <inheritdoc/>
-        public LocationController(ILocationRepository repository, ILocationManager locationManager) : base(repository)
+        public LocationController(ILocationRepository repository, ILocationManager locationManager, IDeviceRepository deviceRepository) : base(repository)
         {
             _repository = repository;
             _locationManager = locationManager;
+            _deviceRepository = deviceRepository;
         }
 
         #region NavigationProperties
@@ -127,7 +129,7 @@ namespace Utah.Udot.Atspm.ConfigApi.Controllers
             {
                 return NotFound(e.Message);
             }
-        }
+        }       
 
         //HACK: move this to LocationManagementController
 

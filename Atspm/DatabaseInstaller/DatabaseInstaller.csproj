@@ -39,6 +39,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Utah.Udot.NetStandardToolkit">
+      <HintPath>..\..\..\udot-atspm\Atspm\Utah.Udot.NetStandardToolkit.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="appsettings.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <DependentUpon>appsettings.json</DependentUpon>

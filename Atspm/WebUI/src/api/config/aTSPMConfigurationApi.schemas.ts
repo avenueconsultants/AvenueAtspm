@@ -11,77 +11,6 @@ expand?: string;
 };
 
 export type PutWatchDogIgnoreEventFromKeyParams = {
-LocationId?: number;
-'Location.Latitude'?: number;
-'Location.Longitude'?: number;
-'Location.PrimaryName'?: string;
-'Location.SecondaryName'?: string;
-'Location.ChartEnabled'?: boolean;
-'Location.VersionAction'?: string;
-'Location.Note'?: string;
-'Location.Start'?: string;
-'Location.PedsAre1to1'?: boolean;
-'Location.LocationIdentifier'?: string;
-'Location.JurisdictionId'?: number;
-'Location.Jurisdiction.Name'?: string;
-'Location.Jurisdiction.Mpo'?: string;
-'Location.Jurisdiction.CountyParish'?: string;
-'Location.Jurisdiction.OtherPartners'?: string;
-'Location.Jurisdiction.UserJurisdictions'?: UserJurisdiction[];
-'Location.Jurisdiction.Locations'?: Location[];
-'Location.Jurisdiction.Id'?: number;
-'Location.Jurisdiction.Created'?: string;
-'Location.Jurisdiction.Modified'?: string;
-'Location.Jurisdiction.CreatedBy'?: string;
-'Location.Jurisdiction.ModifiedBy'?: string;
-'Location.Jurisdiction.HasErrors'?: boolean;
-'Location.Jurisdiction.IsChanged'?: boolean;
-'Location.LocationTypeId'?: number;
-'Location.LocationType.Name'?: string;
-'Location.LocationType.Icon'?: string;
-'Location.LocationType.Locations'?: Location[];
-'Location.LocationType.Id'?: number;
-'Location.LocationType.Created'?: string;
-'Location.LocationType.Modified'?: string;
-'Location.LocationType.CreatedBy'?: string;
-'Location.LocationType.ModifiedBy'?: string;
-'Location.LocationType.HasErrors'?: boolean;
-'Location.LocationType.IsChanged'?: boolean;
-'Location.RegionId'?: number;
-'Location.Region.Description'?: string;
-'Location.Region.UserRegions'?: UserRegion[];
-'Location.Region.Locations'?: Location[];
-'Location.Region.Id'?: number;
-'Location.Region.Created'?: string;
-'Location.Region.Modified'?: string;
-'Location.Region.CreatedBy'?: string;
-'Location.Region.ModifiedBy'?: string;
-'Location.Region.HasErrors'?: boolean;
-'Location.Region.IsChanged'?: boolean;
-'Location.Approaches'?: Approach[];
-'Location.Areas'?: Area[];
-'Location.Devices'?: Device[];
-'Location.Id'?: number;
-'Location.Created'?: string;
-'Location.Modified'?: string;
-'Location.CreatedBy'?: string;
-'Location.ModifiedBy'?: string;
-'Location.HasErrors'?: boolean;
-'Location.IsChanged'?: boolean;
-LocationIdentifier?: string;
-Start?: string;
-End?: string;
-ComponentType?: string;
-ComponentId?: number;
-IssueType?: string;
-Phase?: number;
-Id?: number;
-Created?: string;
-Modified?: string;
-CreatedBy?: string;
-ModifiedBy?: string;
-HasErrors?: boolean;
-IsChanged?: boolean;
 select?: string;
 expand?: string;
 };
@@ -102,77 +31,6 @@ count?: boolean;
 };
 
 export type PostWatchDogIgnoreEventParams = {
-LocationId?: number;
-'Location.Latitude'?: number;
-'Location.Longitude'?: number;
-'Location.PrimaryName'?: string;
-'Location.SecondaryName'?: string;
-'Location.ChartEnabled'?: boolean;
-'Location.VersionAction'?: string;
-'Location.Note'?: string;
-'Location.Start'?: string;
-'Location.PedsAre1to1'?: boolean;
-'Location.LocationIdentifier'?: string;
-'Location.JurisdictionId'?: number;
-'Location.Jurisdiction.Name'?: string;
-'Location.Jurisdiction.Mpo'?: string;
-'Location.Jurisdiction.CountyParish'?: string;
-'Location.Jurisdiction.OtherPartners'?: string;
-'Location.Jurisdiction.UserJurisdictions'?: UserJurisdiction[];
-'Location.Jurisdiction.Locations'?: Location[];
-'Location.Jurisdiction.Id'?: number;
-'Location.Jurisdiction.Created'?: string;
-'Location.Jurisdiction.Modified'?: string;
-'Location.Jurisdiction.CreatedBy'?: string;
-'Location.Jurisdiction.ModifiedBy'?: string;
-'Location.Jurisdiction.HasErrors'?: boolean;
-'Location.Jurisdiction.IsChanged'?: boolean;
-'Location.LocationTypeId'?: number;
-'Location.LocationType.Name'?: string;
-'Location.LocationType.Icon'?: string;
-'Location.LocationType.Locations'?: Location[];
-'Location.LocationType.Id'?: number;
-'Location.LocationType.Created'?: string;
-'Location.LocationType.Modified'?: string;
-'Location.LocationType.CreatedBy'?: string;
-'Location.LocationType.ModifiedBy'?: string;
-'Location.LocationType.HasErrors'?: boolean;
-'Location.LocationType.IsChanged'?: boolean;
-'Location.RegionId'?: number;
-'Location.Region.Description'?: string;
-'Location.Region.UserRegions'?: UserRegion[];
-'Location.Region.Locations'?: Location[];
-'Location.Region.Id'?: number;
-'Location.Region.Created'?: string;
-'Location.Region.Modified'?: string;
-'Location.Region.CreatedBy'?: string;
-'Location.Region.ModifiedBy'?: string;
-'Location.Region.HasErrors'?: boolean;
-'Location.Region.IsChanged'?: boolean;
-'Location.Approaches'?: Approach[];
-'Location.Areas'?: Area[];
-'Location.Devices'?: Device[];
-'Location.Id'?: number;
-'Location.Created'?: string;
-'Location.Modified'?: string;
-'Location.CreatedBy'?: string;
-'Location.ModifiedBy'?: string;
-'Location.HasErrors'?: boolean;
-'Location.IsChanged'?: boolean;
-LocationIdentifier?: string;
-Start?: string;
-End?: string;
-ComponentType?: string;
-ComponentId?: number;
-IssueType?: string;
-Phase?: number;
-Id?: number;
-Created?: string;
-Modified?: string;
-CreatedBy?: string;
-ModifiedBy?: string;
-HasErrors?: boolean;
-IsChanged?: boolean;
 select?: string;
 expand?: string;
 };
@@ -963,16 +821,6 @@ select?: string;
 expand?: string;
 };
 
-export type GetLocationSaveTemplatedLocationFromKeyParams = {
-select?: string;
-expand?: string;
-};
-
-export type GetLocationSyncLocationFromKeyParams = {
-select?: string;
-expand?: string;
-};
-
 export type GetLocationCopyLocationToNewVersionFromKeyParams = {
 select?: string;
 expand?: string;
@@ -1435,96 +1283,6 @@ skip?: number;
 count?: boolean;
 };
 
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourtwo = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourone = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFourzero = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreenine = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeeight = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeseven = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreesix = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefive = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreefour = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreethree = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreetwo = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreeone = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThreezero = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwonine = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoeight = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoseven = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwosix = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofive = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwofour = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwothree = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwotwo = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwoone = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwozero = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnenine = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneeight = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneseven = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnesix = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefive = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnefour = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnethree = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnetwo = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOneone = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOnezero = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyNine = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyEight = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySeven = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodySix = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFive = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyFour = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyThree = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyTwo = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeBodyOne = {[key: string]: unknown};
-
-export type GetDetectorRetrieveDetectionIdentifierBasedOnDetectionTypeParams = {
-'api-version'?: string;
-select?: string;
-expand?: string;
-};
-
 export type GetDetectorDetectionTypesCountFromKeyParams = {
 select?: string;
 filter?: string;
@@ -1888,6 +1646,12 @@ export const TransportProtocols = {
   NUMBER_4: 4,
 } as const;
 
+export interface LocationPhases {
+  controllerManufacturer?: string | null;
+  designatedPhases?: number[] | null;
+  locationIdentifier?: string | null;
+}
+
 export interface TransitSignalPriorityOptions {
   dates?: string[] | null;
   locationsAndPhases?: LocationPhases[] | null;
@@ -1922,17 +1686,6 @@ export interface TimeSpaceDiagramAverageOptions {
   speedLimit?: number | null;
   startDate?: string;
   startTime?: string;
-}
-
-export interface TemplateLocationModifiedDto {
-  id?: string | null;
-  locationId?: number;
-  loggedButUnusedDetectorChannels?: number[] | null;
-  loggedButUnusedOverlapPhases?: number[] | null;
-  loggedButUnusedPedestrianPhases?: number[] | null;
-  loggedButUnusedProtectedOrPermissivePhases?: number[] | null;
-  removedApproachIds?: number[] | null;
-  removedDetectors?: string[] | null;
 }
 
 export interface SplitMonitorOptions {
@@ -2321,12 +2074,6 @@ export const LocationVersionActions = {
   NUMBER_10: 10,
 } as const;
 
-export interface LocationPhases {
-  controllerManufacturer?: string | null;
-  designatedPhases?: number[] | null;
-  locationIdentifier?: string | null;
-}
-
 export interface Location {
   approaches?: Approach[] | null;
   areas?: Area[] | null;
@@ -2607,16 +2354,6 @@ export interface Device {
   modified?: string | null;
   modifiedBy?: string | null;
   notes?: string | null;
-}
-
-export interface LocationSaveTemplatedLocationParameters {
-  devices?: Device[] | null;
-  latitude: number;
-  locationIdentifier?: string | null;
-  longitude: number;
-  note?: string | null;
-  primaryName?: string | null;
-  secondaryName?: string | null;
 }
 
 export interface DeviceConfiguration {

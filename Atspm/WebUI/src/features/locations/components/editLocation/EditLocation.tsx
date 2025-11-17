@@ -6,6 +6,7 @@ import EditApproach from '@/features/locations/components/editApproach/EditAppro
 import EditDevices from '@/features/locations/components/editLocation/EditDevices'
 import LocationGeneralOptionsEditor from '@/features/locations/components/editLocation/LocationGeneralOptionsEditor'
 import { useLocationStore } from '@/features/locations/components/editLocation/locationStore'
+import { useLocationWizardStore } from '@/features/locations/components/LocationSetupWizard/locationSetupWizardStore'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import {
   Box,
@@ -22,6 +23,8 @@ import EditLocationHeader from './EditLocationHeader'
 import WatchdogEditor from './WatchdogEditor'
 
 function EditLocation() {
+  const { useWizard, deviceVerificationStatus, approachVerificationStatus } =
+    useLocationWizardStore()
   const router = useRouter()
   const location = useLocationStore((state) => state.location)
   const hasUnsavedChanges = useLocationStore((state) => state.hasUnsavedChanges)
@@ -45,6 +48,17 @@ function EditLocation() {
     },
     [currentTab, hasUnsavedChanges]
   )
+  useEffect(() => {
+    if (!useWizard) return // Don't run if not using wizard
+    // For a 2-step wizard:
+    //  step 1 => "Devices" => tab "2"
+    //  step 2 => "Approaches" => tab "3"
+    if (deviceVerificationStatus === 'READY_TO_RUN') {
+      setCurrentTab('2') // Devices tab
+    } else if (approachVerificationStatus === 'READY_TO_RUN') {
+      setCurrentTab('3') // Approaches tab
+    }
+  }, [useWizard, deviceVerificationStatus, approachVerificationStatus])
 
   const handleDialogClose = (confirm: boolean) => {
     setDialogOpen(false)
