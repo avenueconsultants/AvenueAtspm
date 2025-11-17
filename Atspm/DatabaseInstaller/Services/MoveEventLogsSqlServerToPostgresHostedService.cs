@@ -117,30 +117,75 @@ namespace DatabaseInstaller.Services
             }
         }
 
+        //private async Task ProcessDateAsync(Location location, DateTime date, CancellationToken cancellationToken)
+        //{
+        //    using var scope = _serviceProvider.CreateScope();
+        //    var sqlContext = CreateSqlContext();
+        //    var sqlRepo = new IndianaEventLogEFRepository(sqlContext, scope.ServiceProvider.GetRequiredService<ILogger<IndianaEventLogEFRepository>>());
+
+        //    var allLogs = sqlRepo.GetList()
+        //        .Where(l => l.LocationIdentifier == location.LocationIdentifier && l.ArchiveDate == DateOnly.FromDateTime(date))
+        //        .AsNoTracking()
+        //        .AsEnumerable()
+        //        .SelectMany(m => m.Data)
+        //        .FromSpecification(new EventLogSpecification(location.LocationIdentifier, date, date.AddDays(1).AddMilliseconds(-1)))
+        //        .Cast<IndianaEvent>()
+        //        .ToList();
+
+        //    for (int hour = 0; hour < 24; hour++)
+        //    {
+        //        var hourlyLogs = allLogs.Where(l => l.Timestamp.Hour == hour).ToList();
+        //        if (!hourlyLogs.Any()) continue;
+
+        //        await SaveHourlyLogsAsync(location, date, hourlyLogs, scope, cancellationToken);
+        //    }
+        //}
+
         private async Task ProcessDateAsync(Location location, DateTime date, CancellationToken cancellationToken)
         {
             using var scope = _serviceProvider.CreateScope();
             var sqlContext = CreateSqlContext();
-            var sqlRepo = new IndianaEventLogEFRepository(sqlContext, scope.ServiceProvider.GetRequiredService<ILogger<IndianaEventLogEFRepository>>());
+            var sqlRepo = new EventLogEFRepository(sqlContext, scope.ServiceProvider.GetRequiredService<ILogger<EventLogEFRepository>>());
 
-            var allLogs = sqlRepo.GetList()
-                .Where(l => l.LocationIdentifier == location.LocationIdentifier && l.ArchiveDate == DateOnly.FromDateTime(date))
-                .AsNoTracking()
-                .AsEnumerable()
-                .SelectMany(m => m.Data)
-                .FromSpecification(new EventLogSpecification(location.LocationIdentifier, date, date.AddDays(1).AddMilliseconds(-1)))
-                .Cast<IndianaEvent>()
-                .ToList();
-
-            for (int hour = 0; hour < 24; hour++)
+            var allLogs = sqlRepo.GetArchivedEvents(location.LocationIdentifier, date, date.AddDays(1).AddMilliseconds(-1));
+            foreach(var log in allLogs)
             {
-                var hourlyLogs = allLogs.Where(l => l.Timestamp.Hour == hour).ToList();
-                if (!hourlyLogs.Any()) continue;
-
-                await SaveHourlyLogsAsync(location, date, hourlyLogs, scope, cancellationToken);
+                SaveHourlyLogsAsync(location, log, scope);
             }
         }
 
+        private async Task SaveHourlyLogsAsync(
+            Location location,
+            CompressedEventLogBase log,
+            IServiceScope scope)
+        {
+            try
+            {
+                var postgresContext = scope.ServiceProvider.GetRequiredService<EventLogContext>();
+                var pgRepo = new EventLogEFRepository(postgresContext, scope.ServiceProvider.GetRequiredService<ILogger<EventLogEFRepository>>());
+
+                var deviceId = location.Devices
+                    .FirstOrDefault(d => d.DeviceType == DeviceTypes.SignalController)
+                    ?.Id;
+                if (deviceId == null)
+                {
+                    _logger.LogWarning("No SignalController device for {LocationId}", location.LocationIdentifier);
+                    return;
+                }
+
+                pgRepo.Add(log);
+                await postgresContext.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Saved logs for {LocationId} for {Start}",
+                    location.LocationIdentifier,
+                    log.Start);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to save logs for {LocationId} on {Date}", location.LocationIdentifier, log.Start);
+            }
+        }
         private async Task SaveHourlyLogsAsync(
             Location location,
             DateTime date,
