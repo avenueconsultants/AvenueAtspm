@@ -21,9 +21,9 @@ namespace Utah.Udot.Atspm.Specifications
 {
     public class AggregationDateRangeSpecification : BaseSpecification<CompressedAggregationBase>
     {
-        public AggregationDateRangeSpecification(string locationId, DateOnly startDate, DateOnly endDate) : base()
+        public AggregationDateRangeSpecification(string locationIdentifier, DateTime startDate, DateTime endDate) : base()
         {
-            Criteria = c => c.LocationIdentifier == locationId && c.ArchiveDate >= startDate && c.ArchiveDate <= endDate;
+            Criteria = c => c.LocationIdentifier == locationIdentifier && c.Start >= startDate && c.End <= endDate;
 
             ApplyOrderBy(o => o.ArchiveDate);
         }
@@ -38,9 +38,9 @@ namespace Utah.Udot.Atspm.Specifications
             ApplyOrderBy(o => o.Start);
         }
 
-        public AggregationDateTimeRangeSpecification(string locationId, DateTime startDate, DateTime endDate) : base()
+        public AggregationDateTimeRangeSpecification(string locationIdentifier, DateTime startDate, DateTime endDate) : base()
         {
-            Criteria = c => c.LocationIdentifier == locationId && c.Start >= startDate && c.End <= endDate;
+            Criteria = c => c.LocationIdentifier == locationIdentifier && c.Start >= startDate && c.End <= endDate;
 
             ApplyOrderBy(o => o.Start);
         }

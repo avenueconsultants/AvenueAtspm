@@ -33,15 +33,15 @@ namespace Utah.Udot.Atspm.Infrastructure.Repositories.AggregationRepositories
         #region IAggregationRepository
 
         ///<inheritdoc/>
-        public virtual IReadOnlyList<T> GetAggregationsBetweenDates(string locationId, DateTime startTime, DateTime endTime)
+        public virtual IReadOnlyList<T> GetAggregationsBetweenDates(string locationIdentifier, DateTime startTime, DateTime endTime)
         {
             var result = table
-                .FromSpecification(new AggregationDateRangeSpecification(locationId, DateOnly.FromDateTime(startTime), DateOnly.FromDateTime(endTime)))
+                .FromSpecification(new AggregationDateRangeSpecification(locationIdentifier, startTime, endTime))
                 .AsNoTracking()
                 .AsEnumerable()
                 .SelectMany(m => m.Data)
-                .Where(c => c.Start >= startTime && c.End <= endTime)
-                .FromSpecification(new AggregationDateTimeRangeSpecification(locationId, startTime, endTime))
+                //.Where(c => c.Start >= startTime && c.End <= endTime)
+                //.FromSpecification(new AggregationDateTimeRangeSpecification(locationIdentifier, startTime, endTime))
                 .Cast<T>()
                 .ToList();
 
