@@ -381,11 +381,13 @@ const mockDataZ = [
 
 const activeTransportationSchema = z.object({
   locations: z.array(
+    // z.string()
     z.object({
       id: z.string(),
       name: z.string(),
       approaches: z.array(z.any()),
       designatedPhases: z.array(z.number()),
+      locationIdentifier: z.string(),
     })
   ),
   daysOfWeek: z.array(z.number()),
@@ -553,14 +555,16 @@ const ActiveTransportation = () => {
 
     const charts = await fetchPedestrianData({
       data: {
-        locationIdentifiers: formData.locations.map((l) => l.id),
+        locationIdentifiers: formData.locations.map(
+          (l) => l.locationIdentifier
+        ),
         startDate: dateToTimestamp(formData.startDate),
         endDate: dateToTimestamp(formData.endDate),
         timeUnit: 0,
       },
     })
 
-    // setMockData(charts)
+    setMockData(charts)
   }
 
   return (
@@ -590,13 +594,13 @@ const ActiveTransportation = () => {
           startIcon={<PlayArrowIcon />}
           variant="contained"
           sx={{ padding: '10px', mb: 2 }}
-          onClick={getMockData}
+          onClick={handleGenerateReport}
         >
           Generate Report
         </LoadingButton>
         {renderErrorAlert()}
       </Box>
-      {mockData && <PedatChartsContainer data={mockDataZ} />}
+      {mockData && <PedatChartsContainer data={mockData} />}
     </ResponsivePageLayout>
   )
 }
