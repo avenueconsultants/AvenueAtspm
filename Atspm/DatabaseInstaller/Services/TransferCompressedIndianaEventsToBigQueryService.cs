@@ -1,16 +1,15 @@
 ﻿using DatabaseInstaller.Commands;
+using Google.Apis.Bigquery.v2.Data;
 using Google.Cloud.BigQuery.V2;
 using Google.Cloud.Storage.V1;
-using Google.Apis.Bigquery.v2.Data;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.IO.Compression;
-using Utah.Udot.Atspm.Data.Models.EventLogModels;
-using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
 using Utah.Udot.Atspm.Data.Models;
+using Utah.Udot.Atspm.Repositories.ConfigurationRepositories;
+using Utah.Udot.Atspm.Repositories.EventLogRepositories;
 
 namespace DatabaseInstaller.Services;
 
@@ -18,16 +17,19 @@ public class TransferCompressedIndianaEventsToBigQueryService : TransferEventLog
 {
     private readonly string _table = "IndianaEventLogs";
     private readonly TransferCommandConfiguration _config;
+    private readonly IIndianaEventLogRepository indianaEventLogRepository;
 
     public TransferCompressedIndianaEventsToBigQueryService(
         ILogger<TransferCompressedIndianaEventsToBigQueryService> logger,
         ILocationRepository locationRepository,
         IOptions<TransferCommandConfiguration> config,
         BigQueryClient client,
+        IIndianaEventLogRepository indianaEventLogRepository,
         StorageClient storageClient)
         : base(client, storageClient, logger, locationRepository, config)
     {
         _config = config.Value;
+        this.indianaEventLogRepository = indianaEventLogRepository;
     }
 
     protected override string TableName => _table;
@@ -41,6 +43,33 @@ public class TransferCompressedIndianaEventsToBigQueryService : TransferEventLog
     }.Build();
 
     protected override async Task<List<IndianaEventDto>> GetEventsAsync(string locationId, DateTime day)
+    {
+        return await _retryPolicy.ExecuteAsync(async () =>
+        {
+            var events = indianaEventLogRepository
+                .GetEventsBetweenDates(locationId, day, day.AddDays(1))
+                .Select(i => new IndianaEventDto
+                {
+                    EventCode = i.EventCode,
+                    EventParam = i.EventParam,
+                    LocationIdentifier = i.LocationIdentifier,
+                    Timestamp = ToMicrosecondPrecision(i.Timestamp)
+                })
+                .ToList();
+            if (events.Count > 0)
+            {
+                var eventsaGoog = true;
+            }
+            return events;
+        });
+    }
+    private static DateTime ToMicrosecondPrecision(DateTime dt)
+    {
+        long ticks = dt.Ticks - (dt.Ticks % 10); // remove last digit (100 ns → microseconds)
+        return new DateTime(ticks, dt.Kind);
+    }
+
+    protected async Task<List<IndianaEventDto>> GetEventsFromOldSystemAsync(string locationId, DateTime day)
     {
         return await _retryPolicy.ExecuteAsync(async () =>
         {
