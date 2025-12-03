@@ -5,13 +5,13 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 type Dir = 'Northbound' | 'Southbound' | 'Eastbound' | 'Westbound'
 
 // ADD: deterministic remap of any real id to one of the three fake ids
-const FAKE_IDS = ['4028', '7115', '5001'] as const
-const pickFakeId = (realId: string) => {
-  let h = 0
-  for (let i = 0; i < realId.length; i++)
-    h = (h * 31 + realId.charCodeAt(i)) | 0
-  return FAKE_IDS[Math.abs(h) % FAKE_IDS.length]
-}
+// const FAKE_IDS = ['4028', '7115', '5001'] as const
+// const pickFakeId = (realId: string) => {
+//   let h = 0
+//   for (let i = 0; i < realId.length; i++)
+//     h = (h * 31 + realId.charCodeAt(i)) | 0
+//   return FAKE_IDS[Math.abs(h) % FAKE_IDS.length]
+// }
 
 export function useStatsHub(opts?: {
   tenantId?: string
@@ -49,11 +49,8 @@ export function useStatsHub(opts?: {
       .build()
 
     conn.on('statsUpdate', (payload: any) => {
-      const realId = String(payload?.locationIdentifier ?? '')
-      if (!realId) return
-
-      // REMAP: pretend it came from one of 4028/7115/5001
-      const id = pickFakeId(realId)
+      const id = String(payload?.locationIdentifier ?? '')
+      if (!id) return
 
       const tot =
         Number(payload?.volume?.acTotalVolume) ||

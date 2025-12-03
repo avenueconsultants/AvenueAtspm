@@ -56,83 +56,102 @@ export default function HeatmapOverlay({
     const chart = chartRef.current
     if (!div || !chart) return
 
-    const size = map.getSize()
-    div.style.width = size.x + 'px'
-    div.style.height = size.y + 'px'
-    chart.resize({ width: size.x, height: size.y })
+    const update = () => {
+      const size = map.getSize()
+      if (!size.x || !size.y) return // map not laid out yet
 
-    const cellW = size.x / cols
-    const cellH = size.y / rows
-    const grid: number[][] = Array.from({ length: rows }, () =>
-      Array.from({ length: cols }, () => 0)
-    )
+      const width = size.x
+      const height = size.y
 
-    for (const p of pts) {
-      const pt = map.latLngToContainerPoint([p.lat, p.lng])
-      const cx = Math.floor(pt.x / cellW)
-      const cy = Math.floor(pt.y / cellH)
-      if (cx >= 0 && cx < cols && cy >= 0 && cy < rows)
-        grid[cy][cx] += Number(p.v || 0)
-    }
+      div.style.width = width + 'px'
+      div.style.height = height + 'px'
 
-    const data: [number, number, number][] = []
-    let max = 0
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const val = grid[y][x]
-        max = Math.max(max, val)
-        data.push([x, y, val])
+      const cellW = width / cols
+      const cellH = height / rows
+      const grid: number[][] = Array.from({ length: rows }, () =>
+        Array.from({ length: cols }, () => 0)
+      )
+
+      for (const p of pts) {
+        const pt = map.latLngToContainerPoint([p.lat, p.lng])
+        const cx = Math.floor(pt.x / cellW)
+        const cy = Math.floor(pt.y / cellH)
+        if (cx >= 0 && cx < cols && cy >= 0 && cy < rows) {
+          grid[cy][cx] += Number(p.v || 0)
+        }
       }
+
+      const data: [number, number, number][] = []
+      let max = 0
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const val = grid[y][x]
+          max = Math.max(max, val)
+          data.push([x, y, val])
+        }
+      }
+
+      chart.setOption({
+        backgroundColor: 'transparent',
+        animation: false,
+        grid: { left: 0, right: 0, top: 0, bottom: 0 },
+        xAxis: {
+          type: 'category',
+          data: Array.from({ length: cols }, (_, i) => i),
+          boundaryGap: true,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { show: false },
+          splitLine: { show: false },
+        },
+        yAxis: {
+          type: 'category',
+          data: Array.from({ length: rows }, (_, i) => i),
+          boundaryGap: true,
+          inverse: true,
+          axisLine: { show: false },
+          axisTick: { show: false },
+          axisLabel: { show: false },
+          splitLine: { show: false },
+        },
+        visualMap: {
+          show: false,
+          min: 0,
+          max: Math.max(1, max),
+          inRange: {
+            color: [
+              '#f7fbff',
+              '#deebf7',
+              '#9ecae1',
+              '#6baed6',
+              '#3182bd',
+              '#08519c',
+            ],
+          },
+        },
+        series: [
+          {
+            type: 'heatmap',
+            data,
+            progressive: 0,
+            silent: true,
+            emphasis: { disabled: true },
+          },
+        ],
+      })
     }
 
-    chart.setOption({
-      backgroundColor: 'transparent',
-      animation: false,
-      grid: { left: 0, right: 0, top: 0, bottom: 0 },
-      xAxis: {
-        type: 'category',
-        data: Array.from({ length: cols }, (_, i) => i),
-        boundaryGap: true,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        splitLine: { show: false },
-      },
-      yAxis: {
-        type: 'category',
-        data: Array.from({ length: rows }, (_, i) => i),
-        boundaryGap: true,
-        inverse: true,
-        axisLine: { show: false },
-        axisTick: { show: false },
-        axisLabel: { show: false },
-        splitLine: { show: false },
-      },
-      visualMap: {
-        show: false,
-        min: 0,
-        max: Math.max(1, max),
-        inRange: {
-          color: [
-            '#f7fbff',
-            '#deebf7',
-            '#9ecae1',
-            '#6baed6',
-            '#3182bd',
-            '#08519c',
-          ],
-        },
-      },
-      series: [
-        {
-          type: 'heatmap',
-          data,
-          progressive: 0,
-          silent: true,
-          emphasis: { disabled: true },
-        },
-      ],
-    })
+    // initial draw + keep in sync with map changes
+    update()
+    map.on('resize', update)
+    map.on('moveend', update)
+    map.on('zoomend', update)
+
+    return () => {
+      map.off('resize', update)
+      map.off('moveend', update)
+      map.off('zoomend', update)
+    }
   }, [map, pts, cols, rows])
 
   // useEffect(() => {

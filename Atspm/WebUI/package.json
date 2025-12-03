@@ -29,7 +29,7 @@
     "@tanstack/react-query-devtools": "^4.29.17",
     "@turf/helpers": "^7.2.0",
     "@turf/line-offset": "^7.2.0",
-    "@turf/turf": "^7.2.0",
+    "@turf/turf": "^7.3.1",
     "@types/esri-leaflet": "^3.0.3",
     "@types/node": "20.3.1",
     "@types/react": "18.2.13",

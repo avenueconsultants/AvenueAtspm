@@ -38,6 +38,8 @@ export function SelectLocation({
 
   const allLocations = useMemo(() => data?.value || [], [data])
 
+  console.log('allLocations', allLocations)
+
   const filteredLocations = useMemo(() => {
     return allLocations.filter(
       (loc) =>

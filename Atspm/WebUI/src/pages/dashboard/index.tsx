@@ -8,8 +8,6 @@ const ClientMap = dynamic(() => import('@/components/aggTest/ClientMap'), {
   ssr: false,
 })
 
-const ALLOWED_IDS = new Set(['4028', '7115', '5001'])
-
 export default function DemoWsMapPage() {
   const { data: locationsData } = useGetLocationLocationsForSearch()
 
@@ -21,6 +19,7 @@ export default function DemoWsMapPage() {
         id: String(
           l.value ?? l.locationIdentifier ?? l.id ?? l.LocationIdentifier
         ),
+        x: l.id,
         lat: Number(l.latitude ?? l.lat ?? l.Latitude),
         lng: Number(l.longitude ?? l.lon ?? l.lng ?? l.Longitude),
         raw: l,
@@ -28,10 +27,7 @@ export default function DemoWsMapPage() {
       .filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lng))
   }, [locationsData])
 
-  const locations = useMemo(
-    () => allLocations.filter((l) => ALLOWED_IDS.has(l.id)),
-    [allLocations]
-  )
+  const locations = useMemo(() => allLocations, [allLocations])
 
   const [volumes, setVolumes] = useState<Record<string, number>>({})
   const [dirVolumes, setDirVolumes] = useState<
@@ -62,10 +58,8 @@ export default function DemoWsMapPage() {
   }, [dirBatch])
 
   const center = useMemo(() => {
-    if (locations.length)
-      return [locations[0].lat, locations[0].lng] as [number, number]
     return [39.3, -111.7] as [number, number]
-  }, [locations])
+  }, [])
 
   return (
     <div
