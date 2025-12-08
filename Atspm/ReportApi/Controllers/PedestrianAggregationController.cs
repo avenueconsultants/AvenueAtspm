@@ -59,7 +59,7 @@ namespace Utah.Udot.Atspm.ReportApi.Controllers
         /// </summary>
         /// <param name="query">Query parameters for location data</param>
         /// <returns>List of PedatLocationData objects</returns>
-        [HttpPost("get-data")]
+        [HttpPost("getReportData")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<PedatLocationData>))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<PedatLocationData>>> GetLocationData([FromBody] PedatLocationDataQuery query)

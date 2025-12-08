@@ -170,20 +170,23 @@ export const getGetPedestrianAggregationLocationDataMockHandler = (
         info: Parameters<Parameters<typeof http.post>[1]>[0]
       ) => Promise<PedatLocationData[]> | PedatLocationData[])
 ) => {
-  return http.post('*/api/v1/PedestrianAggregation/get-data', async (info) => {
-    await delay(1000)
+  return http.post(
+    '*/api/v1/PedestrianAggregation/getReportData',
+    async (info) => {
+      await delay(1000)
 
-    return new HttpResponse(
-      JSON.stringify(
-        overrideResponse !== undefined
-          ? typeof overrideResponse === 'function'
-            ? await overrideResponse(info)
-            : overrideResponse
-          : getGetPedestrianAggregationLocationDataResponseMock()
-      ),
-      { status: 200, headers: { 'Content-Type': 'application/json' } }
-    )
-  })
+      return new HttpResponse(
+        JSON.stringify(
+          overrideResponse !== undefined
+            ? typeof overrideResponse === 'function'
+              ? await overrideResponse(info)
+              : overrideResponse
+            : getGetPedestrianAggregationLocationDataResponseMock()
+        ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      )
+    }
+  )
 }
 export const getPedestrianAggregationMock = () => [
   getGetPedestrianAggregationTestDataMockHandler(),

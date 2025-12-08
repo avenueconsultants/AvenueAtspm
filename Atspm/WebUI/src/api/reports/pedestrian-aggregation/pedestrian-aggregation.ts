@@ -103,7 +103,7 @@ export const getPedestrianAggregationLocationData = (
   signal?: AbortSignal
 ) => {
   return reportsRequest<PedatLocationData[]>({
-    url: `/PedestrianAggregation/get-data`,
+    url: `/PedestrianAggregation/getReportData`,
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     data: pedatLocationDataQuery,
