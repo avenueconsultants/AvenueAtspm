@@ -62,6 +62,8 @@ namespace Utah.Udot.ATSPM.DataApi.Services
                 .GroupBy(e => DateOnly.FromDateTime(e.Timestamp))
                 .OrderBy(g => g.Key);
 
+            var archiveDate = DateOnly.Parse(DateTime.Now.ToString());
+
             foreach (var dayGroup in groupedByDay)
             {
                 var dayEvents = dayGroup.ToList();
@@ -72,7 +74,7 @@ namespace Utah.Udot.ATSPM.DataApi.Services
                 {
                     LocationIdentifier = locationIdentifier,
                     DeviceId = device.Id,
-                    ArchiveDate = dayGroup.Key,
+                    ArchiveDate = archiveDate,
                     Start = start,
                     End = end,
                     Data = dayEvents
