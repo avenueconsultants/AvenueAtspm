@@ -1,4 +1,8 @@
-import { useGetPedestrianAggregationLocationData } from '@/api/reports'
+import { Location } from '@/api/config'
+import {
+  PedatLocationData,
+  useGetPedestrianAggregationLocationData,
+} from '@/api/reports'
 import { ResponsivePageLayout } from '@/components/ResponsivePage'
 import { ActiveTransportationOptions } from '@/features/activeTransportation/components/ActiveTransportationOptions'
 import PedatChartsContainer from '@/features/activeTransportation/components/PedatChartsContainer'
@@ -10,7 +14,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow'
 import { LoadingButton } from '@mui/lab'
 import { Alert, Box } from '@mui/material'
 import { startOfDay, subYears } from 'date-fns'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -20,7 +24,6 @@ const activeTransportationSchema = z.object({
       id: z.string(),
       name: z.string(),
       approaches: z.array(z.any()),
-      designatedPhases: z.array(z.number()),
       locationIdentifier: z.string(),
     })
   ),
@@ -32,19 +35,6 @@ const activeTransportationSchema = z.object({
 })
 
 type ActiveTransportationForm = z.infer<typeof activeTransportationSchema>
-
-export interface ATLocation {
-  id: string
-  name: string
-  approaches: any[]
-  designatedPhases: number[]
-}
-
-export const getPhases = (location: ATLocation) => {
-  return Array.from(
-    new Set(location.approaches?.map((a) => a.protectedPhaseNumber) || [2])
-  ).sort((a, b) => a - b)
-}
 
 export type ATErrorState =
   | { type: 'NONE' }
@@ -71,7 +61,7 @@ const ActiveTransportation = () => {
 
   const { watch, setValue } = form
   const [errorState, setErrorState] = useState<ATErrorState>({ type: 'NONE' })
-  const [data, setData] = useState<boolean>(false)
+  const [data, setData] = useState<PedatLocationData[] | null>(null)
 
   const locations = watch('locations')
   const daysOfWeek = watch('daysOfWeek')
@@ -79,6 +69,10 @@ const ActiveTransportation = () => {
   const startDate = watch('startDate')
   const endDate = watch('endDate')
   const phase = watch('phase')
+
+  useEffect(() => {
+    setData(null)
+  }, [locations, daysOfWeek, timeUnit, startDate, endDate, phase])
 
   function renderErrorAlert() {
     if (errorState.type === 'NO_LOCATIONS') {
@@ -110,14 +104,8 @@ const ActiveTransportation = () => {
     return null
   }
 
-  const setLocations = (newLocations: ATLocation[]) => {
+  const setLocations = (newLocations: Location[]) => {
     const hadNoLocations = errorState.type === 'NO_LOCATIONS'
-    newLocations.forEach((loc) => {
-      const phases = getPhases(loc)
-      if (phases.includes(2) && phases.includes(6)) {
-        loc.designatedPhases = [2, 6]
-      }
-    })
 
     setValue('locations', newLocations)
 
@@ -126,7 +114,7 @@ const ActiveTransportation = () => {
     }
   }
 
-  const handleLocationDelete = (location: ATLocation) => {
+  const handleLocationDelete = (location: Location) => {
     const newLocations = locations.filter((loc) => loc.id !== location.id)
     setValue('locations', newLocations)
   }
@@ -139,7 +127,7 @@ const ActiveTransportation = () => {
     setValue('locations', newLocations)
   }
 
-  const handleUpdateLocation = (updatedLocation: ATLocation) => {
+  const handleUpdateLocation = (updatedLocation: Location) => {
     const updatedLocations = locations.map((loc) =>
       loc.id === updatedLocation.id ? updatedLocation : loc
     )
@@ -147,12 +135,6 @@ const ActiveTransportation = () => {
 
     if (errorState.type === 'MISSING_PHASES') {
       const newIDs = new Set(errorState.locationIDs)
-      if (
-        updatedLocation.designatedPhases &&
-        updatedLocation.designatedPhases.length > 0
-      ) {
-        newIDs.delete(String(updatedLocation.id))
-      }
       if (newIDs.size === 0) {
         setErrorState({ type: 'NONE' })
       } else {
@@ -167,16 +149,6 @@ const ActiveTransportation = () => {
       setErrorState({ type: 'NO_LOCATIONS' })
       return
     }
-    const missingPhases = formData.locations.filter(
-      (loc) => !loc.designatedPhases || loc.designatedPhases.length === 0
-    )
-    if (missingPhases.length > 0) {
-      setErrorState({
-        type: 'MISSING_PHASES',
-        locationIDs: new Set(missingPhases.map((loc) => String(loc.id))),
-      })
-      return
-    }
     setErrorState({ type: 'NONE' })
 
     const charts = await fetchPedestrianData({
@@ -187,6 +159,7 @@ const ActiveTransportation = () => {
         startDate: dateToTimestamp(formData.startDate),
         endDate: dateToTimestamp(formData.endDate),
         timeUnit: 0,
+        phase: formData.phase || null,
       },
     })
 

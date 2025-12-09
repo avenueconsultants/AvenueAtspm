@@ -1,9 +1,10 @@
+import { Location } from '@/api/config'
 import MultipleLocationsSelect from '@/components/MultipleLocationsSelect/MultipleLocationsSelect'
 import SelectDateTime from '@/components/selectTimeSpan'
 import { StyledPaper } from '@/components/StyledPaper'
 import LocationsDisplay from '@/features/activeTransportation/components/LocationsDisplay'
 import { MultiSelectCheckbox } from '@/features/aggregateData/components/chartOptions/MultiSelectCheckbox'
-import { ATErrorState, ATLocation } from '@/pages/reports/active-transportation'
+import { ATErrorState } from '@/pages/reports/active-transportation'
 import { DropResult } from '@hello-pangea/dnd'
 import {
   Box,
@@ -17,21 +18,21 @@ import {
 
 interface ActiveTransportationOptionsProps {
   errorState: ATErrorState
-  locations: ATLocation[]
+  locations: Location[]
   daysOfWeek: number[]
   timeUnit: string
   startDate: Date
   endDate: Date
   phase?: number | ''
-  setLocations: (locations: ATLocation[]) => void
+  setLocations: (locations: Location[]) => void
   setDaysOfWeek: (days: number[]) => void
   setTimeUnit: (unit: string) => void
   setStartDate: (date: Date) => void
   setEndDate: (date: Date) => void
   setPhase: (phase: number | '') => void
-  onLocationDelete: (location: ATLocation) => void
+  onLocationDelete: (location: Location) => void
   onReorderLocations: (dropResult: DropResult) => void
-  onUpdateLocation: (updatedLocation: ATLocation) => void
+  onUpdateLocation: (updatedLocation: Location) => void
 }
 
 const daysOfWeekList = [

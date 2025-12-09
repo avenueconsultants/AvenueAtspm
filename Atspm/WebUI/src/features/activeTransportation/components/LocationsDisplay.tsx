@@ -1,7 +1,4 @@
-import {
-  TspErrorState,
-  TspLocation,
-} from '@/pages/reports/transit-signal-priority'
+import { ATErrorState, Location } from '@/pages/reports/active-transportation'
 import DeleteIcon from '@mui/icons-material/Delete'
 import {
   Box,
@@ -19,16 +16,16 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 
 interface LocationsDisplayProps {
-  locations: TspLocation[]
+  locations: Location[]
   phase?: number | ''
   setPhase: (phase: number | '') => void
-  onLocationDelete: (location: TspLocation) => void
-  onDeleteAllLocations: (locations: TspLocation[]) => void
-  onUpdateLocation: (updatedLocation: TspLocation) => void
-  errorState: TspErrorState
+  onLocationDelete: (location: Location) => void
+  onDeleteAllLocations: (locations: Location[]) => void
+  onUpdateLocation: (updatedLocation: Location) => void
+  errorState: ATErrorState
 }
 
 const LocationsDisplay = ({
@@ -39,45 +36,34 @@ const LocationsDisplay = ({
   onDeleteAllLocations,
   onUpdateLocation,
 }: LocationsDisplayProps) => {
-  // All available phases across currently selected locations
-  const allPhases = useMemo(() => {
+  const pedestrianPhases = useMemo(() => {
     const set = new Set<number>()
-    locations.forEach((loc) =>
-      loc.approaches?.forEach((a) => {
-        if (typeof a.protectedPhaseNumber === 'number') {
-          set.add(a.protectedPhaseNumber)
-        }
-      })
-    )
+
+    locations.forEach((loc) => {
+      if (loc.pedsAre1to1) {
+        // phases are 1:1 → use protectedPhaseNumber if it exists and is not 0
+        loc.approaches?.forEach((a) => {
+          const phase = a.protectedPhaseNumber
+          if (typeof phase === 'number' && phase !== 0) {
+            set.add(phase)
+          }
+        })
+      } else {
+        // phases are not 1:1 → use pedestrianPhaseNumber if it’s not null
+        loc.approaches?.forEach((a) => {
+          const pedPhase = a.pedestrianPhaseNumber
+          if (pedPhase != null) {
+            set.add(pedPhase)
+          }
+        })
+      }
+    })
+
     return Array.from(set).sort((a, b) => a - b)
   }, [locations])
 
-  // If the selected phase is no longer available (locations changed), clear it
-  useEffect(() => {
-    if (phase !== '' && !allPhases.includes(phase)) {
-      setPhase('')
-      // also clear designatedPhases on all locations so state is consistent
-      locations.forEach((loc) =>
-        onUpdateLocation({ ...loc, designatedPhases: [] })
-      )
-    }
-  }, [allPhases, locations, onUpdateLocation, phase, setPhase])
-
-  // Apply a single phase globally to all locations (if present at that site)
   function handlePhaseChange(newPhase: number | '') {
     setPhase(newPhase)
-
-    locations.forEach((location) => {
-      const siteHasPhase = location.approaches?.some(
-        (a) => a.protectedPhaseNumber === newPhase
-      )
-
-      // Keep designatedPhases as an array type but enforce single value
-      const designatedPhases =
-        newPhase !== '' && siteHasPhase ? [newPhase as number] : []
-
-      onUpdateLocation({ ...location, designatedPhases })
-    })
   }
 
   if (!locations.length) {
@@ -104,10 +90,10 @@ const LocationsDisplay = ({
             value={phase}
             onChange={(e) => handlePhaseChange(e.target.value as number)}
           >
-            {allPhases.length === 0 ? (
+            {pedestrianPhases.length === 0 ? (
               <MenuItem disabled>No phases available</MenuItem>
             ) : (
-              allPhases.map((phase) => (
+              pedestrianPhases.map((phase) => (
                 <MenuItem key={phase} value={phase}>
                   {phase}
                 </MenuItem>
