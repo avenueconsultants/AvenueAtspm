@@ -1,8 +1,7 @@
-// pages/demo-ws-map.tsx
 import { useGetLocationLocationsForSearch } from '@/api/config'
-import { useStatsHub } from '@/components/aggTest/useStatsHub'
+import { useAlertsHub } from '@/components/aggTest/useAlertsHub'
 import dynamic from 'next/dynamic'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 const ClientMap = dynamic(() => import('@/components/aggTest/ClientMap'), {
   ssr: false,
@@ -39,23 +38,27 @@ export default function DemoWsMapPage() {
     >
   >({})
 
-  const { state, batch, dirBatch } = useStatsHub({ tenantId: 'default' })
+  const { state, alerts } = useAlertsHub({
+    tenantId: 'default',
+  })
 
-  useEffect(() => {
-    if (!batch || Object.keys(batch).length === 0) return
-    setVolumes((prev) => ({ ...prev, ...batch }))
-  }, [batch])
+  // useEffect(() => {
+  //   if (!batch || Object.keys(batch).length === 0) return
+  //   setVolumes((prev) => ({ ...prev, ...batch }))
+  // }, [batch])
 
-  useEffect(() => {
-    if (!dirBatch || Object.keys(dirBatch).length === 0) return
-    setDirVolumes((prev) => {
-      const next = { ...prev }
-      for (const [id, dirs] of Object.entries(dirBatch)) {
-        next[id] = { ...(prev[id] ?? {}), ...dirs }
-      }
-      return next
-    })
-  }, [dirBatch])
+  // useEffect(() => {
+  //   if (!dirBatch || Object.keys(dirBatch).length === 0) return
+  //   setDirVolumes((prev) => {
+  //     const next = { ...prev }
+  //     for (const [id, dirs] of Object.entries(dirBatch)) {
+  //       next[id] = { ...(prev[id] ?? {}), ...dirs }
+  //     }
+  //     return next
+  //   })
+  // }, [dirBatch])
+
+  console.log('alerts:', alerts)
 
   const center = useMemo(() => {
     return [39.3, -111.7] as [number, number]
@@ -70,6 +73,7 @@ export default function DemoWsMapPage() {
         <span style={{ marginLeft: 8 }}>{state}</span>
       </header>
       <ClientMap
+        alerts={alerts}
         center={center}
         locations={locations}
         volumes={volumes}
