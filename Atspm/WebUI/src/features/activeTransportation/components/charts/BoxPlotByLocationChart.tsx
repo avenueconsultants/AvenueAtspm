@@ -8,8 +8,10 @@ import { useMemo } from 'react'
 const BoxPlotByLocationChart = ({
   data,
   printMode,
+  timeUnit,
 }: PedatChartsContainerProps) => {
-  const base = transformBoxPlotByLocationTransformer(data || [])
+  console.log('BoxPlotByLocationChart render', { data, printMode, timeUnit })
+  const base = transformBoxPlotByLocationTransformer(data, timeUnit)
 
   const option = useMemo(
     () => applyPrintMode(base, !!printMode),

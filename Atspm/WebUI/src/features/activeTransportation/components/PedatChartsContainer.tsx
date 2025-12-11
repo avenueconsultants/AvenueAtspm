@@ -14,6 +14,8 @@ import PedestrianVolumeTimeSeriesTable from './PedestrianVolumeTimeSeriesTable'
 
 export interface PedatChartsContainerProps {
   data?: PedatLocationData[]
+  phase?: string
+  timeUnit?: string
   printMode?: boolean
 }
 
@@ -36,16 +38,31 @@ function downloadCsv(filename: string, csv: string) {
   URL.revokeObjectURL(url)
 }
 
-function buildRawCsv(data?: PedatLocationData[]): string {
-  const header = [
-    'Signal ID',
-    'Address',
-    'Timestamp',
-    'Count',
-    'City',
-    'Latitude',
-    'Longitude',
-  ]
+function buildRawCsv(
+  phase: string | undefined,
+  data?: PedatLocationData[]
+): string {
+  const header =
+    phase === 'All'
+      ? [
+          'Signal ID',
+          'Address',
+          'Timestamp',
+          'Count',
+          'City',
+          'Latitude',
+          'Longitude',
+        ]
+      : [
+          'Signal ID',
+          'Phase',
+          'Address',
+          'Timestamp',
+          'Count',
+          'City',
+          'Latitude',
+          'Longitude',
+        ]
   const rows: string[] = [header.join(',')]
   if (!data?.length) return rows.join('\r\n')
 
@@ -64,17 +81,32 @@ function buildRawCsv(data?: PedatLocationData[]): string {
       if (!ts) continue
       const timestamp = new Date(ts).toISOString()
       const count = (pt as any).pedestrianCount ?? ''
-      rows.push(
-        [
-          escapeCsv(signalId),
-          escapeCsv(address),
-          escapeCsv(timestamp),
-          escapeCsv(count),
-          escapeCsv(city),
-          escapeCsv(lat),
-          escapeCsv(lng),
-        ].join(',')
-      )
+      if (phase && phase == 'All') {
+        rows.push(
+          [
+            escapeCsv(signalId),
+            escapeCsv(address),
+            escapeCsv(timestamp),
+            escapeCsv(count),
+            escapeCsv(city),
+            escapeCsv(lat),
+            escapeCsv(lng),
+          ].join(',')
+        )
+      } else {
+        rows.push(
+          [
+            escapeCsv(signalId),
+            escapeCsv(phase ?? ''),
+            escapeCsv(address),
+            escapeCsv(timestamp),
+            escapeCsv(count),
+            escapeCsv(city),
+            escapeCsv(lat),
+            escapeCsv(lng),
+          ].join(',')
+        )
+      }
     }
   }
   return rows.join('\r\n')
@@ -189,7 +221,11 @@ function fmtList(items: string[]) {
   return items.join('\n')
 }
 
-const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
+const PedatChartsContainer = ({
+  data,
+  phase,
+  timeUnit,
+}: PedatChartsContainerProps) => {
   const [tabIndex, setTabIndex] = useState(0)
   const [isStaging, setIsStaging] = useState(false)
   const stagingRef = useRef<HTMLDivElement>(null)
@@ -205,7 +241,7 @@ const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
   const { start, end } = useMemo(() => findDateBounds(data), [data])
 
   const handleDownloadRaw = () => {
-    const csv = buildRawCsv(data)
+    const csv = buildRawCsv(phase, data)
     downloadCsv(
       `pedestrian_time_series_${new Date().toISOString().slice(0, 10)}.csv`,
       csv
@@ -315,6 +351,25 @@ const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
     setIsStaging(false)
   }
 
+  const timeUnitToString = (unit: number) => {
+    switch (unit) {
+      case 0:
+        return 'Hour'
+      case 1:
+        return 'Day'
+      case 2:
+        return 'Week'
+      case 3:
+        return 'Month'
+      case 4:
+        return 'Year'
+      default:
+        return 'Hour'
+    }
+  }
+
+  const timeUnitString = timeUnitToString(timeUnit)
+
   return (
     <Box>
       <Tabs value={tabIndex} onChange={(_, val) => setTabIndex(val)}>
@@ -345,10 +400,18 @@ const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
             <TotalPedVolByLocationCharts data={data} />
           </Box>
           <Box sx={{ mb: 3 }}>
-            <TimeSeriesByHourByLocationChart data={data} />
+            <TimeSeriesByHourByLocationChart
+              printMode
+              data={data}
+              timeUnit={timeUnitString}
+            />
           </Box>
           <Box sx={{ mb: 3 }}>
-            <BoxPlotByLocationChart data={data} />
+            <BoxPlotByLocationChart
+              printMode
+              data={data}
+              timeUnit={timeUnitString}
+            />
           </Box>
         </Box>
       )}
@@ -361,8 +424,15 @@ const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
 
       {tabIndex === 3 && (
         <Box sx={{ mb: 4 }}>
-          <PedestrianVolumeTimeSeriesTable data={data} />
-          <DescriptiveStatsByHourByLocationChart data={data} />
+          <PedestrianVolumeTimeSeriesTable
+            data={data}
+            phase={phase}
+            timeUnit={timeUnitString}
+          />
+          <DescriptiveStatsByHourByLocationChart
+            data={data}
+            timeUnit={timeUnitString}
+          />
         </Box>
       )}
 
@@ -401,7 +471,7 @@ const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
           </Box>
           <Box
             data-report-chart="true"
-            data-title="Hourly pedestrian volume, by hour of day"
+            data-title="Hourly pedestrian volume, by Hour of day"
             sx={{ mb: 2 }}
           >
             <HourlyPedVolByHourOfDayChart printMode data={data} />
@@ -429,17 +499,25 @@ const PedatChartsContainer = ({ data }: PedatChartsContainerProps) => {
           </Box>
           <Box
             data-report-chart="true"
-            data-title="Time series of pedestrian volume, by hour, by location"
+            data-title="Time series of pedestrian volume by location"
             sx={{ mb: 2 }}
           >
-            <TimeSeriesByHourByLocationChart printMode data={data} />
+            <TimeSeriesByHourByLocationChart
+              printMode
+              data={data}
+              timeUnit={timeUnitString}
+            />
           </Box>
           <Box
             data-report-chart="true"
-            data-title="Box plot of pedestrian volume, by hour, by location"
+            data-title="Box plot of pedestrian volume by location"
             sx={{ mb: 2 }}
           >
-            <BoxPlotByLocationChart printMode data={data} />
+            <BoxPlotByLocationChart
+              printMode
+              data={data}
+              timeUnit={timeUnitString}
+            />
           </Box>
         </Box>
       )}

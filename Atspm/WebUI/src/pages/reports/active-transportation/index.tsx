@@ -28,10 +28,13 @@ const activeTransportationSchema = z.object({
     })
   ),
   daysOfWeek: z.array(z.number()),
-  timeUnit: z.string(),
+  timeUnit: z.number(),
   startDate: z.date(),
   endDate: z.date(),
-  phase: z.number().nullable(),
+  phase: z
+    .union([z.number(), z.literal('All')])
+    .nullable()
+    .optional(),
 })
 
 type ActiveTransportationForm = z.infer<typeof activeTransportationSchema>
@@ -52,7 +55,7 @@ const ActiveTransportation = () => {
     defaultValues: {
       locations: [],
       daysOfWeek: [0],
-      timeUnit: 'Hour',
+      timeUnit: 0,
       startDate: startOfDay(subYears(new Date(), 1)),
       endDate: startOfDay(new Date()),
       phase: null,
@@ -158,8 +161,8 @@ const ActiveTransportation = () => {
         ),
         startDate: dateToTimestamp(formData.startDate),
         endDate: dateToTimestamp(formData.endDate),
-        timeUnit: 0,
-        phase: formData.phase || null,
+        timeUnit: formData.timeUnit,
+        phase: formData.phase === 'All' ? null : formData.phase,
       },
     })
 
@@ -219,7 +222,9 @@ const ActiveTransportation = () => {
         </LoadingButton>
         {renderErrorAlert()}
       </Box>
-      {data && <PedatChartsContainer data={data} />}
+      {data && (
+        <PedatChartsContainer data={data} phase={phase} timeUnit={timeUnit} />
+      )}
     </ResponsivePageLayout>
   )
 }

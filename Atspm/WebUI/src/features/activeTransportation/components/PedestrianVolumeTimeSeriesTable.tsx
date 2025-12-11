@@ -4,6 +4,8 @@ import React, { useMemo } from 'react'
 
 const PedestrianVolumeTimeSeriesTable = ({
   data,
+  phase,
+  timeUnit,
 }: PedatChartsContainerProps) => {
   const rows = useMemo(() => {
     return (data ?? [])
@@ -17,30 +19,36 @@ const PedestrianVolumeTimeSeriesTable = ({
           rawData,
         } = loc ?? {}
 
-        return (rawData ?? []).map((r) => ({
-          locationIdentifier: String(locationIdentifier ?? ''),
-          address: String(names ?? ''),
-          timestamp: r?.timestamp,
-          pedestrian: Number(r?.pedestrianCount ?? 0),
-          city: String(areas ?? ''),
-          latitude,
-          longitude,
-        }))
+        return (rawData ?? []).map((r) => {
+          const baseRow = {
+            locationIdentifier: String(locationIdentifier ?? ''),
+            address: String(names ?? ''),
+            timestamp: r?.timestamp,
+            pedestrian: Number(r?.pedestrianCount ?? 0),
+            city: String(areas ?? ''),
+            latitude,
+            longitude,
+          }
+
+          return phase != null && phase !== 'All'
+            ? { ...baseRow, phase }
+            : baseRow
+        })
       })
-      .filter((r) => r.timestamp) // keep valid rows
+      .filter((r) => r.timestamp)
       .sort((a, b) => {
         const ta = new Date(a.timestamp).getTime()
         const tb = new Date(b.timestamp).getTime()
         if (ta !== tb) return ta - tb
         return a.locationIdentifier.localeCompare(b.locationIdentifier)
       })
-  }, [data])
+  }, [data, phase])
 
   return (
     <Box sx={{ mb: 8 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }} gutterBottom>
-          Data By Hour By Location
+          Data By {timeUnit} By Location
         </Typography>
       </Box>
 
@@ -56,6 +64,7 @@ const PedestrianVolumeTimeSeriesTable = ({
           <thead>
             <tr>
               <th style={thStyle}>Signal ID</th>
+              {phase && phase !== 'All' && <th style={thStyle}>Phase</th>}
               <th style={thStyle}>Address</th>
               <th style={thStyle}>Timestamp</th>
               <th style={thStyle}>Count</th>
@@ -68,6 +77,9 @@ const PedestrianVolumeTimeSeriesTable = ({
             {rows.map((row, idx) => (
               <tr key={`${row.locationIdentifier}-${row.timestamp}-${idx}`}>
                 <td style={tdStyle}>{row.locationIdentifier}</td>
+                {phase && phase !== 'All' && (
+                  <td style={tdStyle}>{row.phase}</td>
+                )}
                 <td style={tdStyle}>{row.address}</td>
                 <td style={tdStyle}>
                   {new Date(row.timestamp).toLocaleString()}

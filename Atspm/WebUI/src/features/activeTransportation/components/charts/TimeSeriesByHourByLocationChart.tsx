@@ -8,8 +8,9 @@ import { useMemo } from 'react'
 const TimeSeriesByHourByLocationChart = ({
   data,
   printMode,
+  timeUnit,
 }: PedatChartsContainerProps) => {
-  const base = timeSeriesByHourByLocationTransformer(data || [])
+  const base = timeSeriesByHourByLocationTransformer(data, timeUnit)
 
   const option = useMemo(
     () => applyPrintMode(base, !!printMode),

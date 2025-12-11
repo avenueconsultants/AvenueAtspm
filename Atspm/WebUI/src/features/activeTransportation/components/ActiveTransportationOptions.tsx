@@ -85,7 +85,7 @@ export const ActiveTransportationOptions = ({
           </Box>
         </Paper>
 
-        <StyledPaper sx={{ padding: 3, maxWidth: '350px' }}>
+        <StyledPaper sx={{ padding: 3, maxWidth: '350px', minWidth: '250px' }}>
           <SelectDateTime
             dateFormat={'MMM dd, yyyy'}
             startDateTime={startDate}
@@ -104,11 +104,11 @@ export const ActiveTransportationOptions = ({
               onChange={(e) => setTimeUnit(e.target.value)}
               inputProps={{ id: 'time-unit-input' }}
             >
-              <MenuItem value="Hour">Hour</MenuItem>
-              <MenuItem value="Day">Day</MenuItem>
-              <MenuItem value="Week">Week</MenuItem>
-              <MenuItem value="Month">Month</MenuItem>
-              <MenuItem value="Year">Year</MenuItem>
+              <MenuItem value={0}>Hour</MenuItem>
+              <MenuItem value={1}>Day</MenuItem>
+              <MenuItem value={2}>Week</MenuItem>
+              <MenuItem value={3}>Month</MenuItem>
+              <MenuItem value={4}>Year</MenuItem>
             </Select>
           </FormControl>
         </StyledPaper>

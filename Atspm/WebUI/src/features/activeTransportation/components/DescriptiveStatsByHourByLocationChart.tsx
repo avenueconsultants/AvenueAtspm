@@ -9,6 +9,7 @@ const fmt = (v: unknown) =>
 
 const DescriptiveStatsByHourByLocationTable = ({
   data,
+  timeUnit,
 }: PedatChartsContainerProps) => {
   const rows = useMemo(() => {
     return (data ?? []).map((loc) => {
@@ -32,7 +33,7 @@ const DescriptiveStatsByHourByLocationTable = ({
     <Box sx={{ mb: 2 }}>
       <Box sx={{ textAlign: 'center', mb: 2 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold' }} gutterBottom>
-          Descriptive Statistics By Hour by location
+          Descriptive Statistics By {timeUnit} by Location
         </Typography>
       </Box>
 

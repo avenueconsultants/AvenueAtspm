@@ -87,9 +87,10 @@ const LocationsDisplay = ({
           <Select
             labelId="phase-label"
             label="Phase"
-            value={phase}
-            onChange={(e) => handlePhaseChange(e.target.value as number)}
+            value={phase || 'All'}
+            onChange={(e) => handlePhaseChange(e.target.value as number | '')}
           >
+            <MenuItem value={'All'}>All</MenuItem>
             {pedestrianPhases.length === 0 ? (
               <MenuItem disabled>No phases available</MenuItem>
             ) : (

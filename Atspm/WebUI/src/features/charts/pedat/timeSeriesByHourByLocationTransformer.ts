@@ -50,7 +50,8 @@ function bucketize(row: Loc): Map<string, number> {
 }
 
 export default function timeSeriesByHourByLocationTransformer(
-  data: Loc[] = []
+  data: Loc[] = [],
+  timeUnit: string
 ): EChartsOption {
   const xBuckets = gatherBuckets(data)
   const series = data.map((loc) => {
@@ -68,7 +69,7 @@ export default function timeSeriesByHourByLocationTransformer(
   })
 
   const title = {
-    text: 'Time Series of Pedestrian Volume, by Hour, by Location',
+    text: `Time Series of Pedestrian Volume, by ${timeUnit}, by Location`,
     left: 'center',
   }
 

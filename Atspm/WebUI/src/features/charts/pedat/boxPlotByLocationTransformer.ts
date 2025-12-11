@@ -8,10 +8,11 @@ import {
 import { EChartsOption } from 'echarts'
 
 export default function transformBoxPlotByLocationTransformer(
-  data: PedatChartsContainerProps['data']
+  data: PedatChartsContainerProps['data'],
+  timeUnit: string
 ): EChartsOption {
   const title = {
-    text: 'Box Plot of Pedestrian Volume, by Hour, by Location',
+    text: `Box Plot of Pedestrian Volume, by ${timeUnit}, by Location`,
     left: 'center',
   }
 
