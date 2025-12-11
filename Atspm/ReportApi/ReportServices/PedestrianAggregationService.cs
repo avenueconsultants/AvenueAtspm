@@ -92,7 +92,11 @@ namespace Utah.Udot.Atspm.ReportApi.ReportServices
                 var cycleLength = 0; //Verify this is what we want to do in the case where the cycles dont exist
                 if (!phaseCycleAggEvent.IsNullOrEmpty())
                 {
-                    var allCycles = phaseCycleAggEvent.Sum(i => i.PhaseBeginCount);
+                    int allCycles = phaseCycleAggEvent.Sum(i => i.PhaseBeginCount);
+                    if (allCycles <= 0)
+                    {
+                        allCycles = 1;
+                    }
                     var totalMinutes = (int)(phaseCycleAggEvent.Max(p => p.End) - phaseCycleAggEvent.Min(p => p.Start)).TotalMinutes;
                     cycleLength = totalMinutes / allCycles;
                 }
