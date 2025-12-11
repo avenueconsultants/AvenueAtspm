@@ -10,7 +10,6 @@ const BoxPlotByLocationChart = ({
   printMode,
   timeUnit,
 }: PedatChartsContainerProps) => {
-  console.log('BoxPlotByLocationChart render', { data, printMode, timeUnit })
   const base = transformBoxPlotByLocationTransformer(data, timeUnit)
 
   const option = useMemo(
