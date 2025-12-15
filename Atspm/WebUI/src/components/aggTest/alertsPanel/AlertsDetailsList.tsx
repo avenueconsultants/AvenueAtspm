@@ -1,19 +1,11 @@
+import { GenericDetails } from '@/components/aggTest/incidentDetails/GenericDetails'
 import { IllegalMovementDetails } from '@/components/aggTest/incidentDetails/IllegalMovementDetails'
 import { NearMissDetails } from '@/components/aggTest/incidentDetails/NearMissDetails'
 import { RedLightDetails } from '@/components/aggTest/incidentDetails/RedLightDetails'
 import { WrongWayDetails } from '@/components/aggTest/incidentDetails/WrongWayDetails'
 import { AlertEvent } from '@/components/aggTest/useAlertsHubMock'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import MyLocationIcon from '@mui/icons-material/MyLocation'
-import {
-  Box,
-  Chip,
-  IconButton,
-  List,
-  Stack,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import { Box, Chip, IconButton, List, Stack, Typography } from '@mui/material'
 import { useMemo } from 'react'
 
 type NormalizedIncident = AlertEvent & {
@@ -24,41 +16,11 @@ type NormalizedIncident = AlertEvent & {
 
 export type DetailProps = { e: any }
 
-const fmtTime = (ms?: number) => {
-  if (!ms) return '—'
-  try {
-    return new Date(ms).toLocaleString()
-  } catch {
-    return String(ms)
-  }
-}
-
 export const safeNum = (v: any) =>
   typeof v === 'number' && Number.isFinite(v) ? v : undefined
 
 const eventKey = (e: any) =>
   `${String(e?.type ?? 'unknown')}:${String(e?.id ?? 'noid')}`
-
-type SeverityTone = 'error' | 'warning' | 'success' | 'info'
-const toneFor = (e: any): { label: string; tone: SeverityTone } => {
-  const t = String(e?.type ?? 'unknown')
-  if (t === 'object.wrong-way') {
-    const st = e?.latestEntry?.state ?? e?.log?.[e?.log?.length - 1]?.state
-    if (st === 'course-corrected') return { label: 'resolved', tone: 'success' }
-    if (st === 'tracking-lost') return { label: 'lost', tone: 'info' }
-    return { label: 'active', tone: 'error' }
-  }
-  if (t === 'intersection.near-miss') {
-    return e?.severity === 'critical'
-      ? { label: 'critical', tone: 'error' }
-      : { label: 'unsafe', tone: 'warning' }
-  }
-  if (t === 'intersection.illegal-movement')
-    return { label: 'illegal', tone: 'warning' }
-  if (t === 'intersection.red-light')
-    return { label: 'red-light', tone: 'warning' }
-  return { label: 'info', tone: 'info' }
-}
 
 function flyReqFromIncident(e: any): AlertFlyTo | null {
   const t = String(e?.type ?? '')
@@ -77,32 +39,6 @@ function flyReqFromIncident(e: any): AlertFlyTo | null {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null
 
   return { lat, lng, zoom: 17 } as any
-}
-
-function GenericDetails({ e }: DetailProps) {
-  const keys = Object.keys(e ?? {}).filter(
-    (k) => !['log', 'movements'].includes(k)
-  )
-  return (
-    <Stack spacing={0.75}>
-      {keys.slice(0, 10).map((k) => (
-        <Typography key={k} variant="body2" sx={{ opacity: 0.9 }}>
-          <b>{k}:</b>{' '}
-          {typeof e[k] === 'object' ? JSON.stringify(e[k]) : String(e[k])}
-        </Typography>
-      ))}
-      {Array.isArray(e?.log) ? (
-        <Typography variant="body2" sx={{ opacity: 0.85 }}>
-          <b>log points:</b> {e.log.length}
-        </Typography>
-      ) : null}
-      {Array.isArray(e?.movements) ? (
-        <Typography variant="body2" sx={{ opacity: 0.85 }}>
-          <b>movements:</b> {e.movements.length}
-        </Typography>
-      ) : null}
-    </Stack>
-  )
 }
 
 function AlertDetailsByType({ e }: { e: any }) {
@@ -193,12 +129,6 @@ export default function AlertDetailsPanel({
         <List disablePadding>
           {ordered.map((e: any) => {
             const key = eventKey(e)
-            const when = fmtTime(e?.lastUpdateMs ?? e?.timestamp)
-            const sev = toneFor(e)
-
-            const flyReq = onFlyTo ? flyReqFromIncident(e) : null
-            const canFly = !!flyReq
-
             return (
               <Box
                 key={key}
@@ -209,50 +139,6 @@ export default function AlertDetailsPanel({
                   borderTopColor: 'divider',
                 }}
               >
-                <Stack
-                  direction="row"
-                  spacing={1}
-                  alignItems="flex-start"
-                  justifyContent="space-between"
-                >
-                  {/* left */}
-                  <Stack spacing={0.25} sx={{ minWidth: 0 }}>
-                    <Stack direction="row" spacing={0.75} alignItems="center">
-                      <Typography fontWeight={800} sx={{ lineHeight: 1.1 }}>
-                        #{String(e?.id ?? '—')}
-                      </Typography>
-
-                      {onFlyTo ? (
-                        <Tooltip title={canFly ? 'Jump to' : 'No location'}>
-                          <span>
-                            <IconButton
-                              size="small"
-                              disabled={!canFly}
-                              onClick={() => flyReq && onFlyTo(flyReq)}
-                              sx={{ p: 0.25 }}
-                              aria-label="Jump to"
-                            >
-                              <MyLocationIcon fontSize="small" />
-                            </IconButton>
-                          </span>
-                        </Tooltip>
-                      ) : null}
-                    </Stack>
-
-                    <Typography variant="caption" sx={{ opacity: 0.8 }}>
-                      {when}
-                    </Typography>
-                  </Stack>
-
-                  {/* right */}
-                  <Chip
-                    size="small"
-                    label={sev.label}
-                    color={sev.tone}
-                    variant="contained"
-                  />
-                </Stack>
-
                 <Box sx={{ mt: 1 }}>
                   <AlertDetailsByType e={e} />
                 </Box>

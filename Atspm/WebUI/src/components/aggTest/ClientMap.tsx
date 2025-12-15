@@ -1,8 +1,9 @@
 import { FlyToController } from '@/components/aggTest/FlyToController'
-import type { LatLngExpression } from 'leaflet'
+import { useOverheadDigitalSigns } from '@/components/aggTest/useOverheadDigitalSigns'
+import { type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useMemo } from 'react'
-import { MapContainer, Pane, TileLayer } from 'react-leaflet'
+import { CircleMarker, MapContainer, Pane, TileLayer } from 'react-leaflet'
 
 export type MapPaneSpec = {
   name: string
@@ -40,6 +41,10 @@ export default function BaseMap({
     zoom?: number
   }
 }) {
+  const { data: overheadSigns, isLoading, error } = useOverheadDigitalSigns()
+
+  console.log('Overhead Signs:', overheadSigns, isLoading, error)
+
   const { direct, panes } = useMemo(() => {
     const direct: React.ReactNode[] = []
     const paneMap = new Map<
@@ -86,7 +91,15 @@ export default function BaseMap({
         <TileLayer url={tileUrl} attribution={tileAttribution} />
 
         {direct}
-
+        {overheadSigns?.map((sign, idx) => (
+          <CircleMarker
+            key={`overheadSign-${idx}`}
+            center={[sign.Latitude, sign.Longitude]}
+            radius={4}
+            color="green"
+            fillOpacity={0.8}
+          />
+        ))}
         {panes.map((p) => (
           <Pane
             key={p.name}

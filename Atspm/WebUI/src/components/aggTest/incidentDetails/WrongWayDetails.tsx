@@ -2,6 +2,7 @@ import {
   DetailProps,
   safeNum,
 } from '@/components/aggTest/alertsPanel/AlertsDetailsList'
+import { AlertDetailsHeader } from '@/components/aggTest/incidentDetails/AlertDetailsHeader'
 import { Chip, Stack, Typography } from '@mui/material'
 
 const avg = (xs: number[]) =>
@@ -22,41 +23,52 @@ export function WrongWayDetails({ e }: DetailProps) {
   const stateNow = e?.latestEntry?.state ?? last?.state ?? 'unknown'
 
   return (
-    <Stack spacing={0.75}>
-      <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-        <Chip
-          size="small"
-          label={`state: ${String(stateNow)}`}
-          variant="outlined"
-        />
-        <Chip size="small" label={`points: ${log.length}`} variant="outlined" />
-        <Chip
-          size="small"
-          label={`avg: ${avgSpeed.toFixed(1)} m/s`}
-          variant="outlined"
-        />
-        <Chip
-          size="small"
-          label={`max: ${maxSpeed.toFixed(1)} m/s`}
-          variant="outlined"
-        />
+    <>
+      <AlertDetailsHeader
+        name={'Illegal Movement'}
+        timestamp={e?.lastUpdateMs ?? e?.timestamp}
+        coordinates={e?.object?.position}
+      />
+      <Stack spacing={0.75}>
+        <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+          <Chip
+            size="small"
+            label={`state: ${String(stateNow)}`}
+            variant="outlined"
+          />
+          <Chip
+            size="small"
+            label={`points: ${log.length}`}
+            variant="outlined"
+          />
+          <Chip
+            size="small"
+            label={`avg: ${avgSpeed.toFixed(1)} m/s`}
+            variant="outlined"
+          />
+          <Chip
+            size="small"
+            label={`max: ${maxSpeed.toFixed(1)} m/s`}
+            variant="outlined"
+          />
+        </Stack>
+
+        <Typography variant="body2" sx={{ opacity: 0.9 }}>
+          <b>Object:</b> {String(e?.object?.type ?? '—')} /{' '}
+          {String(e?.object?.classification ?? '—')}
+        </Typography>
+
+        <Typography variant="body2" sx={{ opacity: 0.85 }}>
+          <b>LWH:</b>{' '}
+          {Array.isArray(e?.object?.lwh)
+            ? (e.object.lwh as number[]).map((n) => n.toFixed(1)).join('×')
+            : '—'}
+          &nbsp;·&nbsp;<b>ID:</b>{' '}
+          {Array.isArray(e?.object?.id)
+            ? e.object.id.join(',')
+            : String(e?.object?.id ?? '—')}
+        </Typography>
       </Stack>
-
-      <Typography variant="body2" sx={{ opacity: 0.9 }}>
-        <b>Object:</b> {String(e?.object?.type ?? '—')} /{' '}
-        {String(e?.object?.classification ?? '—')}
-      </Typography>
-
-      <Typography variant="body2" sx={{ opacity: 0.85 }}>
-        <b>LWH:</b>{' '}
-        {Array.isArray(e?.object?.lwh)
-          ? (e.object.lwh as number[]).map((n) => n.toFixed(1)).join('×')
-          : '—'}
-        &nbsp;·&nbsp;<b>ID:</b>{' '}
-        {Array.isArray(e?.object?.id)
-          ? e.object.id.join(',')
-          : String(e?.object?.id ?? '—')}
-      </Typography>
-    </Stack>
+    </>
   )
 }
