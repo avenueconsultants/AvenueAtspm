@@ -1,84 +1,67 @@
-import { useGetLocationLocationsForSearch } from '@/api/config'
-import { useAlertsHub } from '@/components/aggTest/useAlertsHub'
+import AlertsContainer from '@/components/aggTest/alertsPanel/AlertsContainer'
+import { useAlertsHubMock } from '@/components/aggTest/useAlertsHubMock'
+import { Box } from '@mui/material'
 import dynamic from 'next/dynamic'
 import { useMemo, useState } from 'react'
 
 const ClientMap = dynamic(() => import('@/components/aggTest/ClientMap'), {
   ssr: false,
 })
+const AlertsMapLayer = dynamic(
+  () =>
+    import('@/components/aggTest/alertsPanel/AlertsMapLayer').then(
+      (m) => m.AlertsMapLayer
+    ),
+  { ssr: false }
+)
+
+type FlyToReq = {
+  seq: number
+  alertKey: string
+  center: [number, number]
+  zoom?: number
+}
 
 export default function DemoWsMapPage() {
-  const { data: locationsData } = useGetLocationLocationsForSearch()
+  const { state, events } = useAlertsHubMock()
 
-  const allLocations = useMemo(() => {
-    const arr: any[] = (locationsData as any)?.value ?? []
-    return arr
-      .filter(Boolean)
-      .map((l) => ({
-        id: String(
-          l.value ?? l.locationIdentifier ?? l.id ?? l.LocationIdentifier
-        ),
-        x: l.id,
-        lat: Number(l.latitude ?? l.lat ?? l.Latitude),
-        lng: Number(l.longitude ?? l.lon ?? l.lng ?? l.Longitude),
-        raw: l,
-      }))
-      .filter((l) => Number.isFinite(l.lat) && Number.isFinite(l.lng))
-  }, [locationsData])
+  const center = useMemo(() => [40.65311, -111.952445] as [number, number], [])
+  const [flyTo, setFlyTo] = useState<FlyToReq | null>(null)
 
-  const locations = useMemo(() => allLocations, [allLocations])
+  const handleFlyTo = (req: {
+    alertKey: string
+    position: { lat: number; lng: number }
+    zoom?: number
+  }) => {
+    setFlyTo((prev) => ({
+      seq: (prev?.seq ?? 0) + 1,
+      alertKey: req.alertKey,
+      center: [req.position.lat, req.position.lng],
+      zoom: req.zoom ?? 15,
+    }))
+  }
 
-  const [volumes, setVolumes] = useState<Record<string, number>>({})
-  const [dirVolumes, setDirVolumes] = useState<
-    Record<
-      string,
-      Partial<
-        Record<'Northbound' | 'Southbound' | 'Eastbound' | 'Westbound', number>
-      >
-    >
-  >({})
-
-  const { state, alerts } = useAlertsHub({
-    tenantId: 'default',
-  })
-
-  // useEffect(() => {
-  //   if (!batch || Object.keys(batch).length === 0) return
-  //   setVolumes((prev) => ({ ...prev, ...batch }))
-  // }, [batch])
-
-  // useEffect(() => {
-  //   if (!dirBatch || Object.keys(dirBatch).length === 0) return
-  //   setDirVolumes((prev) => {
-  //     const next = { ...prev }
-  //     for (const [id, dirs] of Object.entries(dirBatch)) {
-  //       next[id] = { ...(prev[id] ?? {}), ...dirs }
-  //     }
-  //     return next
-  //   })
-  // }, [dirBatch])
-
-  console.log('alerts:', alerts)
-
-  const center = useMemo(() => {
-    return [39.3, -111.7] as [number, number]
-  }, [])
+  const items = useMemo(() => {
+    return [
+      {
+        id: 'alerts',
+        pane: { name: 'alerts', zIndex: 700 },
+        element: <AlertsMapLayer events={events} />,
+      },
+    ]
+  }, [events])
 
   return (
-    <div
-      style={{ display: 'grid', gridTemplateRows: 'auto 1fr', height: '100vh' }}
-    >
-      <header style={{ padding: '12px 16px', borderBottom: '1px solid #ddd' }}>
-        <strong>Live Volumes</strong>
-        <span style={{ marginLeft: 8 }}>{state}</span>
-      </header>
-      <ClientMap
-        alerts={alerts}
-        center={center}
-        locations={locations}
-        volumes={volumes}
-        dirVolumes={dirVolumes}
-      />
-    </div>
+    <Box display="flex" flexDirection="row" height="89vh" width="98vw">
+      <ClientMap center={center} items={items} height={810} flyTo={flyTo} />
+
+      <Box width={400} height="100%">
+        <AlertsContainer
+          events={events}
+          hubState={state}
+          onFlyTo={handleFlyTo}
+        />
+      </Box>
+    </Box>
   )
 }
