@@ -33,6 +33,7 @@ namespace Utah.Udot.Atspm.Data.Configuration
             builder.Property(e => e.Description).HasMaxLength(50);
             builder.Property(e => e.Description).IsRequired();
 
+            builder.HasData( new Region() { Id = 10,  Description = "Default" } );
         }
     }
 }

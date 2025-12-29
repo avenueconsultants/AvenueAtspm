@@ -801,6 +801,14 @@ namespace Utah.Udot.ATSPM.PostgreSQLDatabaseProvider.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Jurisdictions",
+                columns: new[] { "Id", "Name"},
+                values: new object[,]
+                {
+                    { 1, "Default" },
+                     });
+
+            migrationBuilder.InsertData(
                 table: "LocationTypes",
                 columns: new[] { "Id", "Icon", "Name" },
                 values: new object[,]
@@ -914,6 +922,14 @@ namespace Utah.Udot.ATSPM.PostgreSQLDatabaseProvider.Migrations
                     { 117, 6, "yAxisDefault", "150" },
                     { 118, 3, "yAxisDefault", "180" },
                     { 119, 11, "yAxisDefault", "20" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Regions",
+                columns: new[] { "Id", "Description"},
+                values: new object[,]
+                {
+                    { 10, "Default" },
                 });
 
             migrationBuilder.CreateIndex(

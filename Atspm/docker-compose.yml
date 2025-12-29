@@ -120,11 +120,11 @@ services:
       <<: *default-environment
       ASPNETCORE_URLS: "https://+:5003"
 
-      EmailConfiguration__SmtpEmailService__Host: "${EmailConfiguration__Host}"
-      EmailConfiguration__SmtpEmailService__Port: "${EmailConfiguration__Port}"
-      EmailConfiguration__SmtpEmailService__UserName: "${EmailConfiguration__UserName}"
-      EmailConfiguration__SmtpEmailService__Password: "${EmailConfiguration__Password}"
-      EmailConfiguration__SmtpEmailService__EnableSsl: "${EmailConfiguration__EnableSsl}"
+      EmailConfiguration__SmtpEmailService__Host: "${EmailConfiguration_Host}"
+      EmailConfiguration__SmtpEmailService__Port: "${EmailConfiguration_Port}"
+      EmailConfiguration__SmtpEmailService__UserName: "${EmailConfiguration_UserName}"
+      EmailConfiguration__SmtpEmailService__Password: "${EmailConfiguration_Password}"
+      EmailConfiguration__SmtpEmailService__EnableSsl: "${EmailConfiguration_EnableSsl}"
     volumes:      
       - ${CERT_LOCATION}
     depends_on:
