@@ -62,7 +62,7 @@ namespace Utah.Udot.ATSPM.DataApi.Services
                 .GroupBy(e => DateOnly.FromDateTime(e.Timestamp))
                 .OrderBy(g => g.Key);
 
-            var archiveDate = DateOnly.Parse(DateTime.Now.ToString());
+            var archiveDate = DateOnly.FromDateTime(DateTime.Now);
 
             foreach (var dayGroup in groupedByDay)
             {
