@@ -49,6 +49,6 @@ namespace Utah.Udot.Atspm.Data.Enums
 
         /// <summary>
         /// Supports MQQT Protocol
-        Mqqt
+        Mqtt
     }
 }
