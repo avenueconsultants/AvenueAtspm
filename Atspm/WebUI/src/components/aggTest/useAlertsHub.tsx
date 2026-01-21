@@ -1,6 +1,7 @@
-// hooks/useAlertsHub.ts
 import * as signalR from '@microsoft/signalr'
 import { useEffect, useMemo, useRef, useState } from 'react'
+
+type SourcePayload = Record<string, unknown>
 
 export type AlertPayload = {
   code: number
@@ -9,8 +10,9 @@ export type AlertPayload = {
   url?: string | null
   tenantId?: string
   timestampUtc: string
-  severity: string
+  severity: string | number
   category?: string | null
+  sourcePayload?: SourcePayload | null
 }
 
 export function useAlertsHub(opts?: {
@@ -20,16 +22,17 @@ export function useAlertsHub(opts?: {
   skipNegotiation?: boolean
 }) {
   const tenantId = opts?.tenantId ?? 'default'
-  const locationIds = opts?.locationIds ?? []
-  const withCreds = opts?.withCredentials ?? false
-  const skipNeg = opts?.skipNegotiation ?? false
+  const locationIds = useMemo(
+    () => opts?.locationIds ?? ['blueband-1'],
+    [opts?.locationIds]
+  )
+  const withCreds = opts?.withCredentials ?? true
+  const skipNeg = opts?.skipNegotiation ?? true
 
   const [alerts, setAlerts] = useState<AlertPayload[]>([])
   const connRef = useRef<signalR.HubConnection | null>(null)
 
-  // IMPORTANT: matches MapHub + dev port
-  const url = useMemo(() => 'https://localhost:44322/hubs/stats', [])
-  const locKey = useMemo(() => locationIds.join('|'), [locationIds])
+  const url = useMemo(() => 'http://10.20.100.71:30080/hubs/stats', [])
 
   useEffect(() => {
     const conn = new signalR.HubConnectionBuilder()
@@ -43,42 +46,26 @@ export function useAlertsHub(opts?: {
 
     connRef.current = conn
 
-    conn.on('alert', (payload: any) => {
-      const code = Number(payload?.code ?? payload?.Code)
-      const message = String(payload?.message ?? payload?.Message ?? '')
-      const locationIdentifier = String(
-        payload?.locationIdentifier ?? payload?.LocationIdentifier ?? ''
-      )
-      const urlVal = payload?.url ?? payload?.Url ?? null
-      const tenantIdVal = payload?.tenantId ?? payload?.TenantId
-      const timestampUtc = String(
-        payload?.timestampUtc ?? payload?.TimestampUtc ?? ''
-      )
-      const severity = String(payload?.severity ?? payload?.Severity ?? '')
-      const category = payload?.category ?? payload?.Category ?? null
+    conn.off('alert')
 
-      if (
-        !message ||
-        !locationIdentifier ||
-        !timestampUtc ||
-        Number.isNaN(code)
-      ) {
-        return
+    conn.on('alert', (payload) => {
+      const sourcePayloadJson = (payload?.sourcePayloadJson ??
+        payload?.SourcePayloadJson ??
+        null) as string | null
+
+      const alert: AlertPayload = {
+        code: payload?.code,
+        message: payload?.message,
+        locationIdentifier: payload?.locationIdentifier,
+        url: payload?.url,
+        tenantId: payload?.tenantId,
+        timestampUtc: payload?.timestampUtc,
+        severity: payload?.severity,
+        category: payload?.category,
+        sourcePayload: safeJsonParse(sourcePayloadJson),
       }
 
-      setAlerts((prev) => [
-        ...prev,
-        {
-          code,
-          message,
-          locationIdentifier,
-          url: urlVal,
-          tenantId: tenantIdVal,
-          timestampUtc,
-          severity,
-          category,
-        },
-      ])
+      setAlerts((prev) => [...prev, alert])
     })
 
     const rejoin = async () => {
@@ -86,19 +73,35 @@ export function useAlertsHub(opts?: {
       for (const loc of locationIds) await conn.invoke('JoinLocation', loc)
     }
 
-    conn.onreconnected(rejoin)
+    conn.onreconnected(() => rejoin())
     ;(async () => {
-      await conn.start()
-      await rejoin()
+      try {
+        await conn.start()
+        await rejoin()
+      } catch (e) {
+        console.error('[signalr] start failed', e)
+      }
     })()
 
     return () => {
       conn.stop()
     }
-  }, [url, tenantId, locKey, withCreds, skipNeg])
+  }, [url, tenantId, withCreds, skipNeg, locationIds])
 
   return {
-    state: connRef.current?.state ?? ('Disconnected' as const),
+    state: connRef.current?.state ?? 'Disconnected',
     alerts,
+  }
+}
+
+function safeJsonParse(input: unknown) {
+  if (typeof input !== 'string') return null
+  try {
+    const parsed = JSON.parse(input)
+    return parsed && typeof parsed === 'object'
+      ? (parsed as SourcePayload)
+      : null
+  } catch {
+    return null
   }
 }
