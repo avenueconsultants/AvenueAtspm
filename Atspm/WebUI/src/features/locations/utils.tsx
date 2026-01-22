@@ -44,22 +44,38 @@ export async function createPinWithIcon({
   MuiIcon,
   iconSize = 17,
   offset = -1,
+  scale = 1,
 }: {
   color: string
   MuiIcon: SvgIconComponent
   iconSize?: number
   offset?: number
+  scale?: number
 }): Promise<L.DivIcon> {
-  // Dynamically import Leaflet
   const L = await import('leaflet')
+
+  const pinW = 25
+  const pinH = 60
+  const badge = 19
+  const badgeTop = 13
+  const badgeLeft = 3
+
+  const w = pinW * scale
+  const h = pinH * scale
+  const badgeSize = badge * scale
 
   return L.divIcon({
     html: ReactDOMServer.renderToString(
-      <div style={{ position: 'relative', width: '25px', height: '60px' }}>
-        {/* The pin */}
+      <div
+        style={{
+          position: 'relative',
+          width: `${w}px`,
+          height: `${h}px`,
+        }}
+      >
         <svg
-          width="25"
-          height="60"
+          width={w}
+          height={h}
           viewBox="0 0 902 1444"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -77,14 +93,13 @@ export async function createPinWithIcon({
           />
         </svg>
 
-        {/* Badge */}
         <div
           style={{
             position: 'absolute',
-            top: '13px',
-            left: '3px',
-            width: '19px',
-            height: '19px',
+            top: `${badgeTop * scale}px`,
+            left: `${badgeLeft * scale}px`,
+            width: `${badgeSize}px`,
+            height: `${badgeSize}px`,
             backgroundColor: 'white',
             borderRadius: '50%',
             display: 'flex',
@@ -93,16 +108,18 @@ export async function createPinWithIcon({
           }}
         >
           <MuiIcon
-            style={{ fontSize: iconSize, color: 'black', marginLeft: offset }}
+            style={{
+              fontSize: iconSize * scale,
+              color: 'black',
+              marginLeft: offset * scale,
+            }}
           />
         </div>
       </div>
     ),
     className: '',
-    iconSize: [25, 40],
-    iconAnchor: [13, 48],
-    shadowSize: [40, 40],
-    shadowAnchor: [40, 62],
+    iconSize: [pinW * scale, 40 * scale],
+    iconAnchor: [13 * scale, 48 * scale],
   })
 }
 

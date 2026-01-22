@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 type SourcePayload = Record<string, unknown>
 
 export type AlertPayload = {
+  id: number
   code: number
   message: string
   locationIdentifier: string
@@ -62,7 +63,8 @@ export function useAlertsHub(opts?: {
         severity: payload?.severity,
         category: payload?.category,
         sourcePayload: sourcePayloadJson,
-        type: sourcePayloadJson?.type,
+        type: sourcePayloadJson?.type ?? null,
+        id: sourcePayloadJson?.id ?? null,
       }
 
       setAlerts((prev) => [...prev, alert])
