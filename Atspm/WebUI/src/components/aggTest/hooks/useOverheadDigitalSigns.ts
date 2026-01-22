@@ -6,14 +6,18 @@ import { useQuery, type UseQueryOptions } from 'react-query'
  */
 const DEFAULT_API_ROUTE = '/api/messagesigns'
 
-/**
- * UDOT's shape can change; keep this flexible until you want to lock it down.
- */
-export type OverheadDigitalSign = Record<string, any>
-export type OverheadDigitalSignsResponse =
-  | OverheadDigitalSign[]
-  | { data?: OverheadDigitalSign[]; [k: string]: any }
-  | any
+export interface OverheadDigitalSign {
+  Id: number
+  Name: string
+  Roadway: string
+  DirectionOfTravel: string
+  Messages: string[]
+  Latitude: number
+  Longitude: number
+  LastUpdated: string
+}
+
+export type OverheadDigitalSignsResponse = OverheadDigitalSign[]
 
 async function fetchOverheadDigitalSigns({
   signal,
@@ -46,7 +50,7 @@ async function fetchOverheadDigitalSigns({
   try {
     return JSON.parse(text)
   } catch {
-    return text as any
+    return text as unknown as OverheadDigitalSignsResponse
   }
 }
 

@@ -13,6 +13,7 @@ export type AlertPayload = {
   severity: string | number
   category?: string | null
   sourcePayload?: SourcePayload | null
+  type?: string | null
 }
 
 export function useAlertsHub(opts?: {
@@ -49,9 +50,7 @@ export function useAlertsHub(opts?: {
     conn.off('alert')
 
     conn.on('alert', (payload) => {
-      const sourcePayloadJson = (payload?.sourcePayloadJson ??
-        payload?.SourcePayloadJson ??
-        null) as string | null
+      const sourcePayloadJson = safeJsonParse(payload?.sourcePayloadJson)
 
       const alert: AlertPayload = {
         code: payload?.code,
@@ -62,7 +61,8 @@ export function useAlertsHub(opts?: {
         timestampUtc: payload?.timestampUtc,
         severity: payload?.severity,
         category: payload?.category,
-        sourcePayload: safeJsonParse(sourcePayloadJson),
+        sourcePayload: sourcePayloadJson,
+        type: sourcePayloadJson?.type,
       }
 
       setAlerts((prev) => [...prev, alert])
