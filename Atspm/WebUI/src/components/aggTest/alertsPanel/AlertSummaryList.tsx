@@ -1,12 +1,15 @@
 import { List } from '@mui/material'
 import AlertSummaryRow from './AlertSummaryRow'
 
-export type AlertSummaryListItem = {
+interface AlertSummaryListItem {
   type: string
   label: string
   count: number
+  isActive: boolean
   color: string
+  onSelectType: () => void
 }
+;[]
 
 export default function AlertSummaryList({
   items,

@@ -1,74 +1,114 @@
-import {
-  DetailProps,
-  safeNum,
-} from '@/components/aggTest/alertsPanel/AlertsDetailsList'
+import { ActiveEventGroup } from '@/components/aggTest/alertsPanel/AlertsContainer'
 import { AlertDetailsHeader } from '@/components/aggTest/incidentDetails/AlertDetailsHeader'
-import { Chip, Stack, Typography } from '@mui/material'
+import { Box, Chip, Stack } from '@mui/material'
 
-const avg = (xs: number[]) =>
-  xs.length ? xs.reduce((a, b) => a + b, 0) / xs.length : 0
+type SourceLogEntry = {
+  speed?: number
+  state?: string
+  timestamp?: number
+}
 
-export function WrongWayDetails({ e }: DetailProps) {
-  const log = (e?.log ?? []) as Array<{
-    speed: number
-    state: string
-    timestamp: number
-  }>
-  const last = log.length ? log[log.length - 1] : null
+type SourcePayloadLite = {
+  log?: SourceLogEntry[]
+}
 
-  const speeds = log.map((x) => safeNum(x.speed) ?? 0).filter((n) => n > 0)
-  const avgSpeed = avg(speeds)
-  const maxSpeed = speeds.length ? Math.max(...speeds) : 0
+const pickLatestEvent = (events: ActiveEventGroup['events']) => {
+  if (!events?.length) return null
+  return events.reduce((best, cur) => {
+    const bt = Date.parse(best.timestampUtc)
+    const ct = Date.parse(cur.timestampUtc)
+    if (!Number.isFinite(bt)) return cur
+    if (!Number.isFinite(ct)) return best
+    return ct >= bt ? cur : best
+  }, events[0])
+}
 
-  const stateNow = e?.latestEntry?.state ?? last?.state ?? 'unknown'
+const getAllLogs = (events: ActiveEventGroup['events']): SourceLogEntry[] => {
+  const merged: SourceLogEntry[] = []
+  for (const ev of events ?? []) {
+    const sp = ev.sourcePayload as unknown as SourcePayloadLite | null
+    const log = sp?.log
+    if (Array.isArray(log)) merged.push(...log)
+  }
+  const key = (x: SourceLogEntry) =>
+    `${String(x.timestamp ?? '')}|${String(x.state ?? '')}|${String(x.speed ?? '')}`
+  const seen = new Set<string>()
+  const uniq: SourceLogEntry[] = []
+  for (const x of merged) {
+    const k = key(x)
+    if (seen.has(k)) continue
+    seen.add(k)
+    uniq.push(x)
+  }
+  uniq.sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
+  return uniq
+}
+
+const lastLogEntry = (logs: SourceLogEntry[]) =>
+  logs.length ? logs[logs.length - 1] : null
+
+const formatDuration = (ms: number) => {
+  if (!Number.isFinite(ms) || ms < 0) return '—'
+  const s = Math.round(ms / 1000)
+  if (s < 60) return `${s}s`
+  const m = Math.floor(s / 60)
+  const rs = s % 60
+  if (m < 60) return `${m}m ${rs}s`
+  const h = Math.floor(m / 60)
+  const rm = m % 60
+  return `${h}h ${rm}m`
+}
+
+export function WrongWayDetails({ e }: { e: ActiveEventGroup }) {
+  const latest = pickLatestEvent(e.events)
+  const logs = getAllLogs(e.events)
+  const last = lastLogEntry(logs)
+
+  const title = latest?.locationIdentifier ?? '—'
+
+  const state = last?.state ?? 'unknown'
+
+  const speedMph = last?.speed
+
+  const startTs = logs.find((x) => typeof x.timestamp === 'number')?.timestamp
+  const endTs =
+    state.includes('lost') && last?.timestamp != null
+      ? last.timestamp
+      : Date.now()
+
+  const durationMs =
+    typeof startTs === 'number' && Number.isFinite(startTs)
+      ? endTs - startTs
+      : NaN
+
+  const headerTs = Date.parse(e.lastUpdateUtc)
+  const headerTimestamp = Number.isFinite(headerTs) ? headerTs : undefined
 
   return (
-    <>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <AlertDetailsHeader
-        name={'Illegal Movement'}
-        timestamp={e?.lastUpdateMs ?? e?.timestamp}
-        coordinates={e?.object?.position}
+        name={title}
+        timestamp={headerTimestamp}
+        coordinates={undefined}
       />
+
       <Stack spacing={0.75}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
+          <Chip size="small" label={state} variant="outlined" />
           <Chip
             size="small"
-            label={`state: ${String(stateNow)}`}
+            label={`tracked: ${formatDuration(durationMs)}`}
             variant="outlined"
           />
-          <Chip
-            size="small"
-            label={`points: ${log.length}`}
-            variant="outlined"
-          />
-          <Chip
-            size="small"
-            label={`avg: ${avgSpeed.toFixed(1)} m/s`}
-            variant="outlined"
-          />
-          <Chip
-            size="small"
-            label={`max: ${maxSpeed.toFixed(1)} m/s`}
-            variant="outlined"
-          />
+          {speedMph != null && (
+            <Chip
+              size="small"
+              label={`${speedMph.toFixed(1)} mph`}
+              variant="outlined"
+            />
+          )}
         </Stack>
-
-        <Typography variant="body2" sx={{ opacity: 0.9 }}>
-          <b>Object:</b> {String(e?.object?.type ?? '—')} /{' '}
-          {String(e?.object?.classification ?? '—')}
-        </Typography>
-
-        <Typography variant="body2" sx={{ opacity: 0.85 }}>
-          <b>LWH:</b>{' '}
-          {Array.isArray(e?.object?.lwh)
-            ? (e.object.lwh as number[]).map((n) => n.toFixed(1)).join('×')
-            : '—'}
-          &nbsp;·&nbsp;<b>ID:</b>{' '}
-          {Array.isArray(e?.object?.id)
-            ? e.object.id.join(',')
-            : String(e?.object?.id ?? '—')}
-        </Typography>
       </Stack>
-    </>
+    </Box>
   )
 }

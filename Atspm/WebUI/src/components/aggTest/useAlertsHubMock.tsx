@@ -1,542 +1,258 @@
-// hooks/useAlertsHubMock.ts
-import { useEffect, useRef, useState } from 'react'
+// hooks/useAlertsMock.ts
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-type LatLngAlt = [number, number, number]
-type Heading = 'nb' | 'sb' | 'eb' | 'wb'
-type MovementType = 'left' | 'right' | 'through' | 'u-turn' | 'pedestrian'
-type ObjectType =
-  | 'vehicle'
-  | 'pedestrian'
-  | 'cyclist'
-  | 'unclassified'
-  | 'animal'
-  | 'aircraft'
-  | 'railcar'
+type SourcePayload = Record<string, unknown>
 
-type ObjectCommon = {
-  classification: string
-  id: [number, number]
-  lwh: [number, number, number]
-  type: ObjectType
-  position: LatLngAlt
-  speed: number // m/s
-}
-
-export type WrongWayAlert = {
-  detector: number
+export type AlertPayload = {
   id: number
-  log: {
-    position: LatLngAlt
-    speed: number
-    state: 'tracking' | 'tracking-lost' | 'course-corrected' | string
-    timestamp: number
-  }[]
-  object: {
-    classification: string
-    id: [number, number]
-    lwh: [number, number, number]
-    type: ObjectType
-  }
-  recording: number
-  timestamp: number // created time (ms)
-  type: 'object.wrong-way' | string
+  code: number
+  message: string
+  locationIdentifier: string
+  url?: string | null
+  tenantId?: string
+  timestampUtc: string
+  severity: string | number
+  category?: string | null
+  sourcePayload: SourcePayload
+  type: string
 }
 
-export type IllegalMovementAlert = {
-  detector: number
-  id: number
-  type: 'intersection.illegal-movement' | string
-  movement: {
-    heading: Heading
-    type: 'through' | 'left' | 'right' | 'u-turn' | 'pedestrian'
-    zone: number
-  }
-  object: ObjectCommon
-  recording: number
-  timestamp: number
+type UseAlertsMockOpts = {
+  tenantId?: string
+  locationIds?: string[]
+
+  /**
+   * Per-type retention window (ms).
+   * Example:
+   *  { 'object.wrong-way': 5 * 60_000, 'object.jaywalker': 60_000 }
+   */
+  ttlByTypeMs?: Record<string, number>
+
+  /** Fallback TTL when type isn’t in ttlByTypeMs (ms). */
+  defaultTtlMs?: number
+
+  /** How often to prune even if no new events arrive (ms). */
+  pruneEveryMs?: number
+
+  /** Safety cap to prevent unbounded growth. */
+  maxAlerts?: number
+
+  /** How often to emit mock events (ms). */
+  emitEveryMs?: number
+
+  /** Chance [0..1] per tick to emit an event. */
+  emitProbability?: number
+
+  /** Types to emit (defaults provided). */
+  types?: string[]
 }
 
-export type NearMissAlert = {
-  detector: number
-  id: number
-  type: 'intersection.near-miss' | string
-  timestamp: number
-  recording: number
-  intersect: LatLngAlt
-  pet: number // ms
-  severity: 'unsafe' | 'critical'
-  leading: {
-    id: [number, number]
-    type: ObjectType
-    classification: string
-    lwh: [number, number, number]
-    speed: number
-    position: LatLngAlt
-  }
-  trailing: {
-    id: [number, number]
-    type: ObjectType
-    classification: string
-    lwh: [number, number, number]
-    speed: number
-    position: LatLngAlt
-  }
-}
+export function useAlertsMock(opts?: UseAlertsMockOpts) {
+  const tenantId = opts?.tenantId ?? 'default'
+  const locationIds = useMemo(
+    () => opts?.locationIds ?? ['blueband-1'],
+    [opts?.locationIds]
+  )
 
-export type RedLightAlert = {
-  detector: number
-  id: number
-  type: 'intersection.red-light' | string
-  timestamp: number
-  recording: number
-  object: {
-    id: [number, number]
-    type: ObjectType
-    classification: string
-    lwh: [number, number, number]
-    speed: number
-    position: LatLngAlt
-  }
-  movement: {
-    heading: Heading
-    type: MovementType
-    certainty: 'realized' | 'unrealized'
-    ppt: number // ms
-  }
-  movements: {
-    heading: Heading
-    type: MovementType
-    timestamp: number
-    duration: number
-    indication:
-      | 'none'
-      | 'red'
-      | 'yellow'
-      | 'green'
-      | 'prepare-to-go'
-      | 'flashing-green'
-      | 'flashing-yellow'
-      | 'flashing-red'
-      | 'fya'
-      | 'fra'
-      | 'dont-walk'
-      | 'flashing-dont-walk'
-      | 'walk'
-    state: 'protected' | 'permissive' | 'permissive-after-stop' | 'prohibited'
-  }[]
-}
+  const ttlByTypeMs = useMemo(
+    () =>
+      opts?.ttlByTypeMs ?? {
+        'object.wrong-way': 20_000,
+      },
+    [opts?.ttlByTypeMs]
+  )
+  const defaultTtlMs = opts?.defaultTtlMs ?? 2 * 60_000
+  const pruneEveryMs = opts?.pruneEveryMs ?? 5_000
+  const maxAlerts = opts?.maxAlerts ?? 2000
 
-export type AlertEvent =
-  | WrongWayAlert
-  | IllegalMovementAlert
-  | NearMissAlert
-  | RedLightAlert
+  const emitEveryMs = opts?.emitEveryMs ?? 800
+  const emitProbability = opts?.emitProbability ?? 0.85
+  const types = useMemo(
+    () =>
+      opts?.types ?? [
+        'object.wrong-way',
+        'object.jaywalker',
+        'object.illegal-movement',
+        'object.stopped-vehicle',
+      ],
+    [opts?.types]
+  )
 
-function randBetween(min: number, max: number) {
-  return min + Math.random() * (max - min)
-}
-function randInt(min: number, max: number) {
-  return Math.floor(randBetween(min, max + 1))
-}
-function pick<T>(arr: readonly T[]) {
-  return arr[Math.floor(Math.random() * arr.length)]
-}
+  const [alerts, setAlerts] = useState<AlertPayload[]>([])
+  const nextIdRef = useRef(1)
 
-const HEADINGS: readonly Heading[] = ['nb', 'sb', 'eb', 'wb']
-const MOVE_TYPES: readonly MovementType[] = [
-  'left',
-  'right',
-  'through',
-  'u-turn',
-  'pedestrian',
-]
-const OBJ_TYPES: readonly ObjectType[] = [
-  'vehicle',
-  'pedestrian',
-  'cyclist',
-  'unclassified',
-]
+  const state = 'MockConnected'
 
-type ActiveWrongWay = {
-  id: number
-  detector: number
-  createdAtMs: number
-  recording: number
-  object: WrongWayAlert['object']
-  log: WrongWayAlert['log']
-  lat: number
-  lng: number
-  headingRad: number
-  turnCountdown: number
-  turning: boolean
-  turnRateRad: number
-  frameIndex: number
-  maxFrames: number
-}
+  const getTtlMs = useCallback(
+    (type: string | null | undefined) =>
+      ttlByTypeMs[type ?? ''] ?? defaultTtlMs,
+    [defaultTtlMs, ttlByTypeMs]
+  )
 
-export function useAlertsHubMock() {
-  const [events, setEvents] = useState<AlertEvent[]>([])
-  const [state, setState] = useState<
-    'Disconnected' | 'Connecting' | 'Connected'
-  >('Connecting')
+  const prune = useCallback(
+    (xs: AlertPayload[], nowMs: number) => {
+      const keep: AlertPayload[] = []
+      for (const a of xs) {
+        const ts = Date.parse(a.timestampUtc)
+        if (!Number.isFinite(ts)) continue
+        const age = nowMs - ts
+        if (age <= getTtlMs(a.type)) keep.push(a)
+      }
 
-  const startedRef = useRef(false)
-  const idCounterRef = useRef(9057)
+      keep.sort(
+        (a, b) => Date.parse(b.timestampUtc) - Date.parse(a.timestampUtc)
+      )
+      if (keep.length > maxAlerts) keep.length = maxAlerts
+      return keep
+    },
+    [maxAlerts, getTtlMs]
+  )
 
-  // base point (Utah-ish)
-  const BASE_LAT = 40.65311
-  const BASE_LNG = -111.952445
+  const makeMockAlert = useCallback((): AlertPayload => {
+    const type = pick(types)
+    const id = nextIdRef.current++
 
-  // one message per second
-  const TICK_MS = 2000
+    const loc = locationIds.length > 0 ? pick(locationIds) : 'blueband-1'
+    const detector = randInt(1, 6)
 
-  // cap stored messages so sidebar doesn’t grow forever
-  const MAX_MESSAGES = 250
+    const lat = 40.63 + randFloat(-0.02, 0.02)
+    const lng = -111.94 + randFloat(-0.02, 0.02)
+    const speed = Math.max(0, randFloat(0, 45))
 
-  // wrong-way active incident state
-  const activeWrongWayRef = useRef<ActiveWrongWay | null>(null)
+    const nowIso = new Date().toISOString()
 
-  // movement tuning for wrong-way (degrees are in lat/lng space, not meters)
-  const STEP = 0.00022
-  const JITTER = 0.00001
+    const sourcePayload: SourcePayload = {
+      detector,
+      id,
+      type,
+      timestamp: Date.now(),
+      recording: 0,
+      object: {
+        classification: pick(['car', 'truck', 'person', 'bicycle']),
+        id: [randInt(1000, 99999), Date.now() - randInt(0, 5000)],
+        lwh: null,
+        type: pick(['vehicle', 'person']),
+        description: {
+          color: pick(['red', 'white', 'black', 'silver', 'undefined']),
+          confidence: randFloat(0.2, 0.99),
+          'license-plate': null,
+          make: null,
+          model: null,
+          year: null,
+        },
+      },
+      log: [
+        {
+          position: [lat, lng, 0],
+          speed,
+          state: pick(['tracking', 'stopped', 'lost']),
+          timestamp: Date.now(),
+        },
+      ],
+    }
 
-  const randomNearby = (): LatLngAlt => {
-    const lat = BASE_LAT + randBetween(-0.1, 0.1)
-    const lng = BASE_LNG + randBetween(-0.1, 0.1)
-    return [lat, lng, 0.0]
-  }
-
-  const randomLwh = (): [number, number, number] => [
-    randBetween(3.2, 5.2),
-    randBetween(1.6, 2.2),
-    randBetween(1.3, 2.2),
-  ]
-
-  const makeObjectCommon = (ts: number, pos: LatLngAlt): ObjectCommon => {
-    const objType = pick(OBJ_TYPES)
-    const classification =
-      objType === 'vehicle'
-        ? pick(['car', 'truck', 'van'])
-        : objType === 'pedestrian'
-          ? 'pedestrian'
-          : objType === 'cyclist'
-            ? 'bicycle'
-            : 'unknown'
+    const code = codeForType(type)
+    const msg = messageFor(type, { detector, speed, lat, lng })
 
     return {
-      classification,
-      id: [randInt(1, 9999), ts],
-      lwh: randomLwh(),
-      type: objType,
-      position: pos,
-      speed: randBetween(1.0, 18.0),
-    }
-  }
-
-  const maybeRecording = (chance: number, id: number) =>
-    Math.random() < chance ? 10_000 + (id % 10_000) : 0
-
-  const emit = (evt: AlertEvent) => {
-    setEvents((prev) => {
-      const next = [...prev, evt]
-      return next.length > MAX_MESSAGES
-        ? next.slice(next.length - MAX_MESSAGES)
-        : next
-    })
-  }
-
-  const chooseTurnBehavior = (a: ActiveWrongWay) => {
-    a.turnCountdown = randInt(6, 16)
-    a.turning = Math.random() < 0.4
-    if (a.turning) {
-      const dir = Math.random() < 0.5 ? -1 : 1
-      a.turnRateRad = dir * randBetween(0.03, 0.09)
-    } else {
-      a.turnRateRad = randBetween(-0.01, 0.01)
-    }
-  }
-
-  const ensureWrongWayActive = () => {
-    if (activeWrongWayRef.current) return
-
-    const id = ++idCounterRef.current
-    const createdAtMs = Date.now()
-    const detector = randInt(1, 4)
-
-    const [lat, lng] = randomNearby()
-    const object: WrongWayAlert['object'] = {
-      classification: 'car',
-      id: [randInt(1, 9999), createdAtMs],
-      lwh: randomLwh(),
-      type: 'vehicle',
-    }
-
-    const firstLog: WrongWayAlert['log'] = [
-      {
-        position: [lat, lng, 0.0],
-        speed: randBetween(14, 22),
-        state: 'tracking',
-        timestamp: createdAtMs,
-      },
-    ]
-
-    const active: ActiveWrongWay = {
       id,
-      detector,
-      createdAtMs,
-      recording: 0,
-      object,
-      log: firstLog,
-      lat,
-      lng,
-      // start “north-ish”
-      headingRad: randBetween(Math.PI * 0.35, Math.PI * 0.65),
-      turnCountdown: randInt(6, 16),
-      turning: false,
-      turnRateRad: 0,
-      frameIndex: 0,
-      maxFrames: randInt(20, 60),
+      code,
+      message: msg,
+      locationIdentifier: `detector-${loc}`,
+      url: null,
+      tenantId,
+      timestampUtc: nowIso,
+      severity: severityForType(type),
+      category: null,
+      sourcePayload,
+      type,
     }
+  }, [locationIds, tenantId, types])
 
-    chooseTurnBehavior(active)
-    activeWrongWayRef.current = active
-  }
-
-  const stepWrongWayAndEmit = () => {
-    ensureWrongWayActive()
-    const active = activeWrongWayRef.current
-    if (!active) return
-
-    const now = Date.now()
-
-    active.turnCountdown -= 1
-    if (active.turnCountdown <= 0) chooseTurnBehavior(active)
-
-    active.headingRad += active.turnRateRad + randBetween(-0.006, 0.006)
-
-    const dLat = Math.cos(active.headingRad) * STEP
-    const dLng = Math.sin(active.headingRad) * STEP
-
-    active.lat += dLat + randBetween(-JITTER, JITTER)
-    active.lng += dLng + randBetween(-JITTER, JITTER)
-
-    active.frameIndex += 1
-    const isLast = active.frameIndex >= active.maxFrames
-
-    if (
-      active.recording === 0 &&
-      active.frameIndex > 8 &&
-      Math.random() < 0.08
-    ) {
-      active.recording = 10_000 + (active.id % 10_000)
-    }
-
-    const stateVal: WrongWayAlert['log'][number]['state'] = isLast
-      ? 'tracking-lost'
-      : 'tracking'
-
-    active.log = [
-      ...active.log,
-      {
-        position: [active.lat, active.lng, 0.0],
-        speed: randBetween(14, 22),
-        state: stateVal,
-        timestamp: now,
-      },
-    ]
-
-    emit({
-      detector: active.detector,
-      id: active.id,
-      log: active.log,
-      object: active.object,
-      recording: active.recording,
-      timestamp: active.createdAtMs, // created time stays constant
-      type: 'object.wrong-way',
-    })
-
-    if (isLast) {
-      activeWrongWayRef.current = null
-    }
-  }
-
-  const emitIllegalMovement = () => {
-    const now = Date.now()
-    const id = ++idCounterRef.current
-    const detector = randInt(1, 4)
-    const pos = randomNearby()
-    emit({
-      detector,
-      id,
-      type: 'intersection.illegal-movement',
-      movement: {
-        heading: pick(HEADINGS),
-        type: pick([
-          'through',
-          'left',
-          'right',
-          'u-turn',
-          'pedestrian',
-        ] as const),
-        zone: randInt(1, 40),
-      },
-      object: makeObjectCommon(now, pos),
-      recording: maybeRecording(0.12, id),
-      timestamp: now,
-    })
-  }
-
-  const emitNearMiss = () => {
-    const now = Date.now()
-    const id = ++idCounterRef.current
-    const detector = randInt(1, 4)
-
-    const intersect = randomNearby()
-    const leadPos: LatLngAlt = [
-      intersect[0] + randBetween(-0.00035, 0.00035),
-      intersect[1] + randBetween(-0.00035, 0.00035),
-      0.0,
-    ]
-    const trailPos: LatLngAlt = [
-      intersect[0] + randBetween(-0.00035, 0.00035),
-      intersect[1] + randBetween(-0.00035, 0.00035),
-      0.0,
-    ]
-
-    const leadingObj = makeObjectCommon(now, leadPos)
-    const trailingObj = makeObjectCommon(now + 1, trailPos)
-
-    emit({
-      detector,
-      id,
-      type: 'intersection.near-miss',
-      timestamp: now,
-      recording: maybeRecording(0.2, id),
-      intersect,
-      pet: randInt(200, 2200),
-      severity: Math.random() < 0.35 ? 'critical' : 'unsafe',
-      leading: {
-        id: leadingObj.id,
-        type: leadingObj.type,
-        classification: leadingObj.classification,
-        lwh: leadingObj.lwh,
-        speed: leadingObj.speed,
-        position: leadingObj.position,
-      },
-      trailing: {
-        id: trailingObj.id,
-        type: trailingObj.type,
-        classification: trailingObj.classification,
-        lwh: trailingObj.lwh,
-        speed: trailingObj.speed,
-        position: trailingObj.position,
-      },
-    })
-  }
-
-  const emitRedLight = () => {
-    const now = Date.now()
-    const id = ++idCounterRef.current
-    const detector = randInt(1, 4)
-    const pos = randomNearby()
-
-    const objType = pick(OBJ_TYPES)
-    const classification =
-      objType === 'vehicle'
-        ? pick(['car', 'truck', 'van'])
-        : objType === 'pedestrian'
-          ? 'pedestrian'
-          : objType === 'cyclist'
-            ? 'bicycle'
-            : 'unknown'
-
-    const movementHeading = pick(HEADINGS)
-    const movementType = pick(MOVE_TYPES)
-
-    const snapTs = now
-    const movements = HEADINGS.flatMap((h) =>
-      MOVE_TYPES.map((t) => {
-        const indication = pick([
-          'red',
-          'yellow',
-          'green',
-          'flashing-yellow',
-          'flashing-red',
-          'dont-walk',
-          'walk',
-          'none',
-        ] as const)
-
-        const stateVal =
-          indication === 'red' || indication === 'none'
-            ? 'prohibited'
-            : indication === 'yellow'
-              ? pick(['protected', 'permissive'] as const)
-              : pick([
-                  'protected',
-                  'permissive',
-                  'permissive-after-stop',
-                ] as const)
-
-        return {
-          heading: h,
-          type: t,
-          timestamp: snapTs,
-          duration: randInt(0, 25_000),
-          indication,
-          state: stateVal,
-        }
-      })
-    )
-
-    emit({
-      detector,
-      id,
-      type: 'intersection.red-light',
-      timestamp: now,
-      recording: maybeRecording(0.25, id),
-      object: {
-        id: [randInt(1, 9999), now],
-        type: objType,
-        classification,
-        lwh: randomLwh(),
-        speed: randBetween(2.0, 18.0),
-        position: pos,
-      },
-      movement: {
-        heading: movementHeading,
-        type: movementType,
-        certainty: Math.random() < 0.75 ? 'realized' : 'unrealized',
-        ppt: randInt(50, 2500),
-      },
-      movements,
-    })
-  }
-
-  const emitOneTick = () => {
-    const r = Math.random()
-    // red light: 40%, near miss: 30%, illegal: 28%, wrong way: 2%
-    if (r < 0.4) emitRedLight()
-    else if (r < 0.7) emitNearMiss()
-    else if (r < 0.98) emitIllegalMovement()
-    else stepWrongWayAndEmit()
-  }
-
+  // Emit mock events
   useEffect(() => {
-    if (startedRef.current) return
-    startedRef.current = true
+    const t = window.setInterval(() => {
+      if (Math.random() > emitProbability) return
 
-    setState('Connected')
+      const now = Date.now()
+      const alert = makeMockAlert()
+      setAlerts((prev) => prune([...prev, alert], now))
+    }, emitEveryMs)
 
-    const intervalId = setInterval(() => {
-      emitOneTick()
-    }, TICK_MS)
+    return () => window.clearInterval(t)
+  }, [emitEveryMs, emitProbability, makeMockAlert, prune])
 
-    return () => clearInterval(intervalId)
-  }, [])
+  // Prune even if no events arrive
+  useEffect(() => {
+    const t = window.setInterval(() => {
+      const now = Date.now()
+      setAlerts((prev) => prune(prev, now))
+    }, pruneEveryMs)
 
-  return {
-    state,
-    events, // ✅ mixed event stream (1 per second)
+    return () => window.clearInterval(t)
+  }, [pruneEveryMs, prune])
+
+  return { state, alerts }
+}
+
+function pick<T>(xs: T[]) {
+  return xs[Math.floor(Math.random() * xs.length)]
+}
+
+function randInt(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+function randFloat(min: number, max: number) {
+  return Math.random() * (max - min) + min
+}
+
+function severityForType(type: string) {
+  switch (type) {
+    case 'object.wrong-way':
+      return 10
+    case 'object.illegal-movement':
+      return 7
+    case 'object.stopped-vehicle':
+      return 6
+    case 'object.jaywalker':
+      return 4
+    default:
+      return 5
+  }
+}
+
+function codeForType(type: string) {
+  switch (type) {
+    case 'object.wrong-way':
+      return 9001
+    case 'object.jaywalker':
+      return 9002
+    case 'object.illegal-movement':
+      return 9003
+    case 'object.stopped-vehicle':
+      return 9004
+    default:
+      return 9999
+  }
+}
+
+function messageFor(
+  type: string,
+  ctx: { detector: number; speed: number; lat: number; lng: number }
+) {
+  const mph = ctx.speed.toFixed(1)
+  const ll = `${ctx.lat.toFixed(6)},${ctx.lng.toFixed(6)}`
+  switch (type) {
+    case 'object.wrong-way':
+      return `Mock wrong-way detected (detector ${ctx.detector}) | state: tracking | speed: ${mph} mph | lat/lon: ${ll}`
+    case 'object.jaywalker':
+      return `Mock jaywalker detected (detector ${ctx.detector}) | state: tracking | speed: ${mph} mph | lat/lon: ${ll}`
+    case 'object.illegal-movement':
+      return `Mock illegal movement detected (detector ${ctx.detector}) | state: tracking | speed: ${mph} mph | lat/lon: ${ll}`
+    case 'object.stopped-vehicle':
+      return `Mock stopped vehicle (detector ${ctx.detector}) | state: stopped | speed: ${mph} mph | lat/lon: ${ll}`
+    default:
+      return `Mock event (detector ${ctx.detector}) | speed: ${mph} mph | lat/lon: ${ll}`
   }
 }

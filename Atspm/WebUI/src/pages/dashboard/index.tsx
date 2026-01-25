@@ -1,5 +1,5 @@
 import AlertsContainer from '@/components/aggTest/alertsPanel/AlertsContainer'
-import { useAlertsHub } from '@/components/aggTest/useAlertsHub'
+import { useAlertsMock } from '@/components/aggTest/useAlertsHubMock'
 import { Box } from '@mui/material'
 import dynamic from 'next/dynamic'
 import { useMemo } from 'react'
@@ -31,7 +31,7 @@ const CameraLayer = dynamic(
 )
 
 export default function AlertsDashboard() {
-  const { state, alerts: events } = useAlertsHub()
+  const { state, alerts: events } = useAlertsMock()
 
   const center = useMemo(() => [40.65311, -111.952445] as [number, number], [])
 
@@ -65,7 +65,7 @@ export default function AlertsDashboard() {
     <Box display="flex" flexDirection="row" height="89vh" width="98vw">
       <ClientMap center={center} items={items} height={810} />
 
-      <Box width={400} height="100%">
+      <Box height="100%">
         <AlertsContainer events={events} hubState={state} />
       </Box>
     </Box>
