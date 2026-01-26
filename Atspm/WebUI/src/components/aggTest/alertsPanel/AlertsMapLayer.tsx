@@ -1,14 +1,10 @@
-import { AlertPayload } from '@/components/aggTest/useAlertsHub'
+import { AlertPayload } from '@/components/aggTest/hooks/useAlertsHub'
 import { WrongWayMarker } from '@/components/aggTest/WrongWayMarker'
 
 export function AlertsMapLayer({ alerts }: { alerts: AlertPayload[] }) {
   const wrongWayAlerts = getAlertByType(alerts, 'object.wrong-way')
 
-  return (
-    <>
-      <WrongWayMarker alerts={wrongWayAlerts} />
-    </>
-  )
+  return <WrongWayMarker alerts={wrongWayAlerts} />
 }
 
 const getAlertByType = (

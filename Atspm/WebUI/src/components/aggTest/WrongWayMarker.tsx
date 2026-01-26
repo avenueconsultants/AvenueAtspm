@@ -1,21 +1,8 @@
+import { AlertPayload } from '@/components/aggTest/hooks/useAlertsHub'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CircleMarker, Polyline } from 'react-leaflet'
 
 export type SourcePayload = Record<string, unknown>
-
-export type AlertPayload = {
-  id: number
-  code: number
-  message: string
-  locationIdentifier: string
-  url?: string | null
-  tenantId?: string
-  timestampUtc: string
-  severity: string | number
-  category?: string | null
-  sourcePayload?: SourcePayload | null
-  type?: string | null
-}
 
 type LatLng = { lat: number; lng: number }
 
@@ -23,14 +10,11 @@ type RenderItem = {
   id: number
   lastUpdated: number
   cur: LatLng
-  trail: LatLng[] // oldest -> newest
+  trail: LatLng[]
+  pulse: boolean
 }
 
-const MAX_IDS = 20
-
-const MARKER_TTL_MS = 1_000 // or whatever you want
-
-function isLatLng(x: unknown): x is [number, number] {
+function isLatLng(x: unknown) {
   return (
     Array.isArray(x) &&
     x.length >= 2 &&
@@ -39,111 +23,81 @@ function isLatLng(x: unknown): x is [number, number] {
   )
 }
 
-// Tries to read position from your parsed sourcePayload:
-// - sourcePayload.log[0].position = [lat,lng,...]
-// - sourcePayload.position = [lat,lng,...] (fallback)
 function getAlertLatLng(a: AlertPayload): LatLng | null {
   const sp = a.sourcePayload as any
   const pos =
-    sp?.log?.[0]?.position ?? sp?.position ?? sp?.log?.at?.(-1)?.position // in case log grows
+    sp?.log?.[0]?.position ?? sp?.position ?? sp?.log?.at?.(-1)?.position
 
   if (!isLatLng(pos)) return null
   return { lat: pos[0], lng: pos[1] }
 }
 
+function isSev10(severity: AlertPayload['severity']) {
+  if (typeof severity === 'number') return severity === 10
+  if (typeof severity === 'string') return Number(severity) === 10
+  return false
+}
+
 export function WrongWayMarker({ alerts }: { alerts: AlertPayload[] }) {
-  // Map of id -> item (kept in a ref so updates are cheap)
   const itemsRef = useRef<Map<number, RenderItem>>(new Map())
-  // We keep a small "revision" state so React re-renders when we mutate the ref
   const [rev, setRev] = useState(0)
 
   useEffect(() => {
-    if (!alerts?.length) return
-
-    let changed = false
     const now = Date.now()
     const map = itemsRef.current
+    let changed = false
 
-    for (const a of alerts) {
-      // only plot alerts that actually have a position
+    const nextIds = new Set<number>()
+
+    for (const a of alerts ?? []) {
       const ll = getAlertLatLng(a)
       if (!ll) continue
 
       const id = a.id
+      nextIds.add(id)
+
+      const pulse = isSev10(a.severity)
       const existing = map.get(id)
 
       if (!existing) {
-        // new id -> add
+        map.set(id, { id, lastUpdated: now, cur: ll, trail: [ll], pulse })
+        changed = true
+        continue
+      }
+
+      const prev = existing.cur
+      const moved = prev.lat !== ll.lat || prev.lng !== ll.lng
+      const pulseChanged = existing.pulse !== pulse
+
+      if (moved) {
         map.set(id, {
-          id,
+          ...existing,
           lastUpdated: now,
           cur: ll,
-          trail: [ll],
+          trail: [...existing.trail, ll],
+          pulse,
         })
         changed = true
-      } else {
-        // existing id -> "create a new one" (update current point)
-        // and draw a line to the old point (trail)
-        const prev = existing.cur
-        // if it actually moved, append; otherwise just bump timestamp
-        const moved = prev.lat !== ll.lat || prev.lng !== ll.lng
-
-        if (moved) {
-          const nextTrail = [...existing.trail, ll]
-          map.set(id, {
-            ...existing,
-            lastUpdated: now,
-            cur: ll,
-            trail: nextTrail,
-          })
-          changed = true
-        } else if (existing.lastUpdated !== now) {
-          map.set(id, { ...existing, lastUpdated: now })
-          changed = true
-        }
+      } else if (existing.lastUpdated !== now || pulseChanged) {
+        map.set(id, { ...existing, lastUpdated: now, pulse })
+        changed = true
       }
     }
 
-    // Enforce MAX_IDS (evict the *oldest* marker by lastUpdated)
-    if (map.size > MAX_IDS) {
-      const sortedOldestFirst = Array.from(map.values()).sort(
-        (a, b) => a.lastUpdated - b.lastUpdated
-      )
-      const toRemove = map.size - MAX_IDS
-      for (let i = 0; i < toRemove; i++) {
-        map.delete(sortedOldestFirst[i].id)
+    for (const id of map.keys()) {
+      if (!nextIds.has(id)) {
+        map.delete(id)
+        changed = true
       }
-      changed = true
     }
 
     if (changed) setRev((r) => r + 1)
   }, [alerts])
 
-  // Snapshot for rendering (derived from the ref)
   const items = useMemo(() => {
-    // rev is used to recalc when we mutate itemsRef
     void rev
     return Array.from(itemsRef.current.values())
   }, [rev])
-
-  useEffect(() => {
-    const t = window.setInterval(() => {
-      const now = Date.now()
-      const map = itemsRef.current
-      let changed = false
-
-      for (const [id, item] of map.entries()) {
-        if (now - item.lastUpdated > MARKER_TTL_MS) {
-          map.delete(id)
-          changed = true
-        }
-      }
-
-      if (changed) setRev((r) => r + 1)
-    }, 200)
-
-    return () => window.clearInterval(t)
-  }, [])
 
   return (
     <>
@@ -154,14 +108,26 @@ export function WrongWayMarker({ alerts }: { alerts: AlertPayload[] }) {
               positions={inc.trail.map(
                 (p) => [p.lat, p.lng] as [number, number]
               )}
-              pathOptions={{
-                color: 'red',
-                weight: 2,
-                opacity: 0.8,
-              }}
+              pathOptions={{ color: 'red', weight: 2, opacity: 0.8 }}
             />
           )}
 
+          {inc.pulse && (
+            <CircleMarker
+              center={[inc.cur.lat, inc.cur.lng]}
+              radius={26}
+              pathOptions={{
+                color: 'red',
+                fillColor: 'red',
+                fillOpacity: 0.18,
+                opacity: 0.5,
+                weight: 0,
+              }}
+              className="alert-pulse"
+            />
+          )}
+
+          {/* head marker */}
           <CircleMarker
             center={[inc.cur.lat, inc.cur.lng]}
             radius={5}
@@ -175,6 +141,30 @@ export function WrongWayMarker({ alerts }: { alerts: AlertPayload[] }) {
           />
         </span>
       ))}
+
+      <style jsx global>{`
+        .alert-pulse {
+          transform-box: fill-box;
+          transform-origin: center;
+          animation: alert-pulse 0.6s linear infinite;
+        }
+        @keyframes alert-pulse {
+          0% {
+            transform: scale(
+              0.8
+            ); /* slightly smaller start since ring is bigger */
+            opacity: 1;
+          }
+          70% {
+            transform: scale(1.08); /* gentle expansion */
+            opacity: 1;
+          }
+          100% {
+            transform: scale(0.8);
+            opacity: 1;
+          }
+        }
+      `}</style>
     </>
   )
 }

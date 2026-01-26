@@ -25,10 +25,11 @@ export default function BaseMap({
   items,
   mapKey,
   flyTo,
+  overlays,
 }: {
   center: [number, number]
   zoom?: number
-  height?: number
+  height?: number | string
   tileUrl?: string
   tileAttribution?: string
   items: MapItem[]
@@ -39,6 +40,7 @@ export default function BaseMap({
     center: [number, number]
     zoom?: number
   }
+  overlays?: React.ReactNode
 }) {
   const { direct, panes } = useMemo(() => {
     const direct: React.ReactNode[] = []
@@ -55,11 +57,8 @@ export default function BaseMap({
 
       const key = item.pane.name
       const existing = paneMap.get(key)
-      if (existing) {
-        existing.elements.push(item.element)
-      } else {
-        paneMap.set(key, { spec: item.pane, elements: [item.element] })
-      }
+      if (existing) existing.elements.push(item.element)
+      else paneMap.set(key, { spec: item.pane, elements: [item.element] })
     }
 
     return {
@@ -101,6 +100,8 @@ export default function BaseMap({
           </Pane>
         ))}
       </MapContainer>
+
+      {overlays}
     </div>
   )
 }

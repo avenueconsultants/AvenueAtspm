@@ -1,6 +1,6 @@
 import AlertDetailsList from '@/components/aggTest/alertsPanel/AlertsDetailsList'
 import AlertSummaryList from '@/components/aggTest/alertsPanel/AlertSummaryList'
-import { AlertPayload } from '@/components/aggTest/useAlertsHub'
+import { AlertPayload } from '@/components/aggTest/hooks/useAlertsHub'
 import { Box, Chip, Paper, Stack, Typography } from '@mui/material'
 import { useCallback, useMemo, useState } from 'react'
 

@@ -1,4 +1,3 @@
-// hooks/useAlertsMock.ts
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 type SourcePayload = Record<string, unknown>

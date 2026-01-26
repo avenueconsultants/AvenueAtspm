@@ -1,3 +1,4 @@
+import { resolveAlertRetention } from '@/components/aggTest/hooks/retention'
 import * as signalR from '@microsoft/signalr'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -23,20 +24,9 @@ type UseAlertsHubOpts = {
   withCredentials?: boolean
   skipNegotiation?: boolean
 
-  /**
-   * Per-type retention window (ms).
-   * Example:
-   *  { 'object.wrong-way': 5 * 60_000, 'object.jaywalker': 60_000 }
-   */
   ttlByTypeMs?: Record<string, number>
-
-  /** Fallback TTL when type isn’t in ttlByTypeMs (ms). */
   defaultTtlMs?: number
-
-  /** How often to prune even if no new events arrive (ms). */
   pruneEveryMs?: number
-
-  /** Safety cap to prevent unbounded growth. */
   maxAlerts?: number
 }
 
@@ -49,27 +39,23 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
   const withCreds = opts?.withCredentials ?? true
   const skipNeg = opts?.skipNegotiation ?? true
 
-  const ttlByTypeMs = useMemo(
+  const retention = useMemo(
     () =>
-      opts?.ttlByTypeMs ?? {
-        'object.wrong-way': 20_000,
-      },
-    [opts?.ttlByTypeMs]
+      resolveAlertRetention({
+        ttlByTypeMs: opts?.ttlByTypeMs,
+        defaultTtlMs: opts?.defaultTtlMs,
+        pruneEveryMs: opts?.pruneEveryMs,
+        maxAlerts: opts?.maxAlerts,
+      }),
+    [opts?.ttlByTypeMs, opts?.defaultTtlMs, opts?.pruneEveryMs, opts?.maxAlerts]
   )
-  const defaultTtlMs = opts?.defaultTtlMs ?? 2 * 60_000
-  const pruneEveryMs = opts?.pruneEveryMs ?? 5_000
-  const maxAlerts = opts?.maxAlerts ?? 2000
+
+  const { pruneEveryMs, maxAlerts } = retention
 
   const [alerts, setAlerts] = useState<AlertPayload[]>([])
   const connRef = useRef<signalR.HubConnection | null>(null)
 
   const url = useMemo(() => 'http://10.20.100.71:30080/hubs/stats', [])
-
-  const getTtlMs = useCallback(
-    (type: string | null | undefined) =>
-      ttlByTypeMs[type ?? ''] ?? defaultTtlMs,
-    [defaultTtlMs, ttlByTypeMs]
-  )
 
   const prune = useCallback(
     (xs: AlertPayload[], nowMs: number) => {
@@ -78,7 +64,7 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
         const ts = Date.parse(a.timestampUtc)
         if (!Number.isFinite(ts)) continue
         const age = nowMs - ts
-        if (age <= getTtlMs(a.type)) keep.push(a)
+        if (age <= retention.getTtlMs(a.type)) keep.push(a)
       }
 
       keep.sort(
@@ -87,7 +73,7 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
       if (keep.length > maxAlerts) keep.length = maxAlerts
       return keep
     },
-    [maxAlerts, getTtlMs]
+    [maxAlerts, retention]
   )
 
   useEffect(() => {
@@ -117,8 +103,8 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
         severity: payload?.severity,
         category: payload?.category,
         sourcePayload: sourcePayloadJson,
-        type: sourcePayloadJson.type,
-        id: sourcePayloadJson.id,
+        type: (sourcePayloadJson as any)?.type,
+        id: (sourcePayloadJson as any)?.id,
       }
 
       const now = Date.now()
@@ -143,17 +129,7 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
     return () => {
       conn.stop()
     }
-  }, [
-    url,
-    tenantId,
-    withCreds,
-    skipNeg,
-    locationIds,
-    defaultTtlMs,
-    ttlByTypeMs,
-    maxAlerts,
-    prune,
-  ])
+  }, [url, tenantId, withCreds, skipNeg, locationIds, prune])
 
   useEffect(() => {
     const t = window.setInterval(() => {
@@ -162,7 +138,7 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
     }, pruneEveryMs)
 
     return () => window.clearInterval(t)
-  }, [pruneEveryMs, defaultTtlMs, ttlByTypeMs, maxAlerts, prune])
+  }, [pruneEveryMs, prune])
 
   return {
     state: connRef.current?.state ?? 'Disconnected',
@@ -175,7 +151,7 @@ function safeJsonParse(input: unknown) {
   try {
     const parsed = JSON.parse(input)
     return parsed && typeof parsed === 'object'
-      ? (parsed as SourcePayload)
+      ? (parsed as Record<string, unknown>)
       : null
   } catch {
     return null

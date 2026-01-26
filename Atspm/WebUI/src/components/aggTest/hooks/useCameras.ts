@@ -11,7 +11,15 @@ export interface Camera {
   Latitude: number
   Longitude: number
   Location: string
-  sortOrder: number
+  SortOrder: number
+  Views: View[]
+}
+
+export interface View {
+  Id: number
+  Url: string
+  Status: string
+  Description: string
 }
 
 export type CamerasResponse = Camera[]
