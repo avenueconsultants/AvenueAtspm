@@ -1,7 +1,7 @@
 import { Camera, useCameras } from '@/components/aggTest/hooks/useCameras'
 import { Color } from '@/features/charts/utils'
 import { createPinWithIcon } from '@/features/locations/utils'
-import LinkIcon from '@mui/icons-material/Link'
+import OpenInNewIcon from '@mui/icons-material/OpenInNew'
 import VideocamIcon from '@mui/icons-material/Videocam'
 import VideocamOutlinedIcon from '@mui/icons-material/VideocamOutlined'
 import {
@@ -109,7 +109,7 @@ export function CameraPopup({ camera }: { camera: Camera }) {
                         target="_blank"
                         rel="noreferrer"
                       >
-                        <LinkIcon fontSize="small" />
+                        <OpenInNewIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
                   ) : null}
