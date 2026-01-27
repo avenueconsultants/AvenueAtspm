@@ -1,20 +1,15 @@
 import { FlyToController } from '@/components/aggTest/FlyToController'
+import { MapItem, MapPaneSpec } from '@/pages/dashboard'
 import { type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useMemo } from 'react'
-import { MapContainer, Pane, TileLayer } from 'react-leaflet'
-
-export type MapPaneSpec = {
-  name: string
-  zIndex?: number
-  pointerEvents?: 'auto' | 'none'
-}
-
-export type MapItem = {
-  id: string
-  pane?: MapPaneSpec
-  element: React.ReactNode
-}
+import {
+  LayerGroup,
+  LayersControl,
+  MapContainer,
+  Pane,
+  TileLayer,
+} from 'react-leaflet'
 
 export default function BaseMap({
   center,
@@ -46,7 +41,7 @@ export default function BaseMap({
     const direct: React.ReactNode[] = []
     const paneMap = new Map<
       string,
-      { spec: MapPaneSpec; elements: React.ReactNode[] }
+      { spec: MapPaneSpec; elements: React.ReactNode[]; toggleable: boolean }
     >()
 
     for (const item of items) {
@@ -57,8 +52,17 @@ export default function BaseMap({
 
       const key = item.pane.name
       const existing = paneMap.get(key)
-      if (existing) existing.elements.push(item.element)
-      else paneMap.set(key, { spec: item.pane, elements: [item.element] })
+      const isToggleable = item.toggleable !== false // default true
+      if (existing) {
+        existing.elements.push(item.element)
+        existing.toggleable = existing.toggleable || isToggleable
+      } else {
+        paneMap.set(key, {
+          spec: item.pane,
+          elements: [item.element],
+          toggleable: isToggleable,
+        })
+      }
     }
 
     return {
@@ -67,8 +71,25 @@ export default function BaseMap({
         name,
         spec: v.spec,
         elements: v.elements,
+        toggleable: v.toggleable,
       })),
     }
+  }, [items])
+
+  // label + defaultChecked per pane (from any item in that pane)
+  const paneMeta = useMemo(() => {
+    const meta = new Map<string, { label: string; defaultChecked: boolean }>()
+    for (const item of items) {
+      if (!item.pane) continue
+      const name = item.pane.name
+      if (!meta.has(name)) {
+        meta.set(name, {
+          label: item.toggleLabel ?? name,
+          defaultChecked: item.defaultChecked ?? true,
+        })
+      }
+    }
+    return meta
   }, [items])
 
   return (
@@ -81,24 +102,57 @@ export default function BaseMap({
         attributionControl
       >
         <FlyToController flyTo={flyTo} />
+
         <TileLayer url={tileUrl} attribution={tileAttribution} />
+        <LayersControl position="bottomright">
+          {direct}
 
-        {direct}
+          {panes.map((p) => {
+            const m = paneMeta.get(p.name) ?? {
+              label: p.name,
+              defaultChecked: true,
+            }
 
-        {panes.map((p) => (
-          <Pane
-            key={p.name}
-            name={p.name}
-            style={{
-              zIndex: p.spec.zIndex,
-              pointerEvents: p.spec.pointerEvents,
-            }}
-          >
-            {p.elements.map((el, idx) => (
-              <span key={`${p.name}-${idx}`}>{el}</span>
-            ))}
-          </Pane>
-        ))}
+            if (!p.toggleable) {
+              return (
+                <Pane
+                  key={p.name}
+                  name={p.name}
+                  style={{
+                    zIndex: p.spec.zIndex,
+                    pointerEvents: p.spec.pointerEvents,
+                  }}
+                >
+                  {p.elements.map((el, idx) => (
+                    <span key={`${p.name}-${idx}`}>{el}</span>
+                  ))}
+                </Pane>
+              )
+            }
+
+            return (
+              <LayersControl.Overlay
+                key={p.name}
+                name={m.label}
+                checked={m.defaultChecked}
+              >
+                <LayerGroup>
+                  <Pane
+                    name={p.name}
+                    style={{
+                      zIndex: p.spec.zIndex,
+                      pointerEvents: p.spec.pointerEvents,
+                    }}
+                  >
+                    {p.elements.map((el, idx) => (
+                      <span key={`${p.name}-${idx}`}>{el}</span>
+                    ))}
+                  </Pane>
+                </LayerGroup>
+              </LayersControl.Overlay>
+            )
+          })}
+        </LayersControl>
       </MapContainer>
 
       {overlays}

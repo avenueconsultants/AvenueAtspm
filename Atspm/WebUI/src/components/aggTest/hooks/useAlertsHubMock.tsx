@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 
 type SourcePayload = Record<string, unknown>
 
@@ -36,14 +36,16 @@ type UseAlertsMockOpts = {
   /** Safety cap to prevent unbounded growth. */
   maxAlerts?: number
 
-  /** How often to emit mock events (ms). */
-  emitEveryMs?: number
+  /** Base lat/lng for generated wrong-way alerts (optional). */
+  baseLat?: number
+  baseLng?: number
 
-  /** Chance [0..1] per tick to emit an event. */
-  emitProbability?: number
+  /** How far apart the two alerts should be (degrees). */
+  deltaLat?: number
+  deltaLng?: number
 
-  /** Types to emit (defaults provided). */
-  types?: string[]
+  /** Milliseconds between the two alerts’ timestamps. */
+  deltaTimeMs?: number
 }
 
 export function useAlertsMock(opts?: UseAlertsMockOpts) {
@@ -64,18 +66,12 @@ export function useAlertsMock(opts?: UseAlertsMockOpts) {
   const pruneEveryMs = opts?.pruneEveryMs ?? 5_000
   const maxAlerts = opts?.maxAlerts ?? 2000
 
-  const emitEveryMs = opts?.emitEveryMs ?? 800
-  const emitProbability = opts?.emitProbability ?? 0.85
-  const types = useMemo(
-    () =>
-      opts?.types ?? [
-        'object.wrong-way',
-        'object.jaywalker',
-        'object.illegal-movement',
-        'object.stopped-vehicle',
-      ],
-    [opts?.types]
-  )
+  // Trigger parameters (tunable)
+  const baseLat = opts?.baseLat ?? 40.6319
+  const baseLng = opts?.baseLng ?? -111.9388
+  const deltaLat = opts?.deltaLat ?? 0.00025
+  const deltaLng = opts?.deltaLng ?? 0.00025
+  const deltaTimeMs = opts?.deltaTimeMs ?? 350
 
   const [alerts, setAlerts] = useState<AlertPayload[]>([])
   const nextIdRef = useRef(1)
@@ -107,91 +103,128 @@ export function useAlertsMock(opts?: UseAlertsMockOpts) {
     [maxAlerts, getTtlMs]
   )
 
-  const makeMockAlert = useCallback((): AlertPayload => {
-    const type = pick(types)
-    const id = nextIdRef.current++
+  const makeWrongWayAlert = useCallback(
+    (p: {
+      lat: number
+      lng: number
+      nowMs: number
+      loc: string
+    }): AlertPayload => {
+      const type = 'object.wrong-way'
+      const id = nextIdRef.current
+      const detector = randInt(1, 6)
+      const speed = Math.max(0, randFloat(10, 45))
+      const nowIso = new Date(p.nowMs).toISOString()
 
+      const sourcePayload: SourcePayload = {
+        detector,
+        id,
+        type,
+        timestamp: p.nowMs,
+        recording: 0,
+        object: {
+          classification: pick(['car', 'truck']),
+          id: [randInt(1000, 99999), p.nowMs - randInt(0, 5000)],
+          lwh: null,
+          type: 'vehicle',
+          description: {
+            color: pick(['red', 'white', 'black', 'silver', 'undefined']),
+            confidence: randFloat(0.2, 0.99),
+            'license-plate': null,
+            make: null,
+            model: null,
+            year: null,
+          },
+        },
+        log: [
+          {
+            position: [p.lat, p.lng, 0],
+            speed,
+            state: 'tracking',
+            timestamp: p.nowMs,
+          },
+        ],
+      }
+
+      const code = codeForType(type)
+      const msg = messageFor(type, { detector, speed, lat: p.lat, lng: p.lng })
+
+      return {
+        id,
+        code,
+        message: msg,
+        locationIdentifier: `detector-${p.loc}`,
+        url: null,
+        tenantId,
+        timestampUtc: nowIso,
+        severity: severityForType(type),
+        category: null,
+        sourcePayload,
+        type,
+      }
+    },
+    [tenantId]
+  )
+
+  /**
+   * Call this from a button click to inject a deterministic 2-step wrong-way.
+   * Only differences: timestamp + lat/lng offset.
+   */
+  const triggerWrongWay = useCallback(() => {
     const loc = locationIds.length > 0 ? pick(locationIds) : 'blueband-1'
-    const detector = randInt(1, 6)
 
-    const lat = 40.63 + randFloat(-0.02, 0.02)
-    const lng = -111.94 + randFloat(-0.02, 0.02)
-    const speed = Math.max(0, randFloat(0, 45))
+    const now1 = Date.now()
+    const now2 = now1 + deltaTimeMs
 
-    const nowIso = new Date().toISOString()
+    const a1 = makeWrongWayAlert({
+      lat: baseLat,
+      lng: baseLng,
+      nowMs: now1,
+      loc,
+    })
 
-    const sourcePayload: SourcePayload = {
-      detector,
-      id,
-      type,
-      timestamp: Date.now(),
-      recording: 0,
-      object: {
-        classification: pick(['car', 'truck', 'person', 'bicycle']),
-        id: [randInt(1000, 99999), Date.now() - randInt(0, 5000)],
-        lwh: null,
-        type: pick(['vehicle', 'person']),
-        description: {
-          color: pick(['red', 'white', 'black', 'silver', 'undefined']),
-          confidence: randFloat(0.2, 0.99),
-          'license-plate': null,
-          make: null,
-          model: null,
-          year: null,
-        },
-      },
-      log: [
-        {
-          position: [lat, lng, 0],
-          speed,
-          state: pick(['tracking', 'stopped', 'lost']),
-          timestamp: Date.now(),
-        },
-      ],
-    }
+    const a2 = makeWrongWayAlert({
+      lat: baseLat + deltaLat,
+      lng: baseLng + deltaLng,
+      nowMs: now2,
+      loc,
+    })
 
-    const code = codeForType(type)
-    const msg = messageFor(type, { detector, speed, lat, lng })
-
-    return {
-      id,
-      code,
-      message: msg,
-      locationIdentifier: `detector-${loc}`,
-      url: null,
-      tenantId,
-      timestampUtc: nowIso,
-      severity: severityForType(type),
-      category: null,
-      sourcePayload,
-      type,
-    }
-  }, [locationIds, tenantId, types])
-
-  // Emit mock events
-  useEffect(() => {
-    const t = window.setInterval(() => {
-      if (Math.random() > emitProbability) return
-
-      const now = Date.now()
-      const alert = makeMockAlert()
-      setAlerts((prev) => prune([...prev, alert], now))
-    }, emitEveryMs)
-
-    return () => window.clearInterval(t)
-  }, [emitEveryMs, emitProbability, makeMockAlert, prune])
+    // prune using "now2" so both are evaluated consistently
+    setAlerts((prev) => prune([...prev, a1, a2], now2))
+  }, [
+    locationIds,
+    baseLat,
+    baseLng,
+    deltaLat,
+    deltaLng,
+    deltaTimeMs,
+    makeWrongWayAlert,
+    prune,
+  ])
 
   // Prune even if no events arrive
-  useEffect(() => {
-    const t = window.setInterval(() => {
+  const pruneTimerRef = useRef<number | null>(null)
+  const startPrune = useCallback(() => {
+    if (pruneTimerRef.current != null) return
+    pruneTimerRef.current = window.setInterval(() => {
       const now = Date.now()
       setAlerts((prev) => prune(prev, now))
     }, pruneEveryMs)
-
-    return () => window.clearInterval(t)
   }, [pruneEveryMs, prune])
 
-  return { state, alerts }
+  const stopPrune = useCallback(() => {
+    if (pruneTimerRef.current != null) {
+      window.clearInterval(pruneTimerRef.current)
+      pruneTimerRef.current = null
+    }
+  }, [])
+
+  // start prune once on first render (no useEffect version)
+  if (pruneTimerRef.current == null && typeof window !== 'undefined')
+    startPrune()
+
+  return { state, alerts, triggerWrongWay, stopPrune }
 }
 
 function pick<T>(xs: T[]) {
