@@ -16,7 +16,6 @@
 #endregion
 
 using Google.Cloud.Diagnostics.Common;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.CommandLine.Builder;
@@ -26,8 +25,7 @@ using System.Diagnostics;
 using Utah.Udot.Atspm.EventLogUtility.Commands;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
 
-//trick github
-//"830379441974"
+//gitactions: IIII
 
 if (OperatingSystem.IsWindows())
 {
@@ -55,18 +53,7 @@ cmdBuilder.UseHost(a =>
             });
         }
 
-        var config = h.Configuration.GetSection("Logging:GoogleDiagnostics").Get<GoogleDiagnosticsConfiguration>();
-
-        if (config != null && config.Enabled)
-        {
-            l.AddGoogle(new LoggingServiceOptions
-            {
-                ProjectId = config.ProjectId,
-                ServiceName = config.ServiceName,
-                Version = config.Version,
-                Options = LoggingOptions.Create(config.MinimumLogLevel, config.ServiceName)
-            });
-        }
+        l.AddGoogle(h);
     })
     .ConfigureServices((h, s) =>
     {

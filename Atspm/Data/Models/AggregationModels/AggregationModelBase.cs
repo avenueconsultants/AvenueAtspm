@@ -34,10 +34,6 @@ namespace Utah.Udot.Atspm.Data.Models
         ///<inheritdoc/>
         [JsonIgnore]
         public string LocationIdentifier { get; set; }
-
-        [Obsolete("this has been replaced with StartEndRange")]
-        [JsonIgnore]
-        public DateTime BinStartTime { get; set; }
     }
 
     public partial class ApproachPcdAggregation : AggregationModelBase, ILocationApproachLayer
@@ -108,10 +104,6 @@ namespace Utah.Udot.Atspm.Data.Models
     /// </summary>
     public partial class DetectorEventCountAggregation : AggregationModelBase, ILocationApproachLayer
     {
-        /// <inheritdoc/>
-        //public string LocationIdentifier { get; set; }
-
-
         ///<inheritdoc/>
         public int ApproachId { get; set; }
 
@@ -126,16 +118,13 @@ namespace Utah.Udot.Atspm.Data.Models
         public int EventCount { get; set; }
 
         /// <inheritdoc/>
-        public override string ToString() => JsonConvert.SerializeObject(this);
+        public override string ToString() => $"{LocationIdentifier}|{Start}: {DetectorPrimaryId}-{ApproachId}-{EventCount}|{End}";
     }
 
     public partial class PhaseCycleAggregation : AggregationModelBase, ILocationApproachLayer, ILocationPhaseLayer
     {
-        //public string LocationIdentifier { get; set; }
-
         ///<inheritdoc/>
         public int ApproachId { get; set; }
-
         public int PhaseNumber { get; set; }
         public int RedTime { get; set; }
         public int YellowTime { get; set; }
@@ -143,25 +132,11 @@ namespace Utah.Udot.Atspm.Data.Models
         public int TotalRedToRedCycles { get; set; }
         public int TotalGreenToGreenCycles { get; set; }
         public int PhaseBeginCount { get; set; }
-    }
 
-    public partial class DetectorSpeedAggregation : AggregationModelBase, ILocationLayer
-    {
-        public int EventCount { get; set; }
-        public string DetectorIdentifier { get; set; }
-        public double Average { get; set; }
-        public double? FifteenthSpeed { get; set; }
-        public double? EightyFifthSpeed { get; set; }
-        public double? NinetyFifthSpeed { get; set; }
-        public double? NinetyNinthSpeed { get; set; }
-        public double? MinSpeed { get; set; }
-        public double? MaxSpeed { get; set; }
-        public long? Violations { get; set; }
-        public long? ExtremeViolations { get; set; }
-        public long? FlowCount { get; set; }
-        public long? SpeedFlow { get; set; }
-        public double? PercentObserved { get; set; }
-        public Boolean SourceDataAnalyzed { get; set; }
+        public override string ToString()
+        {
+            return $"{Start} | {PhaseNumber} - {TotalRedToRedCycles}/{TotalGreenToGreenCycles} - {RedTime}-{YellowTime}-{GreenTime}-{PhaseBeginCount} | {End}";
+        }
     }
 
     public partial class PhaseLeftTurnGapAggregation : AggregationModelBase, ILocationApproachLayer, ILocationPhaseLayer
@@ -208,7 +183,7 @@ namespace Utah.Udot.Atspm.Data.Models
         public override string ToString()
         {
             //return $"Start: {Start} PhaseNumber: {PhaseNumber}, PedCycles: {PedCycles}, PedDelay: {PedDelay}, MinPedDelay: {MinPedDelay}, MaxPedDelay: {MaxPedDelay}, ImputedPedCallsRegistered: {ImputedPedCallsRegistered}, UniquePedDetections: {UniquePedDetections}, PedBeginWalkCount: {PedBeginWalkCount}, PedCallsRegisteredCount: {PedCallsRegisteredCount}, PedRequests: {PedRequests} End: {End}";
-            return $"{PedCycles}-{PedDelay}-{MinPedDelay}-{MaxPedDelay}-{PedRequests}-{ImputedPedCallsRegistered}-{UniquePedDetections}-{PedBeginWalkCount}-{PedCallsRegisteredCount}";
+            return $"{PhaseNumber}|{Start}: {PedCycles}-{PedDelay}-{MinPedDelay}-{MaxPedDelay}-{PedRequests}-{ImputedPedCallsRegistered}-{UniquePedDetections}-{PedBeginWalkCount}-{PedCallsRegisteredCount}|{End}";
         }
     }
 
