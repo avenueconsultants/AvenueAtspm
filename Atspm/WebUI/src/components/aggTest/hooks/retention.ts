@@ -19,7 +19,7 @@ export const DEFAULT_TTL_BY_TYPE_MS: TtlByTypeMs = {
   'object.wrong-way': 20_000,
 }
 
-export const DEFAULT_ALERT_TTL_MS = 2 * 60_000
+export const DEFAULT_ALERT_TTL_MS = 2 * 600_000
 export const DEFAULT_PRUNE_EVERY_MS = 5_000
 export const DEFAULT_MAX_ALERTS = 2000
 

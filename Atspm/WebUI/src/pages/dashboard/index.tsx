@@ -1,10 +1,9 @@
+import { AlertDemoTriggers } from '@/components/aggTest/AlertDemoTriggers'
 import AlertsContainer from '@/components/aggTest/alertsPanel/AlertsContainer'
-import {
-  AlertPayload,
-  useAlertsHub,
-} from '@/components/aggTest/hooks/useAlertsHub'
-import { WrongWayBanner } from '@/components/aggTest/WrongWayBanner'
-import { Box } from '@mui/material'
+import WrongWayIncidentDock from '@/components/aggTest/alertsPanel/WrongWayIncidentDock'
+import type { UiAlert } from '@/components/aggTest/hooks/types'
+import { useAlertsHub } from '@/components/aggTest/hooks/useAlertsHub'
+import { Alert, Box } from '@mui/material'
 import dynamic from 'next/dynamic'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -50,13 +49,50 @@ const CameraLayer = dynamic(
 )
 
 function isSev10(sev: unknown) {
-  return typeof sev === 'number' ? sev === 10 : Number(sev) === 10
+  return sev === 'number' ? sev === 10 : Number(sev) === 10
 }
 
 export default function AlertsDashboard() {
-  const { state, alerts: events } = useAlertsHub()
+  const { state, alerts: hubEvents } = useAlertsHub()
 
   const center = useMemo(() => [40.65311, -111.952445] as [number, number], [])
+
+  const [demoEvents, setDemoEvents] = useState<UiAlert[]>([])
+
+  const handleTriggerDemo = useCallback((a: UiAlert) => {
+    setDemoEvents((prev) => [a, ...prev].slice(0, 250))
+  }, [])
+
+  const events = useMemo(() => {
+    const merged = [...hubEvents, ...demoEvents]
+    merged.sort(
+      (a, b) => Date.parse(b.timestampUtc) - Date.parse(a.timestampUtc)
+    )
+    return merged
+  }, [hubEvents, demoEvents])
+
+  const [dockAlert, setDockAlert] = useState<UiAlert | null>(null)
+  const [dockOpen, setDockOpen] = useState(true)
+
+  // Prevent immediate re-open for the same update
+  const lastDockKeyRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    const newest = (events ?? [])
+      .filter((a) => a && isSev10(a.severity) && a.type === 'WrongWayVehicle')
+      .sort(
+        (a, b) => Date.parse(b.timestampUtc) - Date.parse(a.timestampUtc)
+      )[0]
+
+    if (!newest) return
+
+    const key = `${newest.id}|${newest.timestampUtc}`
+    if (lastDockKeyRef.current === key) return
+
+    lastDockKeyRef.current = key
+    setDockAlert(newest)
+    setDockOpen(true) // auto-expand on new incident/update
+  }, [events])
 
   const alertsComponent = useMemo(
     () => <AlertsMapLayer alerts={events} />,
@@ -69,14 +105,14 @@ export default function AlertsDashboard() {
         id: 'cameras',
         pane: { name: 'cameras', zIndex: 500 },
         toggleLabel: 'Cameras',
-        defaultChecked: true,
+        defaultChecked: false,
         element: <CameraLayer />,
       },
       {
         id: 'overheadSigns',
         pane: { name: 'overheadSigns', zIndex: 600 },
         toggleLabel: 'Overhead signs',
-        defaultChecked: true,
+        defaultChecked: false,
         element: <OverheadSignLayer />,
       },
       {
@@ -95,9 +131,6 @@ export default function AlertsDashboard() {
     [alertsComponent]
   )
 
-  const [bannerAlert, setBannerAlert] = useState<AlertPayload | null>(null)
-  const lastShownKeyRef = useRef<string | null>(null)
-
   const [flyTo, setFlyTo] = useState<
     | {
         seq: number
@@ -109,22 +142,6 @@ export default function AlertsDashboard() {
   >(undefined)
 
   const flySeqRef = useRef(0)
-
-  useEffect(() => {
-    const newest = (events ?? [])
-      .filter((a) => a && isSev10(a.severity) && a.type === 'object.wrong-way')
-      .sort(
-        (a, b) => Date.parse(b.timestampUtc) - Date.parse(a.timestampUtc)
-      )[0]
-
-    if (!newest) return
-
-    const key = `${newest.id}|${newest.timestampUtc}`
-    if (lastShownKeyRef.current === key) return
-
-    lastShownKeyRef.current = key
-    setBannerAlert(newest)
-  }, [events])
 
   const handleJump = useCallback(
     (ll: { lat: number; lng: number }, alertKey: string) => {
@@ -141,37 +158,71 @@ export default function AlertsDashboard() {
 
   const overlays = useMemo(
     () => (
-      <WrongWayBanner
-        alert={bannerAlert}
-        onClose={() => setBannerAlert(null)}
-        onJump={handleJump}
-      />
+      <>
+        {dockAlert ? (
+          <WrongWayIncidentDock
+            alert={dockAlert}
+            isOpen={dockOpen}
+            onToggleOpen={() => setDockOpen((v) => !v)}
+            onClose={() => setDockAlert(null)}
+            onJumpTo={(ll) => handleJump(ll, dockAlert.id)}
+          />
+        ) : null}
+      </>
     ),
-    [bannerAlert, handleJump]
+    [handleJump, dockAlert, dockOpen]
   )
 
   return (
-    <Box
-      display="flex"
-      flexDirection="row"
-      height="89vh"
-      width="100vw"
-      margin={'-24px 0px -24px -24px'}
-    >
-      <ClientMap
-        center={center}
-        items={items}
-        height={'calc(100vh - 60px)'}
-        overlays={overlays}
-        flyTo={flyTo}
-      />
+    <Box display="flex" flexDirection="column">
+      <Alert
+        variant="filled"
+        severity="error"
+        sx={{
+          marginBottom: '8px',
+          marginTop: '-16px',
+          marginLeft: '-16px',
+          margin: '-16px -16px 8px',
+        }}
+      >
+        This application does not replace 911 or emergency dispatch services. In
+        an emergency, always call 911. This app is intended to supplement and
+        enhance response coordination and situational awareness.
+      </Alert>
 
-      {/* <Box position="absolute" bottom={20} right={16} zIndex={10}>
-        <Button onClick={triggerWrongWay}>Trigger wrong-way</Button>
-      </Box> */}
+      <Box
+        sx={{
+          marginBottom: '8px',
+          marginTop: '-16px',
+          marginLeft: '-16px',
+          margin: '0px -16px',
+        }}
+      >
+        <AlertDemoTriggers
+          center={center}
+          onTrigger={handleTriggerDemo}
+          onClearAll={() => setDemoEvents([])}
+        />
+      </Box>
 
-      <Box height={'calc(100vh - 60px)'}>
-        <AlertsContainer events={events} hubState={state} />
+      <Box
+        display="flex"
+        flexDirection="row"
+        height="calc(100vh - 200px)"
+        width="100vw"
+        margin={'-0px 0px -24px -24px'}
+      >
+        <ClientMap
+          center={center}
+          items={items}
+          height={'calc(100vh - 200px)'}
+          overlays={overlays}
+          flyTo={flyTo}
+        />
+
+        <Box height={'calc(100vh - 200px)'}>
+          <AlertsContainer events={events} hubState={state} />
+        </Box>
       </Box>
     </Box>
   )

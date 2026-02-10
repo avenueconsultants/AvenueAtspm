@@ -1,34 +1,11 @@
 import { resolveAlertRetention } from '@/components/aggTest/hooks/retention'
+import {
+  AnyAlertBroadcast,
+  UiAlert,
+  UseAlertsHubOpts,
+} from '@/components/aggTest/hooks/types'
 import * as signalR from '@microsoft/signalr'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-type SourcePayload = Record<string, unknown>
-
-export type AlertPayload = {
-  id: number
-  code: number
-  message: string
-  locationIdentifier: string
-  url?: string | null
-  tenantId?: string
-  timestampUtc: string
-  severity: string | number
-  category?: string | null
-  sourcePayload: SourcePayload
-  type: string
-}
-
-type UseAlertsHubOpts = {
-  tenantId?: string
-  locationIds?: string[]
-  withCredentials?: boolean
-  skipNegotiation?: boolean
-
-  ttlByTypeMs?: Record<string, number>
-  defaultTtlMs?: number
-  pruneEveryMs?: number
-  maxAlerts?: number
-}
 
 export function useAlertsHub(opts?: UseAlertsHubOpts) {
   const tenantId = opts?.tenantId ?? 'default'
@@ -52,19 +29,19 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
 
   const { pruneEveryMs, maxAlerts } = retention
 
-  const [alerts, setAlerts] = useState<AlertPayload[]>([])
+  const [alerts, setAlerts] = useState<UiAlert[]>([])
   const connRef = useRef<signalR.HubConnection | null>(null)
 
   const url = useMemo(() => 'http://10.20.100.71:30080/hubs/stats', [])
 
   const prune = useCallback(
-    (xs: AlertPayload[], nowMs: number) => {
-      const keep: AlertPayload[] = []
+    (xs: UiAlert[], nowMs: number) => {
+      const keep: UiAlert[] = []
       for (const a of xs) {
         const ts = Date.parse(a.timestampUtc)
         if (!Number.isFinite(ts)) continue
         const age = nowMs - ts
-        if (age <= retention.getTtlMs(a.type)) keep.push(a)
+        if (age <= retention.getTtlMs(String(a.type))) keep.push(a)
       }
 
       keep.sort(
@@ -90,23 +67,8 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
 
     conn.off('alert')
 
-    conn.on('alert', (payload) => {
-      const sourcePayloadJson = safeJsonParse(payload?.sourcePayloadJson)
-
-      const alert: AlertPayload = {
-        code: payload?.code,
-        message: payload?.message,
-        locationIdentifier: payload?.locationIdentifier,
-        url: payload?.url,
-        tenantId: payload?.tenantId,
-        timestampUtc: payload?.timestampUtc,
-        severity: payload?.severity,
-        category: payload?.category,
-        sourcePayload: sourcePayloadJson,
-        type: (sourcePayloadJson as any)?.type,
-        id: (sourcePayloadJson as any)?.id,
-      }
-
+    conn.on('alert', (payload: AnyAlertBroadcast) => {
+      const alert = toUiAlert(payload)
       const now = Date.now()
       setAlerts((prev) => prune([...prev, alert], now))
     })
@@ -146,14 +108,20 @@ export function useAlertsHub(opts?: UseAlertsHubOpts) {
   }
 }
 
-function safeJsonParse(input: unknown) {
-  if (typeof input !== 'string') return null
-  try {
-    const parsed = JSON.parse(input)
-    return parsed && typeof parsed === 'object'
-      ? (parsed as Record<string, unknown>)
-      : null
-  } catch {
-    return null
+function toUiAlert(dto: AnyAlertBroadcast): UiAlert {
+  const incidentId = (dto as any)?.incidentId ?? null
+
+  const id = `${dto.alertType}:${incidentId}-${dto.createdTimestampUtc}`
+
+  return {
+    id,
+    type: dto.alertType,
+    message: dto.message,
+    locationIdentifier: dto.locationIdentifier,
+    url: dto.url ?? null,
+    tenantId: dto.tenantId,
+    timestampUtc: dto.createdTimestampUtc,
+    severity: dto.severity,
+    payload: dto,
   }
 }

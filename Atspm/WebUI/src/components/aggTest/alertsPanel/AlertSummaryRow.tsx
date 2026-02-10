@@ -23,8 +23,6 @@ export default function AlertSummaryRow({
         alignItems: 'center',
         px: 2,
         py: 1.25,
-        borderLeft: '6px solid',
-        borderLeftColor: color,
         '& + &': { borderTop: '1px solid', borderTopColor: 'divider' },
       }}
     >

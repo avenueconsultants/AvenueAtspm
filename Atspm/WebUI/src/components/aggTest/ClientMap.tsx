@@ -2,7 +2,7 @@ import { FlyToController } from '@/components/aggTest/FlyToController'
 import { MapItem, MapPaneSpec } from '@/pages/dashboard'
 import { type LatLngExpression } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   LayerGroup,
   LayersControl,
@@ -37,6 +37,8 @@ export default function BaseMap({
   }
   overlays?: React.ReactNode
 }) {
+  const [googleSession, setGoogleSession] = useState<string | null>(null)
+
   const { direct, panes } = useMemo(() => {
     const direct: React.ReactNode[] = []
     const paneMap = new Map<
@@ -92,6 +94,18 @@ export default function BaseMap({
     return meta
   }, [items])
 
+  useEffect(() => {
+    const run = async () => {
+      try {
+        const r = await fetch('/api/google/tiles/session', { method: 'POST' })
+        if (!r.ok) return
+        const data = (await r.json()) as { session: string }
+        setGoogleSession(data.session)
+      } catch {}
+    }
+    run()
+  }, [])
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <MapContainer
@@ -102,8 +116,15 @@ export default function BaseMap({
         attributionControl
       >
         <FlyToController flyTo={flyTo} />
-
-        <TileLayer url={tileUrl} attribution={tileAttribution} />
+        {googleSession ? (
+          <TileLayer
+            attribution={'test'}
+            url={`/api/google/tiles/{z}/{x}/{y}?session=${encodeURIComponent(googleSession)}`}
+            crossOrigin
+          />
+        ) : (
+          <TileLayer url={tileUrl} attribution={tileAttribution} />
+        )}
         <LayersControl position="bottomright">
           {direct}
 
