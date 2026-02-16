@@ -34,6 +34,7 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.DeviceDownloaders
         private readonly IEnumerable<IDownloaderClient> _clients;
         protected readonly ILogger _log;
         protected readonly DeviceDownloaderConfiguration _options;
+        private readonly string IpPort = "IpPort";
 
         #endregion
 
@@ -120,12 +121,16 @@ namespace Utah.Udot.Atspm.Infrastructure.Services.DeviceDownloaders
                 var connectionTimeout = parameter?.DeviceConfiguration?.ConnectionTimeout ?? 2000;
                 var operationTimeout = parameter?.DeviceConfiguration?.OperationTimeout ?? 2000;
                 var props = parameter?.DeviceConfiguration?.ConnectionProperties?.ToDictionary(k => k.Key, k => k.Value.ToString());
+                var deviceProperties = parameter?.DeviceProperties;
 
                 using (client)
                 {
                     try
                     {
-                        var connection = new IPEndPoint(ipaddress, parameter.DeviceConfiguration.Port);
+                        int port = deviceProperties.TryGetValue(IpPort, out var value)
+                            ? Convert.ToInt32(value)
+                            : parameter.DeviceConfiguration.Port;
+                        var connection = new IPEndPoint(ipaddress, port);
                         var credentials = new NetworkCredential(user, password, ipaddress.ToString());
 
                         logMessages.ConnectingToHostMessage(deviceIdentifier, ipaddress);
