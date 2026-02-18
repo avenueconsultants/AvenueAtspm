@@ -17,7 +17,7 @@ import {
 
 import type {
   PreemptServiceRequestResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 
 export const getGetPreemptServiceRequestTestDataResponseMock = (overrideResponse: Partial< PreemptServiceRequestResult > = {}): PreemptServiceRequestResult => ({start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), locationIdentifier: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), locationDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), plans: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({planNumber: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), planDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined])})), undefined]), preemptRequests: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({timestamp: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), value: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})), undefined]), ...overrideResponse})
@@ -26,7 +26,7 @@ export const getGetPreemptServiceRequestReportDataResponseMock = (overrideRespon
 
 
 export const getGetPreemptServiceRequestTestDataMockHandler = (overrideResponse?: PreemptServiceRequestResult | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PreemptServiceRequestResult> | PreemptServiceRequestResult)) => {
-  return http.get('*/api/v1/PreemptServiceRequest/test', async (info) => {await delay(1000);
+  return http.get('*/PreemptServiceRequest/test', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
@@ -38,7 +38,7 @@ export const getGetPreemptServiceRequestTestDataMockHandler = (overrideResponse?
 }
 
 export const getGetPreemptServiceRequestReportDataMockHandler = (overrideResponse?: PreemptServiceRequestResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PreemptServiceRequestResult> | PreemptServiceRequestResult)) => {
-  return http.post('*/api/v1/PreemptServiceRequest/getReportData', async (info) => {await delay(1000);
+  return http.post('*/PreemptServiceRequest/getReportData', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 

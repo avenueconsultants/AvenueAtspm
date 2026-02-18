@@ -23,7 +23,7 @@ import type {
   ProblemDetails,
   RampMeteringOptions,
   RampMeteringResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -40,14 +40,14 @@ export const getRampMeteringTestData = (
       
       
       return reportsRequest<RampMeteringResult>(
-      {url: `/api/v1/RampMetering/test`, method: 'GET', signal
+      {url: `/RampMetering/test`, method: 'GET', signal
     },
       );
     }
   
 
 export const getGetRampMeteringTestDataQueryKey = () => {
-    return [`/api/v1/RampMetering/test`] as const;
+    return [`/RampMetering/test`] as const;
     }
 
     
@@ -103,7 +103,7 @@ export const getRampMeteringReportData = (
       
       
       return reportsRequest<RampMeteringResult>(
-      {url: `/api/v1/RampMetering/getReportData`, method: 'POST',
+      {url: `/RampMetering/getReportData`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: rampMeteringOptions, signal
     },

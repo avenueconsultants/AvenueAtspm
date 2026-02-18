@@ -23,7 +23,7 @@ import type {
   PhaseTerminationResult,
   ProblemDetails,
   PurduePhaseTerminationOptions
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -40,14 +40,14 @@ export const getPurduePhaseTerminationTestData = (
       
       
       return reportsRequest<PhaseTerminationResult>(
-      {url: `/api/v1/PurduePhaseTermination/test`, method: 'GET', signal
+      {url: `/PurduePhaseTermination/test`, method: 'GET', signal
     },
       );
     }
   
 
 export const getGetPurduePhaseTerminationTestDataQueryKey = () => {
-    return [`/api/v1/PurduePhaseTermination/test`] as const;
+    return [`/PurduePhaseTermination/test`] as const;
     }
 
     
@@ -103,7 +103,7 @@ export const getPurduePhaseTerminationReportData = (
       
       
       return reportsRequest<PhaseTerminationResult>(
-      {url: `/api/v1/PurduePhaseTermination/getReportData`, method: 'POST',
+      {url: `/PurduePhaseTermination/getReportData`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: purduePhaseTerminationOptions, signal
     },

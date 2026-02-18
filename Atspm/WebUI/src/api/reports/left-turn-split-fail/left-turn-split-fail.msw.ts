@@ -17,7 +17,7 @@ import {
 
 import type {
   LeftTurnSplitFailResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 
 export const getGetLeftTurnSplitFailTestDataResponseMock = (overrideResponse: Partial< LeftTurnSplitFailResult > = {}): LeftTurnSplitFailResult => ({splitFailPercent: faker.helpers.arrayElement([faker.number.float(), undefined]), cyclesWithSplitFails: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), percentCyclesWithSplitFailList: faker.helpers.arrayElement([{
@@ -30,7 +30,7 @@ export const getGetLeftTurnSplitFailReportDataResponseMock = (overrideResponse: 
 
 
 export const getGetLeftTurnSplitFailTestDataMockHandler = (overrideResponse?: LeftTurnSplitFailResult | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LeftTurnSplitFailResult> | LeftTurnSplitFailResult)) => {
-  return http.get('*/api/v1/LeftTurnSplitFail/test', async (info) => {await delay(1000);
+  return http.get('*/LeftTurnSplitFail/test', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
@@ -42,7 +42,7 @@ export const getGetLeftTurnSplitFailTestDataMockHandler = (overrideResponse?: Le
 }
 
 export const getGetLeftTurnSplitFailReportDataMockHandler = (overrideResponse?: LeftTurnSplitFailResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<LeftTurnSplitFailResult> | LeftTurnSplitFailResult)) => {
-  return http.post('*/api/v1/LeftTurnSplitFail/getReportData', async (info) => {await delay(1000);
+  return http.post('*/LeftTurnSplitFail/getReportData', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 

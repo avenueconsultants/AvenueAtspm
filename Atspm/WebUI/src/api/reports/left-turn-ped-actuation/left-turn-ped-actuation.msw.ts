@@ -17,7 +17,7 @@ import {
 
 import type {
   PedActuationResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 
 export const getGetLeftTurnPedActuationTestDataResponseMock = (overrideResponse: Partial< PedActuationResult > = {}): PedActuationResult => ({cyclesWithPedCallsNum: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), cyclesWithPedCallsPercent: faker.helpers.arrayElement([faker.number.float(), undefined]), percentCyclesWithPedsList: faker.helpers.arrayElement([{
@@ -30,7 +30,7 @@ export const getGetLeftTurnPedActuationReportDataResponseMock = (overrideRespons
 
 
 export const getGetLeftTurnPedActuationTestDataMockHandler = (overrideResponse?: PedActuationResult | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PedActuationResult> | PedActuationResult)) => {
-  return http.get('*/api/v1/LeftTurnPedActuation/test', async (info) => {await delay(1000);
+  return http.get('*/LeftTurnPedActuation/test', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
@@ -42,7 +42,7 @@ export const getGetLeftTurnPedActuationTestDataMockHandler = (overrideResponse?:
 }
 
 export const getGetLeftTurnPedActuationReportDataMockHandler = (overrideResponse?: PedActuationResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PedActuationResult> | PedActuationResult)) => {
-  return http.post('*/api/v1/LeftTurnPedActuation/getReportData', async (info) => {await delay(1000);
+  return http.post('*/LeftTurnPedActuation/getReportData', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 

@@ -18,7 +18,7 @@ import type {
   ProblemDetails,
   WatchDogDashboardOptions,
   WatchDogIssueTypeGroup
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -32,7 +32,7 @@ export const getWatchDogDashboardDashboardGroup = (
       
       
       return reportsRequest<WatchDogIssueTypeGroup>(
-      {url: `/api/v1/WatchDogDashboard/getDashboardGroup`, method: 'POST',
+      {url: `/WatchDogDashboard/getDashboardGroup`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: watchDogDashboardOptions, signal
     },

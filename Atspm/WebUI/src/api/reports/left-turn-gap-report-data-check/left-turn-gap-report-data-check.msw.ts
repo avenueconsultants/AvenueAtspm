@@ -17,7 +17,7 @@ import {
 
 import type {
   LeftTurnGapDataCheckResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 
 export const getGetLeftTurnGapReportDataCheckTestDataResponseMock = (overrideResponse: Partial< LeftTurnGapDataCheckResult > = {}): LeftTurnGapDataCheckResult => ({start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), locationIdentifier: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), locationDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), approachId: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), approachDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), leftTurnVolumeOk: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), gapOutOk: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), pedCycleOk: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), insufficientDetectorEventCount: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), insufficientCycleAggregation: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), insufficientPhaseTermination: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), insufficientPedAggregations: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), insufficientSplitFailAggregations: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), insufficientLeftTurnGapAggregations: faker.helpers.arrayElement([faker.datatype.boolean(), undefined]), ...overrideResponse})
@@ -26,7 +26,7 @@ export const getGetLeftTurnGapReportDataCheckReportDataResponseMock = (overrideR
 
 
 export const getGetLeftTurnGapReportDataCheckTestDataMockHandler = (overrideResponse?: LeftTurnGapDataCheckResult | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<LeftTurnGapDataCheckResult> | LeftTurnGapDataCheckResult)) => {
-  return http.get('*/api/v1/LeftTurnGapReportDataCheck/test', async (info) => {await delay(1000);
+  return http.get('*/LeftTurnGapReportDataCheck/test', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
@@ -38,7 +38,7 @@ export const getGetLeftTurnGapReportDataCheckTestDataMockHandler = (overrideResp
 }
 
 export const getGetLeftTurnGapReportDataCheckReportDataMockHandler = (overrideResponse?: LeftTurnGapDataCheckResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<LeftTurnGapDataCheckResult> | LeftTurnGapDataCheckResult)) => {
-  return http.post('*/api/v1/LeftTurnGapReportDataCheck/getReportData', async (info) => {await delay(1000);
+  return http.post('*/LeftTurnGapReportDataCheck/getReportData', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 

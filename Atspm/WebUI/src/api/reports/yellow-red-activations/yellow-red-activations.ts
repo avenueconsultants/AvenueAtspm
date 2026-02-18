@@ -23,7 +23,7 @@ import type {
   ProblemDetails,
   YellowRedActivationsOptions,
   YellowRedActivationsResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -40,14 +40,14 @@ export const getYellowRedActivationsTestData = (
       
       
       return reportsRequest<YellowRedActivationsResult[]>(
-      {url: `/api/v1/YellowRedActivations/test`, method: 'GET', signal
+      {url: `/YellowRedActivations/test`, method: 'GET', signal
     },
       );
     }
   
 
 export const getGetYellowRedActivationsTestDataQueryKey = () => {
-    return [`/api/v1/YellowRedActivations/test`] as const;
+    return [`/YellowRedActivations/test`] as const;
     }
 
     
@@ -103,7 +103,7 @@ export const getYellowRedActivationsReportData = (
       
       
       return reportsRequest<YellowRedActivationsResult[]>(
-      {url: `/api/v1/YellowRedActivations/getReportData`, method: 'POST',
+      {url: `/YellowRedActivations/getReportData`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: yellowRedActivationsOptions, signal
     },

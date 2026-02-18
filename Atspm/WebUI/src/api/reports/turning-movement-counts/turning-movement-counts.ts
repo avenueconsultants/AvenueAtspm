@@ -23,7 +23,7 @@ import type {
   ProblemDetails,
   TurningMovementCountsOptions,
   TurningMovementCountsResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -67,14 +67,14 @@ export const getTurningMovementCountsTestData = (
       
       
       return reportsRequest<TurningMovementCountsResult>(
-      {url: `/api/v1/TurningMovementCounts/test`, method: 'GET', signal
+      {url: `/TurningMovementCounts/test`, method: 'GET', signal
     },
       );
     }
   
 
 export const getGetTurningMovementCountsTestDataQueryKey = () => {
-    return [`/api/v1/TurningMovementCounts/test`] as const;
+    return [`/TurningMovementCounts/test`] as const;
     }
 
     
@@ -130,7 +130,7 @@ export const getTurningMovementCountsReportData = (
       
       
       return reportsRequest<TurningMovementCountsResult>(
-      {url: `/api/v1/TurningMovementCounts/getReportData`, method: 'POST',
+      {url: `/TurningMovementCounts/getReportData`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: turningMovementCountsOptions, signal
     },

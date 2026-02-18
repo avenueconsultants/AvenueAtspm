@@ -23,7 +23,7 @@ import type {
   ProblemDetails,
   VolumeOptions,
   VolumeResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -40,14 +40,14 @@ export const getLeftTurnVolumeTestData = (
       
       
       return reportsRequest<VolumeResult>(
-      {url: `/api/v1/LeftTurnVolume/test`, method: 'GET', signal
+      {url: `/LeftTurnVolume/test`, method: 'GET', signal
     },
       );
     }
   
 
 export const getGetLeftTurnVolumeTestDataQueryKey = () => {
-    return [`/api/v1/LeftTurnVolume/test`] as const;
+    return [`/LeftTurnVolume/test`] as const;
     }
 
     
@@ -103,7 +103,7 @@ export const getLeftTurnVolumeReportData = (
       
       
       return reportsRequest<VolumeResult>(
-      {url: `/api/v1/LeftTurnVolume/getReportData`, method: 'POST',
+      {url: `/LeftTurnVolume/getReportData`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: volumeOptions, signal
     },

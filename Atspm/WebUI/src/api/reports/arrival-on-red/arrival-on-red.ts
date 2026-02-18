@@ -23,7 +23,7 @@ import type {
   ArrivalOnRedOptions,
   ArrivalOnRedResult,
   ProblemDetails
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -40,14 +40,14 @@ export const getArrivalOnRedTestData = (
       
       
       return reportsRequest<ArrivalOnRedResult[]>(
-      {url: `/api/v1/ArrivalOnRed/test`, method: 'GET', signal
+      {url: `/ArrivalOnRed/test`, method: 'GET', signal
     },
       );
     }
   
 
 export const getGetArrivalOnRedTestDataQueryKey = () => {
-    return [`/api/v1/ArrivalOnRed/test`] as const;
+    return [`/ArrivalOnRed/test`] as const;
     }
 
     
@@ -103,7 +103,7 @@ export const getArrivalOnRedReportData = (
       
       
       return reportsRequest<ArrivalOnRedResult[]>(
-      {url: `/api/v1/ArrivalOnRed/getReportData`, method: 'POST',
+      {url: `/ArrivalOnRed/getReportData`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: arrivalOnRedOptions, signal
     },

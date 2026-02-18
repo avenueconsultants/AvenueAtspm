@@ -23,7 +23,7 @@ import type {
   ProblemDetails,
   SplitFailOptions,
   SplitFailsResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 import { reportsRequest } from '../../../lib/axios';
 
@@ -40,14 +40,14 @@ export const getSplitFailTestData = (
       
       
       return reportsRequest<SplitFailsResult[]>(
-      {url: `/api/v1/SplitFail/test`, method: 'GET', signal
+      {url: `/SplitFail/test`, method: 'GET', signal
     },
       );
     }
   
 
 export const getGetSplitFailTestDataQueryKey = () => {
-    return [`/api/v1/SplitFail/test`] as const;
+    return [`/SplitFail/test`] as const;
     }
 
     
@@ -103,7 +103,7 @@ export const getSplitFailReportData = (
       
       
       return reportsRequest<SplitFailsResult[]>(
-      {url: `/api/v1/SplitFail/getReportData`, method: 'POST',
+      {url: `/SplitFail/getReportData`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: splitFailOptions, signal
     },

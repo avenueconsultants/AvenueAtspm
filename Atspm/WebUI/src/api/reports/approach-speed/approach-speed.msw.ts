@@ -17,7 +17,7 @@ import {
 
 import type {
   ApproachSpeedResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 
 export const getGetApproachSpeedTestDataResponseMock = (): ApproachSpeedResult[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), locationIdentifier: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), locationDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), approachId: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), approachDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), phaseNumber: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), phaseDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), detectionType: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), distanceFromStopBar: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), postedSpeed: faker.helpers.arrayElement([faker.number.float(), undefined]), plans: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({planNumber: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), planDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), averageSpeed: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), null]), undefined]), standardDeviation: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), null]), undefined]), eightyFifthPercentile: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), null]), undefined]), fifteenthPercentile: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), null]), undefined])})), undefined]), averageSpeeds: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({timestamp: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), value: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})), undefined]), eightyFifthSpeeds: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({timestamp: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), value: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})), undefined]), fifteenthSpeeds: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({timestamp: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), value: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined])})), undefined])})))
@@ -26,7 +26,7 @@ export const getGetApproachSpeedReportDataResponseMock = (): ApproachSpeedResult
 
 
 export const getGetApproachSpeedTestDataMockHandler = (overrideResponse?: ApproachSpeedResult[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<ApproachSpeedResult[]> | ApproachSpeedResult[])) => {
-  return http.get('*/api/v1/ApproachSpeed/test', async (info) => {await delay(1000);
+  return http.get('*/ApproachSpeed/test', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
@@ -38,7 +38,7 @@ export const getGetApproachSpeedTestDataMockHandler = (overrideResponse?: Approa
 }
 
 export const getGetApproachSpeedReportDataMockHandler = (overrideResponse?: ApproachSpeedResult[] | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<ApproachSpeedResult[]> | ApproachSpeedResult[])) => {
-  return http.post('*/api/v1/ApproachSpeed/getReportData', async (info) => {await delay(1000);
+  return http.post('*/ApproachSpeed/getReportData', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 

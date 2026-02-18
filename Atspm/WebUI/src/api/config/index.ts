@@ -23,3 +23,5 @@ export * from './route-distance/route-distance';
 export * from './route-location/route-location';
 export * from './version-history/version-history';
 export * from './watch-dog-ignore-event/watch-dog-ignore-event';
+export * from './config-api.schemas';
+export * from './usage-entry/usage-entry';

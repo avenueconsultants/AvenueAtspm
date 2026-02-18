@@ -17,7 +17,7 @@ import {
 
 import type {
   PhaseTerminationResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 
 export const getGetPurduePhaseTerminationTestDataResponseMock = (overrideResponse: Partial< PhaseTerminationResult > = {}): PhaseTerminationResult => ({start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), locationIdentifier: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), locationDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), consecutiveCount: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), plans: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({planNumber: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), planDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined])})), undefined]), phases: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({phaseNumber: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), gapOuts: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (`${faker.date.past().toISOString().split('.')[0]}Z`)), undefined]), maxOuts: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (`${faker.date.past().toISOString().split('.')[0]}Z`)), undefined]), forceOffs: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (`${faker.date.past().toISOString().split('.')[0]}Z`)), undefined]), pedWalkBegins: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (`${faker.date.past().toISOString().split('.')[0]}Z`)), undefined]), unknownTerminations: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => (`${faker.date.past().toISOString().split('.')[0]}Z`)), undefined])})), undefined]), ...overrideResponse})
@@ -26,7 +26,7 @@ export const getGetPurduePhaseTerminationReportDataResponseMock = (overrideRespo
 
 
 export const getGetPurduePhaseTerminationTestDataMockHandler = (overrideResponse?: PhaseTerminationResult | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<PhaseTerminationResult> | PhaseTerminationResult)) => {
-  return http.get('*/api/v1/PurduePhaseTermination/test', async (info) => {await delay(1000);
+  return http.get('*/PurduePhaseTermination/test', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
@@ -38,7 +38,7 @@ export const getGetPurduePhaseTerminationTestDataMockHandler = (overrideResponse
 }
 
 export const getGetPurduePhaseTerminationReportDataMockHandler = (overrideResponse?: PhaseTerminationResult | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<PhaseTerminationResult> | PhaseTerminationResult)) => {
-  return http.post('*/api/v1/PurduePhaseTermination/getReportData', async (info) => {await delay(1000);
+  return http.post('*/PurduePhaseTermination/getReportData', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 

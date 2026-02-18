@@ -17,7 +17,7 @@ import {
 
 import type {
   GreenTimeUtilizationResult
-} from '../aTSPMReportDataApi.schemas';
+} from '../report-api.schemas';
 
 
 export const getGetGreenTimeUtilizationTestDataResponseMock = (): GreenTimeUtilizationResult[] => (Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), locationIdentifier: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), locationDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), approachId: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), approachDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), bins: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({x: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), y: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), value: faker.helpers.arrayElement([faker.number.float(), undefined])})), undefined]), averageSplits: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({timestamp: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), value: faker.helpers.arrayElement([faker.number.float(), undefined])})), undefined]), programmedSplits: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({timestamp: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), value: faker.helpers.arrayElement([faker.number.float(), undefined])})), undefined]), phaseNumber: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), yAxisBinSize: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), xAxisBinSize: faker.helpers.arrayElement([faker.number.int({min: undefined, max: undefined}), undefined]), plans: faker.helpers.arrayElement([Array.from({ length: faker.number.int({ min: 1, max: 10 }) }, (_, i) => i + 1).map(() => ({planNumber: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), start: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), end: faker.helpers.arrayElement([`${faker.date.past().toISOString().split('.')[0]}Z`, undefined]), planDescription: faker.helpers.arrayElement([faker.helpers.arrayElement([faker.string.alpha(20), null]), undefined]), splits: faker.helpers.arrayElement([{
@@ -30,7 +30,7 @@ export const getGetGreenTimeUtilizationReportDataResponseMock = (): GreenTimeUti
 
 
 export const getGetGreenTimeUtilizationTestDataMockHandler = (overrideResponse?: GreenTimeUtilizationResult[] | ((info: Parameters<Parameters<typeof http.get>[1]>[0]) => Promise<GreenTimeUtilizationResult[]> | GreenTimeUtilizationResult[])) => {
-  return http.get('*/api/v1/GreenTimeUtilization/test', async (info) => {await delay(1000);
+  return http.get('*/GreenTimeUtilization/test', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
@@ -42,7 +42,7 @@ export const getGetGreenTimeUtilizationTestDataMockHandler = (overrideResponse?:
 }
 
 export const getGetGreenTimeUtilizationReportDataMockHandler = (overrideResponse?: GreenTimeUtilizationResult[] | ((info: Parameters<Parameters<typeof http.post>[1]>[0]) => Promise<GreenTimeUtilizationResult[]> | GreenTimeUtilizationResult[])) => {
-  return http.post('*/api/v1/GreenTimeUtilization/getReportData', async (info) => {await delay(1000);
+  return http.post('*/GreenTimeUtilization/getReportData', async (info) => {await delay(1000);
   
     return new HttpResponse(JSON.stringify(overrideResponse !== undefined 
             ? (typeof overrideResponse === "function" ? await overrideResponse(info) : overrideResponse) 
