@@ -21,7 +21,7 @@ public abstract class TransferEventLogsToBigQueryBase<T> : IHostedService where 
     protected readonly ILogger _logger;
     protected readonly ILocationRepository _locationRepository;
     protected readonly TransferCommandConfiguration _config;
-    protected readonly string _bucket = "salt-lake-mobility-event-uploads";
+    protected readonly string _bucket = "nw-utah-county-pel-event-uploads";
 
     protected abstract string TableName { get; }
     protected abstract TableSchema GetSchema();

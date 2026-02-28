@@ -28,6 +28,7 @@ using Microsoft.Extensions.Options;
 using System.CommandLine.Builder;
 using System.CommandLine.Hosting;
 using System.CommandLine.Parsing;
+using System.Text.Json;
 using Utah.Udot.Atspm.Data;
 using Utah.Udot.Atspm.Data.Models;
 using Utah.Udot.Atspm.Infrastructure.Extensions;
@@ -77,14 +78,23 @@ cmdBuilder.UseHost(hostBuilder =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
             var opts = sp.GetRequiredService<IOptions<BigQueryOptions>>().Value;
-            var credentialsPath = config.GetValue<string>("BigQuery:CredentialsFile");
+            var transferOptions = sp.GetRequiredService<IOptions<TransferCommandConfiguration>>().Value;
+            var credentialsPath = ResolveCredentialsPath(config, transferOptions);
+            var projectId = ResolveProjectId(opts, credentialsPath);
 
             var credential = GoogleCredential.FromFile(credentialsPath);
-            return BigQueryClient.Create(opts.ProjectId, credential);
+            return BigQueryClient.Create(projectId, credential);
         });
 
         // Register Google Cloud StorageClient
-        services.AddSingleton(StorageClient.Create());
+        services.AddSingleton(sp =>
+        {
+            var config = sp.GetRequiredService<IConfiguration>();
+            var transferOptions = sp.GetRequiredService<IOptions<TransferCommandConfiguration>>().Value;
+            var credentialsPath = ResolveCredentialsPath(config, transferOptions);
+            var credential = GoogleCredential.FromFile(credentialsPath);
+            return StorageClient.Create(credential);
+        });
 
         // BigQuery repositories
         services.AddScoped<IIndianaEventLogBQRepository, IndianaEventLogBQRepository>();
@@ -111,3 +121,44 @@ host =>
 // Build and invoke the command parser
 var cmdParser = cmdBuilder.Build();
 await cmdParser.InvokeAsync(args);
+
+static string ResolveCredentialsPath(IConfiguration config, TransferCommandConfiguration transferOptions)
+{
+    var credentialsPath = !string.IsNullOrWhiteSpace(transferOptions.CredentialsFile)
+        ? transferOptions.CredentialsFile
+        : config.GetValue<string>("BigQuery:CredentialsFile");
+
+    if (string.IsNullOrWhiteSpace(credentialsPath))
+    {
+        throw new InvalidOperationException(
+            "Google credentials file path is required. Set --credentials-file or BigQuery:CredentialsFile.");
+    }
+
+    if (!File.Exists(credentialsPath))
+    {
+        throw new FileNotFoundException($"Google credentials file was not found at '{credentialsPath}'.", credentialsPath);
+    }
+
+    return credentialsPath;
+}
+
+static string ResolveProjectId(BigQueryOptions options, string credentialsPath)
+{
+    if (!string.IsNullOrWhiteSpace(options.ProjectId))
+    {
+        return options.ProjectId;
+    }
+
+    using var json = JsonDocument.Parse(File.ReadAllText(credentialsPath));
+    if (json.RootElement.TryGetProperty("project_id", out var projectIdElement))
+    {
+        var projectId = projectIdElement.GetString();
+        if (!string.IsNullOrWhiteSpace(projectId))
+        {
+            return projectId;
+        }
+    }
+
+    throw new InvalidOperationException(
+        "BigQuery project id is missing. Set BigQuery:ProjectId or provide a credentials file containing project_id.");
+}

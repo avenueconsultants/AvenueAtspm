@@ -74,6 +74,8 @@ namespace DatabaseInstaller.Commands
         public int? Batch { get; set; }
         public int? Threads { get; set; }
         public string Locations { get; set; }
+        public string StorageFormat { get; set; } = string.Empty;
+        public string CredentialsFile { get; set; } = string.Empty;
 
     }
 }
