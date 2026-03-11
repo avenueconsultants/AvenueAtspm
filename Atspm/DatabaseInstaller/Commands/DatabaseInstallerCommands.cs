@@ -35,6 +35,7 @@ namespace DatabaseInstaller.Commands
             AddCommand(TransferIndianaEventsToBigQueryCommand);
             AddCommand(TransferIndianaRawEventsToBigQueryCommand);
             AddCommand(TransferSpeedEventsToBigQueryCommand);
+            AddCommand(MoveEventLogsSqlServerToBigQueryCommand);
         }
 
         public UpdateCommand UpdateCommand { get; set; } = new UpdateCommand();
@@ -48,6 +49,7 @@ namespace DatabaseInstaller.Commands
         public TransferCompressedIndianaEventsToBigQueryCommand TransferIndianaEventsToBigQueryCommand { get; set; } = new TransferCompressedIndianaEventsToBigQueryCommand();
         public TransferRawIndianaEventsToBigQueryCommand TransferIndianaRawEventsToBigQueryCommand { get; set; } = new TransferRawIndianaEventsToBigQueryCommand();
         public TransferSpeedEventsToBigQueryCommand TransferSpeedEventsToBigQueryCommand { get; set; } = new TransferSpeedEventsToBigQueryCommand();
+        public MoveEventLogsSqlServerToBigQueryCommand MoveEventLogsSqlServerToBigQueryCommand { get; set; } = new MoveEventLogsSqlServerToBigQueryCommand();
 
     }
 }

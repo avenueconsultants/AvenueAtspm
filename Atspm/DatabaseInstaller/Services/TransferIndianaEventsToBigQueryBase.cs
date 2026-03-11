@@ -55,9 +55,7 @@ public abstract class TransferEventLogsToBigQueryBase<T> : IHostedService where 
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        var locationIds = !string.IsNullOrEmpty(_config.Locations)
-            ? _config.Locations.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList()
-            : _locationRepository.GetList().Select(l => l.LocationIdentifier).Distinct().ToList();
+        var locationIds = ResolveLocationIds();
 
         for (var currentDay = DateOnly.FromDateTime(_config.Start); currentDay <= DateOnly.FromDateTime(_config.End); currentDay = currentDay.AddDays(1))
         {
@@ -81,6 +79,13 @@ public abstract class TransferEventLogsToBigQueryBase<T> : IHostedService where 
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+    protected virtual List<string> ResolveLocationIds()
+    {
+        return !string.IsNullOrEmpty(_config.Locations)
+            ? _config.Locations.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList()
+            : _locationRepository.GetList().Select(l => l.LocationIdentifier).Distinct().ToList();
+    }
 
     private async Task ProcessLocationAsync(string locationId, DateOnly currentDay, string batchId, ConcurrentBag<string> gcsFiles)
     {
