@@ -16,6 +16,9 @@ namespace DatabaseInstaller.Services;
 
 public abstract class TransferEventLogsToBigQueryBase<T> : IHostedService where T : class
 {
+    private const int DefaultLocationBatchSize = 25;
+    private const int MaxLocationBatchSize = 50;
+
     protected readonly BigQueryClient _client;
     protected readonly StorageClient _storageClient;
     protected readonly ILogger _logger;
@@ -56,16 +59,53 @@ public abstract class TransferEventLogsToBigQueryBase<T> : IHostedService where 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         var locationIds = ResolveLocationIds();
+        if (!locationIds.Any())
+        {
+            _logger.LogWarning("No locations were resolved for processing.");
+            return;
+        }
+
+        var maxConcurrency = ResolveMaxConcurrency();
+        var locationBatchSize = ResolveLocationBatchSize();
+
+        if (maxConcurrency > locationBatchSize)
+        {
+            _logger.LogWarning(
+                "Configured thread limit {ThreadLimit} exceeds location batch size {BatchSize}. Reducing effective concurrency to batch size.",
+                maxConcurrency,
+                locationBatchSize);
+            maxConcurrency = locationBatchSize;
+        }
+
+        var locationBatches = CreateLocationBatches(locationIds, locationBatchSize).ToList();
+        _logger.LogInformation(
+            "Location processing configured with {LocationCount} locations, {BatchCount} batches, batch size {BatchSize}, max concurrency {MaxConcurrency}.",
+            locationIds.Count,
+            locationBatches.Count,
+            locationBatchSize,
+            maxConcurrency);
 
         for (var currentDay = DateOnly.FromDateTime(_config.Start); currentDay <= DateOnly.FromDateTime(_config.End); currentDay = currentDay.AddDays(1))
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var gcsFiles = new ConcurrentBag<string>();
             var batchId = Guid.NewGuid().ToString("N");
 
-            var tasks = locationIds.Select(locationId =>
-                ProcessLocationAsync(locationId, currentDay, batchId, gcsFiles));
+            for (var i = 0; i < locationBatches.Count; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
-            await Task.WhenAll(tasks);
+                var locationBatch = locationBatches[i];
+                _logger.LogInformation(
+                    "Starting location batch {BatchNumber}/{TotalBatches} for {Date} with {BatchLocationCount} locations.",
+                    i + 1,
+                    locationBatches.Count,
+                    currentDay,
+                    locationBatch.Count);
+
+                await ProcessLocationBatchAsync(locationBatch, currentDay, batchId, gcsFiles, maxConcurrency, cancellationToken);
+            }
 
             if (gcsFiles.Any())
             {
@@ -85,6 +125,63 @@ public abstract class TransferEventLogsToBigQueryBase<T> : IHostedService where 
         return !string.IsNullOrEmpty(_config.Locations)
             ? _config.Locations.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList()
             : _locationRepository.GetList().Select(l => l.LocationIdentifier).Distinct().ToList();
+    }
+
+    private int ResolveMaxConcurrency()
+    {
+        // Keep a floor of 1 even when --threads is not set or misconfigured.
+        return _config.Threads.GetValueOrDefault(Environment.ProcessorCount) switch
+        {
+            <= 0 => 1,
+            var value => value
+        };
+    }
+
+    private int ResolveLocationBatchSize()
+    {
+        var configuredBatchSize = _config.Batch.GetValueOrDefault(DefaultLocationBatchSize);
+        return Math.Clamp(configuredBatchSize, 1, MaxLocationBatchSize);
+    }
+
+    private static IEnumerable<IReadOnlyList<string>> CreateLocationBatches(IReadOnlyList<string> locationIds, int batchSize)
+    {
+        for (var i = 0; i < locationIds.Count; i += batchSize)
+        {
+            var count = Math.Min(batchSize, locationIds.Count - i);
+            var batch = new List<string>(count);
+            for (var offset = 0; offset < count; offset++)
+            {
+                batch.Add(locationIds[i + offset]);
+            }
+
+            yield return batch;
+        }
+    }
+
+    private async Task ProcessLocationBatchAsync(
+        IReadOnlyList<string> locationBatch,
+        DateOnly currentDay,
+        string batchId,
+        ConcurrentBag<string> gcsFiles,
+        int maxConcurrency,
+        CancellationToken cancellationToken)
+    {
+        using var throttler = new SemaphoreSlim(maxConcurrency);
+
+        var tasks = locationBatch.Select(async locationId =>
+        {
+            await throttler.WaitAsync(cancellationToken);
+            try
+            {
+                await ProcessLocationAsync(locationId, currentDay, batchId, gcsFiles);
+            }
+            finally
+            {
+                throttler.Release();
+            }
+        });
+
+        await Task.WhenAll(tasks);
     }
 
     private async Task ProcessLocationAsync(string locationId, DateOnly currentDay, string batchId, ConcurrentBag<string> gcsFiles)

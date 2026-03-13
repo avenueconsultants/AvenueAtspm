@@ -16,12 +16,14 @@ namespace DatabaseInstaller.Commands
             AddOption(EndOption);
             AddOption(LocationsOption);
             AddOption(Threads);
+            AddOption(BatchOption);
         }
 
         public Option<DateTime> StartOption { get; } = new("--start", "Start date");
         public Option<DateTime> EndOption { get; } = new("--end", "End date");
         public Option<string> LocationsOption { get; } = new("--locations", "Comma-separated list of location identifiers") { IsRequired = false };
         public Option<int?> Threads { get; } = new("--threads", "Number of threads to use") { IsRequired = false };
+        public Option<int?> BatchOption { get; } = new("--batch", "Number of locations to process per batch") { IsRequired = false };
 
         public ModelBinder<TransferCommandConfiguration> GetOptionsBinder()
         {
@@ -30,6 +32,7 @@ namespace DatabaseInstaller.Commands
             binder.BindMemberFromValue(c => c.End, EndOption);
             binder.BindMemberFromValue(c => c.Locations, LocationsOption);
             binder.BindMemberFromValue(c => c.Threads, Threads);
+            binder.BindMemberFromValue(c => c.Batch, BatchOption);
             return binder;
         }
 
